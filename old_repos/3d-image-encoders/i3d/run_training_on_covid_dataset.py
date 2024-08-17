@@ -21,7 +21,7 @@ if __name__ == "__main__":
     device = "cuda"
     device_ids = None
     num_epochs = 10
-    batch_size = 5
+    batch_size = 6
     seed = 42
 
     experiment_name = f"{model_name}-finetuning-on-{dataset_name}"
