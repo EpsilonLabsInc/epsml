@@ -16,10 +16,6 @@ if __name__ == "__main__":
     model_name = "inflated_resnet"
     dataset_name = "covid_dataset"
     dataset_path = "/home/ec2-user/data/New_Data_CoV2"
-
-    # TODO: Remove.
-    mlflow_user = "andrej"
-    mlflow_pass = "ea`zrZT'V408"
     mlflow_uri = "https://mlflow-f66025e-rcsxwgoiba-uc.a.run.app"
 
     device = "cuda"
@@ -27,13 +23,6 @@ if __name__ == "__main__":
     num_epochs = 10
     batch_size = 5
     seed = 42
-
-    # Required by ResNet.
-    transform = torchvision.transforms.Compose([
-        torchvision.transforms.Resize((224, 224)),
-        torchvision.transforms.ToTensor(),
-        torchvision.transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-    ])
 
     experiment_name = f"{model_name}-finetuning-on-{dataset_name}"
     mlflow_experiment_name = f"{experiment_name}"
@@ -61,13 +50,20 @@ if __name__ == "__main__":
     # Prepare the training data.
     print("Preparing the training data")
     training_parameters = TrainingParameters(num_epochs=num_epochs, batch_size=batch_size, checkpoint_dir=checkpoint_dir)
-    mlflow_parameters = MlFlowParameters(username=mlflow_user, password=mlflow_pass, uri=mlflow_uri, experiment_name=mlflow_experiment_name)
+    mlflow_parameters = MlFlowParameters(uri=mlflow_uri, experiment_name=mlflow_experiment_name)
     training_helper = TrainingHelper(model=model,
                                     dataset_helper=dataset_helper,
                                     device=device,
                                     device_ids=device_ids,
                                     training_parameters=training_parameters,
                                     mlflow_parameters=mlflow_parameters)
+
+    # Required by ResNet.
+    transform = torchvision.transforms.Compose([
+        torchvision.transforms.Resize((224, 224)),
+        torchvision.transforms.ToTensor(),
+        torchvision.transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    ])
 
     def collate_function(samples):
         images = torch.stack([dataset_helper.get_torch_image(item=item, transform=transform, normalization_depth=volume_depth) for item in samples])
