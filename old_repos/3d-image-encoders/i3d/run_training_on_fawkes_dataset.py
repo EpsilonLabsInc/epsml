@@ -61,7 +61,7 @@ if __name__ == "__main__":
 
     # Prepare the training data.
     print("Preparing the training data")
-    training_parameters = TrainingParameters(num_epochs=num_epochs, batch_size=batch_size, checkpoint_dir=checkpoint_dir)
+    training_parameters = TrainingParameters(num_epochs=num_epochs, batch_size=batch_size, criterion=torch.nn.BCEWithLogitsLoss(), checkpoint_dir=checkpoint_dir)
     mlflow_parameters = MlFlowParameters(uri=mlflow_uri, experiment_name=mlflow_experiment_name)
     training_helper = TrainingHelper(model=model,
                                     dataset_helper=dataset_helper,
