@@ -1,6 +1,7 @@
 import copy
 import sys
 
+sys.path.insert(1, "/home/ec2-user/work/registry/dicom_converter")
 sys.path.insert(1, "/home/ec2-user/work/registry/helpers")
 sys.path.insert(1, "/home/ec2-user/work/registry/mimic")
 
@@ -8,20 +9,21 @@ import torch
 import torchvision
 
 from i3d_resnet import I3DResNet
-from covid_dataset_helper import CovidDatasetHelper
+from fawkes_dataset_helper import FawkesDatasetHelper
 from training_helper import TrainingHelper, TrainingParameters, MlFlowParameters
 
 
 if __name__ == "__main__":
     model_name = "inflated_resnet"
-    dataset_name = "covid_dataset"
-    dataset_path = "/home/ec2-user/data/New_Data_CoV2"
+    dataset_name = "fawkes_varying_dataset"
+    labeled_data_file="/home/ec2-user/data/mnt/epsilon-datasets/fawkes/fawkes_varying_volumes/labeled_data.json"
+    grouped_labels_file="/home/ec2-user/data/mnt/epsilon-datasets/fawkes/grouped_labels.json"
     mlflow_uri = "https://mlflow-f66025e-rcsxwgoiba-uc.a.run.app"
 
     device = "cuda"
     device_ids = None
     num_epochs = 10
-    batch_size = 6
+    batch_size = 2
     seed = 42
 
     experiment_name = f"{model_name}-finetuning-on-{dataset_name}"
@@ -33,17 +35,21 @@ if __name__ == "__main__":
 
     # Load the dataset.
     print("Loading the dataset")
-    dataset_helper = CovidDatasetHelper(dataset_path=dataset_path, seed=seed)
+    dataset_helper = FawkesDatasetHelper(labeled_data_file=labeled_data_file, grouped_labels_file=grouped_labels_file, seed=seed)
     max_depth = dataset_helper.get_max_depth()
 
     # Volume depth must be greater than max_depth and divisible by 8 (the latter is I3D's constraint).
     volume_depth = ((max_depth // 8) + 1) * 8
     print(f"Max depth in the dataset is {max_depth}, setting volume depth to {volume_depth}")
 
+    # Get labels manager.
+    labels_manager = dataset_helper.get_labels_manager()
+    num_labels = len(labels_manager.get_groups())
+
     # Create the model.
     print("Creating the model")
     resnet = torchvision.models.resnet152(pretrained=True)
-    model = I3DResNet(resnet2d=copy.deepcopy(resnet), frame_nb=volume_depth, class_nb=len(dataset_helper.get_labels()), conv_class=True)
+    model = I3DResNet(resnet2d=copy.deepcopy(resnet), frame_nb=volume_depth, class_nb=num_labels, conv_class=True)
     for param in model.parameters():
         param.requires_grad = True
 
