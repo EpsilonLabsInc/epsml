@@ -22,8 +22,9 @@ if __name__ == "__main__":
 
     device = "cuda"
     device_ids = None
+    half_model_precision = False
     num_epochs = 10
-    batch_size = 2
+    batch_size = 1
     seed = 42
 
     experiment_name = f"{model_name}-finetuning-on-{dataset_name}"
@@ -35,7 +36,8 @@ if __name__ == "__main__":
 
     # Load the dataset.
     print("Loading the dataset")
-    dataset_helper = FawkesDatasetHelper(labeled_data_file=labeled_data_file, grouped_labels_file=grouped_labels_file, seed=seed)
+    dataset_helper = FawkesDatasetHelper(
+        labeled_data_file=labeled_data_file, grouped_labels_file=grouped_labels_file, use_half_precision=half_model_precision, seed=seed)
     max_depth = dataset_helper.get_max_depth()
 
     # Volume depth must be greater than max_depth and divisible by 8 (the latter is I3D's constraint).
@@ -50,8 +52,12 @@ if __name__ == "__main__":
     print("Creating the model")
     resnet = torchvision.models.resnet152(pretrained=True)
     model = I3DResNet(resnet2d=copy.deepcopy(resnet), frame_nb=volume_depth, class_nb=num_labels, conv_class=True)
+
     for param in model.parameters():
         param.requires_grad = True
+
+    if half_model_precision:
+        model.half()
 
     # Prepare the training data.
     print("Preparing the training data")
