@@ -23,6 +23,7 @@ if __name__ == "__main__":
     device = "cuda"
     # device_ids = None  # Use one (the default) GPU.
     device_ids = [0, 1, 2, 3]  # Use 4 GPUs.
+    volume_depth_threshold = 200  # Skip volumes with >= 200 slices.
     half_model_precision = False
     num_epochs = 10
     batch_size = 1
@@ -38,7 +39,9 @@ if __name__ == "__main__":
     # Load the dataset.
     print("Loading the dataset")
     dataset_helper = FawkesDatasetHelper(
-        labeled_data_file=labeled_data_file, grouped_labels_file=grouped_labels_file, use_half_precision=half_model_precision, seed=seed)
+        labeled_data_file=labeled_data_file, grouped_labels_file=grouped_labels_file,
+        volume_depth_threshold=volume_depth_threshold, use_half_precision=half_model_precision,
+        seed=seed)
     max_depth = dataset_helper.get_max_depth()
 
     # Volume depth must be greater than max_depth and divisible by 8 (the latter is I3D's constraint).
