@@ -21,7 +21,8 @@ if __name__ == "__main__":
     mlflow_uri = "https://mlflow-f66025e-rcsxwgoiba-uc.a.run.app"
 
     device = "cuda"
-    device_ids = None
+    # device_ids = None  # Use one (the default) GPU.
+    device_ids = [0, 1, 2, 3]  # Use 4 GPUs.
     half_model_precision = False
     num_epochs = 10
     batch_size = 1
