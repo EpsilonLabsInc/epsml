@@ -26,7 +26,7 @@ if __name__ == "__main__":
     volume_depth_threshold = 200  # Skip volumes with >= 200 slices.
     half_model_precision = False
     num_epochs = 10
-    batch_size = 1
+    batch_size = 4
     seed = 42
 
     experiment_name = f"{model_name}-finetuning-on-{dataset_name}"
