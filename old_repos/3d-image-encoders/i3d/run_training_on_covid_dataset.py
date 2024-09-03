@@ -9,7 +9,7 @@ import torchvision
 
 from i3d_resnet import I3DResNet
 from covid_dataset_helper import CovidDatasetHelper
-from training_helper import TrainingHelper, TrainingParameters, MlFlowParameters
+from torch_training_helper import TorchTrainingHelper, TrainingParameters, MlFlowParameters
 
 
 if __name__ == "__main__":
@@ -19,7 +19,10 @@ if __name__ == "__main__":
     mlflow_uri = "https://mlflow-f66025e-rcsxwgoiba-uc.a.run.app"
 
     device = "cuda"
-    device_ids = None
+    # device_ids = None  # Use one (the default) GPU.
+    device_ids = [0, 1, 2, 3]  # Use 4 GPUs.
+    half_model_precision = False
+    learning_rate = 1e-6
     num_epochs = 10
     batch_size = 6
     seed = 42
@@ -44,19 +47,30 @@ if __name__ == "__main__":
     print("Creating the model")
     resnet = torchvision.models.resnet152(pretrained=True)
     model = I3DResNet(resnet2d=copy.deepcopy(resnet), frame_nb=volume_depth, class_nb=len(dataset_helper.get_labels()), conv_class=True)
+
     for param in model.parameters():
         param.requires_grad = True
 
+    if half_model_precision:
+        model.half()
+
     # Prepare the training data.
     print("Preparing the training data")
-    training_parameters = TrainingParameters(num_epochs=num_epochs, batch_size=batch_size, checkpoint_dir=checkpoint_dir)
-    mlflow_parameters = MlFlowParameters(uri=mlflow_uri, experiment_name=mlflow_experiment_name)
-    training_helper = TrainingHelper(model=model,
-                                    dataset_helper=dataset_helper,
-                                    device=device,
-                                    device_ids=device_ids,
-                                    training_parameters=training_parameters,
-                                    mlflow_parameters=mlflow_parameters)
+
+    training_parameters = TrainingParameters(learning_rate=learning_rate,
+                                             num_epochs=num_epochs,
+                                             batch_size=batch_size,
+                                             checkpoint_dir=checkpoint_dir)
+
+    mlflow_parameters = MlFlowParameters(uri=mlflow_uri,
+                                         experiment_name=mlflow_experiment_name)
+
+    training_helper = TorchTrainingHelper(model=model,
+                                          dataset_helper=dataset_helper,
+                                          device=device,
+                                          device_ids=device_ids,
+                                          training_parameters=training_parameters,
+                                          mlflow_parameters=mlflow_parameters)
 
     transform = torchvision.transforms.Compose([
         torchvision.transforms.Resize((224, 224)),
@@ -70,5 +84,5 @@ if __name__ == "__main__":
         labels = torch.stack([dataset_helper.get_torch_label(item) for item in samples])
         return images, labels
 
-    training_helper.start_torch_training(collate_function=collate_function)
+    training_helper.start_training(collate_function=collate_function)
     training_helper.save_model(model_file_name=save_model_filename, parallel_model_file_name=save_parallel_model_filename)

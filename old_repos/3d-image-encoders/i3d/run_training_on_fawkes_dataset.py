@@ -10,7 +10,7 @@ import torchvision
 
 from i3d_resnet import I3DResNet
 from fawkes_dataset_helper import FawkesDatasetHelper
-from training_helper import TrainingHelper, TrainingParameters, MlFlowParameters
+from torch_training_helper import TorchTrainingHelper, TrainingParameters, MlFlowParameters
 
 
 if __name__ == "__main__":
@@ -76,12 +76,12 @@ if __name__ == "__main__":
     mlflow_parameters = MlFlowParameters(uri=mlflow_uri,
                                          experiment_name=mlflow_experiment_name)
 
-    training_helper = TrainingHelper(model=model,
-                                     dataset_helper=dataset_helper,
-                                     device=device,
-                                     device_ids=device_ids,
-                                     training_parameters=training_parameters,
-                                     mlflow_parameters=mlflow_parameters)
+    training_helper = TorchTrainingHelper(model=model,
+                                          dataset_helper=dataset_helper,
+                                          device=device,
+                                          device_ids=device_ids,
+                                          training_parameters=training_parameters,
+                                          mlflow_parameters=mlflow_parameters)
 
     transform = torchvision.transforms.Compose([
         torchvision.transforms.Resize((224, 224)),
@@ -95,5 +95,5 @@ if __name__ == "__main__":
         labels = torch.stack([dataset_helper.get_torch_label(item) for item in samples])
         return images, labels
 
-    training_helper.start_torch_training(collate_function=collate_function)
+    training_helper.start_training(collate_function=collate_function)
     training_helper.save_model(model_file_name=save_model_filename, parallel_model_file_name=save_parallel_model_filename)
