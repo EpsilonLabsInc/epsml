@@ -25,6 +25,7 @@ if __name__ == "__main__":
     device_ids = [0, 1, 2, 3]  # Use 4 GPUs.
     volume_depth_threshold = 200  # Skip volumes with >= 200 slices.
     half_model_precision = False
+    learning_rate = 1e-6
     num_epochs = 10
     batch_size = 4
     seed = 42
@@ -65,14 +66,22 @@ if __name__ == "__main__":
 
     # Prepare the training data.
     print("Preparing the training data")
-    training_parameters = TrainingParameters(num_epochs=num_epochs, batch_size=batch_size, criterion=torch.nn.BCEWithLogitsLoss(), checkpoint_dir=checkpoint_dir)
-    mlflow_parameters = MlFlowParameters(uri=mlflow_uri, experiment_name=mlflow_experiment_name)
+
+    training_parameters = TrainingParameters(learning_rate=learning_rate,
+                                             num_epochs=num_epochs,
+                                             batch_size=batch_size,
+                                             criterion=torch.nn.BCEWithLogitsLoss(),
+                                             checkpoint_dir=checkpoint_dir)
+
+    mlflow_parameters = MlFlowParameters(uri=mlflow_uri,
+                                         experiment_name=mlflow_experiment_name)
+
     training_helper = TrainingHelper(model=model,
-                                    dataset_helper=dataset_helper,
-                                    device=device,
-                                    device_ids=device_ids,
-                                    training_parameters=training_parameters,
-                                    mlflow_parameters=mlflow_parameters)
+                                     dataset_helper=dataset_helper,
+                                     device=device,
+                                     device_ids=device_ids,
+                                     training_parameters=training_parameters,
+                                     mlflow_parameters=mlflow_parameters)
 
     transform = torchvision.transforms.Compose([
         torchvision.transforms.Resize((224, 224)),
