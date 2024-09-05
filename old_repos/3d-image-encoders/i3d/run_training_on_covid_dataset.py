@@ -1,8 +1,8 @@
-import copy
 import sys
+sys.path.insert(1, "../../registry/mimic")
+sys.path.insert(1, "../../registry/utils/training")
 
-sys.path.insert(1, "/home/ec2-user/work/registry/helpers")
-sys.path.insert(1, "/home/ec2-user/work/registry/mimic")
+import copy
 
 import torch
 import torchvision
