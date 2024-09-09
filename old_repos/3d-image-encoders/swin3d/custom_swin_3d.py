@@ -11,15 +11,15 @@ class CustomSwin3D(nn.Module):
         # Load the Swin3D model.
         if self.model_size == "tiny":
             weights = Swin3D_T_Weights.KINETICS400_V1 if use_pretrained_weights else None
-            self.transform = weights.transforms()
+            self.video_transform = weights.transforms()
             self.model = swin3d_t(weights=weights)
         elif self.model_size == "small":
             weights = Swin3D_S_Weights.KINETICS400_V1 if use_pretrained_weights else None
-            self.transform = weights.transforms()
+            self.video_transform = weights.transforms()
             self.model = swin3d_s(weights=weights)
         elif self.model_size == "base":
             weights = Swin3D_B_Weights.KINETICS400_V1 if use_pretrained_weights else None
-            self.transform = weights.transforms()
+            self.video_transform = weights.transforms()
             self.model = swin3d_b(weights=weights)
         else:
             raise TypeError("Argument model_size should be any of (tiny, small, base)")
@@ -34,5 +34,5 @@ class CustomSwin3D(nn.Module):
     def forward(self, x):
         return self.model(x)
 
-    def get_transform(self):
-        return self.transform
+    def get_video_transform(self):
+        return self.video_transform

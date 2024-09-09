@@ -8,26 +8,26 @@ import copy
 import torch
 import torchvision
 
-from i3d_resnet import I3DResNet
+from custom_swin_3d import CustomSwin3D
 from fawkes_dataset_helper import FawkesDatasetHelper
 from torch_training_helper import TorchTrainingHelper, TrainingParameters, MlFlowParameters
 
 
 if __name__ == "__main__":
-    model_name = "inflated_resnet"
+    model_name = "swin3d"
     dataset_name = "fawkes_varying_dataset"
     labeled_data_file="/home/ec2-user/data/mnt/epsilon-datasets/fawkes/fawkes_varying_volumes/labeled_data.json"
     grouped_labels_file="/home/ec2-user/data/mnt/epsilon-datasets/fawkes/grouped_labels.json"
     mlflow_uri = "https://mlflow-f66025e-rcsxwgoiba-uc.a.run.app"
 
     device = "cuda"
-    # device_ids = None  # Use one (the default) GPU.
-    device_ids = [0, 1, 2, 3]  # Use 4 GPUs.
-    volume_depth_threshold = 200  # Skip volumes with >= 200 slices.
+    device_ids = None  # Use one (the default) GPU.
+    # device_ids = [0, 1, 2, 3]  # Use 4 GPUs.
+    volume_depth_threshold = 100  # Skip volumes with >= 100 slices.
     half_model_precision = False
     learning_rate = 1e-6
     num_epochs = 10
-    batch_size = 4
+    batch_size = 1
     seed = 42
 
     experiment_name = f"{model_name}-finetuning-on-{dataset_name}"
@@ -55,8 +55,7 @@ if __name__ == "__main__":
 
     # Create the model.
     print("Creating the model")
-    resnet = torchvision.models.resnet152(pretrained=True)
-    model = I3DResNet(resnet2d=copy.deepcopy(resnet), frame_nb=volume_depth, class_nb=num_labels, conv_class=True)
+    model = CustomSwin3D(model_size="base", num_classes=num_labels, use_pretrained_weights=True)
 
     for param in model.parameters():
         param.requires_grad = True

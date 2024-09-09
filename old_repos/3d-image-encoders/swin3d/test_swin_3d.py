@@ -19,7 +19,10 @@ model = CustomSwin3D(model_size="tiny", num_classes=400, use_pretrained_weights=
 model.eval()
 
 # Use the built-in transform.
-transform = model.get_transform()
+transform = model.get_video_transform()
+print(f"Transform type: {type(transform)}")
+print("Transform:")
+print(transform)
 
 # Read video.
 video, _, _ = io.read_video(video_path, pts_unit="sec")
