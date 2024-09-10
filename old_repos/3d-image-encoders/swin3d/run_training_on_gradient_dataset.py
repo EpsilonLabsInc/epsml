@@ -54,7 +54,7 @@ if __name__ == "__main__":
 
     # Create the model.
     print("Creating the model")
-    model = CustomSwin3D(model_size="base", num_classes=num_labels, use_pretrained_weights=True)
+    model = CustomSwin3D(model_size="base", num_classes=num_labels, use_pretrained_weights=True, use_swin_v2=True)
 
     for param in model.parameters():
         param.requires_grad = True
