@@ -1,26 +1,27 @@
+import copy
+
 import torch
 from torch import nn
-from torchvision.models.video import swin3d_t, swin3d_s, swin3d_b, Swin3D_T_Weights, Swin3D_S_Weights, Swin3D_B_Weights
+from torchvision.models import swin_v2_t, swin_v2_s, swin_v2_b
+from torchvision.models.video import swin3d_t, swin3d_s, swin3d_b
 
 class CustomSwin3D(nn.Module):
-    def __init__(self, model_size: str, num_classes, use_pretrained_weights):
+    def __init__(self, model_size: str, num_classes, use_pretrained_weights, use_swin_v2=True):
         super(CustomSwin3D, self).__init__()
 
         self.model_size = model_size.lower()
+        weights = "DEFAULT" if use_pretrained_weights else None
 
         # Load the Swin3D model.
         if self.model_size == "tiny":
-            weights = Swin3D_T_Weights.KINETICS400_V1 if use_pretrained_weights else None
-            self.video_transform = weights.transforms()
             self.model = swin3d_t(weights=weights)
+            self.__swin_2d_v2 = swin_v2_t(weights=weights) if use_swin_v2 else None
         elif self.model_size == "small":
-            weights = Swin3D_S_Weights.KINETICS400_V1 if use_pretrained_weights else None
-            self.video_transform = weights.transforms()
             self.model = swin3d_s(weights=weights)
+            self.__swin_2d_v2 = swin_v2_s(weights=weights) if use_swin_v2 else None
         elif self.model_size == "base":
-            weights = Swin3D_B_Weights.KINETICS400_V1 if use_pretrained_weights else None
-            self.video_transform = weights.transforms()
             self.model = swin3d_b(weights=weights)
+            self.__swin_2d_v2 = swin_v2_b(weights=weights) if use_swin_v2 else None
         else:
             raise TypeError("Argument model_size should be any of (tiny, small, base)")
 
@@ -31,8 +32,12 @@ class CustomSwin3D(nn.Module):
                                         out_features=num_classes,
                                         bias=self.model.head.bias is not None)
 
+        # Replace with SwinV2 if necessary.
+        if use_swin_v2:
+            print("Replacing SwinV1 with SwinV2 in the Swin3D model")
+            self.model.features = copy.deepcopy(self.__swin_2d_v2.features)
+            self.__swin_2d_v2 = None
+            del self.__swin_2d_v2
+
     def forward(self, x):
         return self.model(x)
-
-    def get_video_transform(self):
-        return self.video_transform

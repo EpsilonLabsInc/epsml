@@ -2,6 +2,7 @@ import csv
 
 import torch
 import torchvision.io as io
+from torchvision.models.video import Swin3D_B_Weights
 
 from custom_swin_3d import CustomSwin3D
 
@@ -15,11 +16,11 @@ with open(labels_path, mode="r") as file:
     labels = {row["id"]: row["name"] for row in csv_reader}
 
 # Load Swin3D model.
-model = CustomSwin3D(model_size="tiny", num_classes=400, use_pretrained_weights=True)
+model = CustomSwin3D(model_size="base", num_classes=400, use_pretrained_weights=True, use_swin_v2=False)
 model.eval()
 
 # Use the built-in transform.
-transform = model.get_video_transform()
+transform = Swin3D_B_Weights.KINETICS400_V1.transforms()
 print(f"Transform type: {type(transform)}")
 print("Transform:")
 print(transform)
