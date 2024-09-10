@@ -1,5 +1,6 @@
 import sys
 sys.path.insert(1, "../../registry/mimic")
+sys.path.insert(1, "../../registry/utils/dicom")
 sys.path.insert(1, "../../registry/utils/labels")
 sys.path.insert(1, "../../registry/utils/training")
 
@@ -9,15 +10,14 @@ import torch
 import torchvision
 
 from custom_swin_3d import CustomSwin3D
-from fawkes_dataset_helper import FawkesDatasetHelper
+from gradient_dataset_helper import GradientDatasetHelper
 from torch_training_helper import TorchTrainingHelper, TrainingParameters, MlFlowParameters
 
 
 if __name__ == "__main__":
     model_name = "swin3d"
-    dataset_name = "fawkes_varying_dataset"
-    labeled_data_file = "/home/ec2-user/data/mnt/epsilon-datasets/fawkes/fawkes_varying_volumes/labeled_data.json"
-    grouped_labels_file = "/home/ec2-user/data/mnt/epsilon-datasets/fawkes/grouped_labels.json"
+    dataset_name = "gradient_dataset"
+    dataset_path = "/home/ec2-user/data/TEMP-GRADIENT-DATABASE"
     mlflow_uri = "https://mlflow-f66025e-rcsxwgoiba-uc.a.run.app"
 
     device = "cuda"
@@ -39,10 +39,9 @@ if __name__ == "__main__":
 
     # Load the dataset.
     print("Loading the dataset")
-    dataset_helper = FawkesDatasetHelper(
-        labeled_data_file=labeled_data_file, grouped_labels_file=grouped_labels_file,
-        volume_depth_threshold=volume_depth_threshold, use_half_precision=half_model_precision,
-        seed=seed)
+    dataset_helper = GradientDatasetHelper(
+        dataset_path=dataset_path, modality="CT", volume_depth_threshold=volume_depth_threshold,
+        use_half_precision=half_model_precision, seed=seed)
     max_depth = dataset_helper.get_max_depth()
 
     # Volume depth must be greater than max_depth and divisible by 8 (the latter is I3D's constraint).
