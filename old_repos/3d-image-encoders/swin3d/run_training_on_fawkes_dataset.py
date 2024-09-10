@@ -49,9 +49,9 @@ if __name__ == "__main__":
     volume_depth = ((max_depth // 8) + 1) * 8
     print(f"Max depth in the dataset is {max_depth}, setting volume depth to {volume_depth}")
 
-    # Get labels manager.
-    labels_manager = dataset_helper.get_labels_manager()
-    num_labels = len(labels_manager.get_groups())
+    # Get number of labels.
+    num_labels = len(dataset_helper.get_labels())
+    print(f"Number of labels: {num_labels}")
 
     # Create the model.
     print("Creating the model")
