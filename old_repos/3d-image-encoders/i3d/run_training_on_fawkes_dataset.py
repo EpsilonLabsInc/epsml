@@ -49,10 +49,13 @@ if __name__ == "__main__":
     volume_depth = ((max_depth // 8) + 1) * 8
     print(f"Max depth in the dataset is {max_depth}, setting volume depth to {volume_depth}")
 
+    # Get number of labels.
+    num_labels = len(dataset_helper.get_labels())
+    print(f"Number of labels: {num_labels}")
+
     # Create the model.
     print("Creating the model")
     resnet = torchvision.models.resnet152(pretrained=True)
-    num_labels = len(dataset_helper.get_labels())
     model = I3DResNet(resnet2d=copy.deepcopy(resnet), frame_nb=volume_depth, class_nb=num_labels, conv_class=True)
 
     for param in model.parameters():
