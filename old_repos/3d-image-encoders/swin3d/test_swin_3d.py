@@ -6,9 +6,9 @@ from torchvision.models.video import Swin3D_B_Weights
 
 from custom_swin_3d import CustomSwin3D
 
-#video_path = "/home/ec2-user/data/kinetics400/-0Li7rc78jQ.mp4"
-video_path = "/home/ec2-user/data/kinetics400/_NnV0Wjzq5o.mp4"
-labels_path = "/home/ec2-user/data/kinetics400/labels/kinetics_400_labels.csv"
+#video_path = "/home/andrej/data/datasets/kinetics400/-0Li7rc78jQ.mp4"
+video_path = "/home/andrej/data/datasets/kinetics400/_NnV0Wjzq5o.mp4"
+labels_path = "/home/andrej/data/datasets/kinetics400/labels/kinetics_400_labels.csv"
 
 # Load labels.
 with open(labels_path, mode="r") as file:
