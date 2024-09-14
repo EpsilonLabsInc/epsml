@@ -22,6 +22,7 @@ if __name__ == "__main__":
     reports_file = "/home/andrej/data/datasets/TEMP-GRADIENT-DATABASE/REPORTS/CT/output_GRADIENT-DATABASE_REPORTS_CT_ct-16ago2024-batch-1.csv"
     grouped_labels_file = "/home/andrej/data/datasets/TEMP-GRADIENT-DATABASE/REPORTS/CT/grouped_labels_GRADIENT-DATABASE_REPORTS_CT_ct-16ago2024-batch-1.json"
     generated_data_file = None
+    # generated_data_file = "/home/andrej/data/datasets/TEMP-GRADIENT-DATABASE/REPORTS/CT/generated_data.csv"
     # gcs_bucket_name = None
     gcs_bucket_name = "epsilon-data-us-central1"
     mlflow_uri = "https://mlflow-f66025e-rcsxwgoiba-uc.a.run.app"
@@ -30,7 +31,7 @@ if __name__ == "__main__":
     device_ids = None  # Use one (the default) GPU.
     # device_ids = [0, 1, 2, 3]  # Use 4 GPUs.
     modality = "CT"
-    volume_depth_threshold = 100  # Skip volumes with >= 100 slices.
+    volume_depth_threshold = 200  # Skip volumes with >= 200 slices.
     half_model_precision = False
     learning_rate = 1e-6
     num_epochs = 10
