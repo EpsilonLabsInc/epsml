@@ -17,12 +17,19 @@ from torch_training_helper import TorchTrainingHelper, TrainingParameters, MlFlo
 if __name__ == "__main__":
     model_name = "swin3d"
     dataset_name = "gradient_dataset"
-    dataset_path = "/home/ec2-user/data/TEMP-GRADIENT-DATABASE"
+    images_dir = "GRADIENT-DATABASE/CT/16AGO2024/"
+    # images_dir = "/home/andrej/data/mnt/gcs/epsilon-data-us-central1/GRADIENT-DATABASE/CT/16AGO2024"
+    reports_file = "/home/andrej/data/datasets/TEMP-GRADIENT-DATABASE/REPORTS/CT/output_GRADIENT-DATABASE_REPORTS_CT_ct-16ago2024-batch-1.csv"
+    grouped_labels_file = "/home/andrej/data/datasets/TEMP-GRADIENT-DATABASE/REPORTS/CT/grouped_labels_GRADIENT-DATABASE_REPORTS_CT_ct-16ago2024-batch-1.json"
+    generated_data_file = None
+    # gcs_bucket_name = None
+    gcs_bucket_name = "epsilon-data-us-central1"
     mlflow_uri = "https://mlflow-f66025e-rcsxwgoiba-uc.a.run.app"
 
     device = "cuda"
     device_ids = None  # Use one (the default) GPU.
     # device_ids = [0, 1, 2, 3]  # Use 4 GPUs.
+    modality = "CT"
     volume_depth_threshold = 100  # Skip volumes with >= 100 slices.
     half_model_precision = False
     learning_rate = 1e-6
@@ -40,8 +47,16 @@ if __name__ == "__main__":
     # Load the dataset.
     print("Loading the dataset")
     dataset_helper = GradientDatasetHelper(
-        dataset_path=dataset_path, modality="CT", volume_depth_threshold=volume_depth_threshold,
-        use_half_precision=half_model_precision, seed=seed)
+        images_dir=images_dir,
+        reports_file=reports_file,
+        grouped_labels_file=grouped_labels_file,
+        generated_data_file=generated_data_file,
+        gcs_bucket_name=gcs_bucket_name,
+        modality=modality,
+        volume_depth_threshold=volume_depth_threshold,
+        use_half_precision=half_model_precision,
+        seed=seed)
+
     max_depth = dataset_helper.get_max_depth()
 
     # Volume depth must be greater than max_depth and divisible by 8 (the latter is I3D's constraint).
