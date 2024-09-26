@@ -6,7 +6,7 @@ from torchvision.models import swin_v2_t, swin_v2_s, swin_v2_b
 from torchvision.models.video import swin3d_t, swin3d_s, swin3d_b
 
 class CustomSwin3D(nn.Module):
-    def __init__(self, model_size: str, num_classes, use_pretrained_weights, use_swin_v2=True):
+    def __init__(self, model_size: str, num_classes, use_pretrained_weights, use_single_channel_input=False, use_swin_v2=True):
         super(CustomSwin3D, self).__init__()
 
         self.model_size = model_size.lower()
@@ -36,6 +36,10 @@ class CustomSwin3D(nn.Module):
         if use_swin_v2:
             print("Replacing SwinV1 with SwinV2 in the Swin3D model")
             self.__replace_swin_v1_with_swin_v2()
+
+        # Accept single channel inputs instead of 3 channel ones.
+        if use_single_channel_input:
+            self.model.patch_embed.proj = nn.Conv3d(1, 128, kernel_size=(2, 4, 4), stride=(2, 4, 4))
 
     def forward(self, x):
         return self.model(x)
