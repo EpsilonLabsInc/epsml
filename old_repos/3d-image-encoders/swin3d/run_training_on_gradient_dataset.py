@@ -44,7 +44,7 @@ if __name__ == "__main__":
     half_model_precision = False
     learning_rate = 1e-6
     num_epochs = 10
-    batch_size = 1
+    batch_size = 4
 
     experiment_name = f"{model_name}-finetuning-on-{dataset_name}"
     mlflow_experiment_name = f"{experiment_name}"
@@ -123,9 +123,9 @@ if __name__ == "__main__":
 
     def transform_uint16_image(image):
         image = image.resize((224, 224))
-        image_np = np.array(image)
-        image_np = image_np.astype(np.float16) if half_model_precision else image_np.astype(np.float32)
+        image_np = np.array(image).astype(np.float32)
         image_np /= 65535.0
+        image_np = image_np.astype(np.float16) if half_model_precision else image_np.astype(np.float32)
         image_tensor = torch.from_numpy(image_np)
         image_tensor = image_tensor.unsqueeze(0)
         return image_tensor
