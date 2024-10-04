@@ -22,14 +22,14 @@ if __name__ == "__main__":
     mlflow_uri = "https://mlflow-f66025e-rcsxwgoiba-uc.a.run.app"
 
     # Gradient dataset helper settings.
-    images_dir = "GRADIENT-DATABASE/CT/16AGO2024/"
+    images_dir = "data"
     reports_file = "/root/andrej/data/datasets/GRADIENT-DATABASE/REPORTS/CT/output_GRADIENT-DATABASE_REPORTS_CT_ct-16ago2024-batch-1.csv"
     grouped_labels_file = "/root/andrej/data/datasets/GRADIENT-DATABASE/REPORTS/CT/grouped_labels_GRADIENT-DATABASE_REPORTS_CT_ct-16ago2024-batch-1.json"
     images_index_file = "/root/andrej/data/datasets/GRADIENT-DATABASE/output/gradient-ct-16AGO2024-images_index.json"
-    generated_data_file = "/root/andrej/data/datasets/GRADIENT-DATABASE/output/gradient-ct-16AGO2024-generated_data.csv"
+    generated_data_file = "/root/andrej/data/datasets/GRADIENT-DATABASE/output/gradient-ct-16AGO2024-generated_data_nifti.csv"
     output_dir = "/root/andrej/data/datasets/GRADIENT-DATABASE/output"
     perform_quality_check = False
-    gcs_bucket_name = "epsilon-data-us-central1"
+    gcs_bucket_name = "gradient-cts-nifti"
     modality = "CT"
     min_volume_depth = 10  # Skip volumes with < 10 slices.
     max_volume_depth = 200  # Skip volumes with > 200 slices.
@@ -42,9 +42,11 @@ if __name__ == "__main__":
     # device_ids = None  # Use one (the default) GPU.
     device_ids = [0, 1, 2, 3]  # Use 4 GPUs.
     half_model_precision = False
-    learning_rate = 1e-6
+    learning_rate = 1e-5
     num_epochs = 10
     batch_size = 4
+    images_mean = 0.2567
+    images_std = 0.1840
 
     experiment_name = f"{model_name}-finetuning-on-{dataset_name}"
     mlflow_experiment_name = f"{experiment_name}"
@@ -126,6 +128,7 @@ if __name__ == "__main__":
         image_np = np.array(image).astype(np.float32)
         image_np /= 65535.0
         image_np = image_np.astype(np.float16) if half_model_precision else image_np.astype(np.float32)
+        image_np = (image_np - images_mean) / images_std
         image_tensor = torch.from_numpy(image_np)
         image_tensor = image_tensor.unsqueeze(0)
         return image_tensor
