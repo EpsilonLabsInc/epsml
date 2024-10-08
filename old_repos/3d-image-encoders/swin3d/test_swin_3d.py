@@ -1,14 +1,18 @@
 import csv
 
 import torch
-import torchvision.io as io
-from torchvision.models.video import Swin3D_B_Weights
+import torchvision
+from torchvision.models.video import swin3d_b, Swin3D_B_Weights
 
 from custom_swin_3d import CustomSwin3D
 
-#video_path = "/home/andrej/data/datasets/kinetics400/-0Li7rc78jQ.mp4"
-video_path = "/home/andrej/data/datasets/kinetics400/_NnV0Wjzq5o.mp4"
-labels_path = "/home/andrej/data/datasets/kinetics400/labels/kinetics_400_labels.csv"
+# Params.
+video_path = "/home/andrej/data/kinetics400/chess.mp4"
+labels_path = "/home/andrej/data/kinetics400/labels/kinetics_400_labels.csv"
+use_custom_swin3d = False
+use_custom_transform = True
+use_gpu = True
+infer_in_train_mode = True
 
 # Load labels.
 with open(labels_path, mode="r") as file:
@@ -16,17 +20,25 @@ with open(labels_path, mode="r") as file:
     labels = {row["id"]: row["name"] for row in csv_reader}
 
 # Load Swin3D model.
-model = CustomSwin3D(model_size="base", num_classes=400, use_pretrained_weights=True, use_swin_v2=False)
-model.eval()
+if use_custom_swin3d:
+    print("Using custom Swin3D model")
+    model = CustomSwin3D(model_size="base", num_classes=400, use_pretrained_weights=True, use_swin_v2=False)
+else:
+    print("Using default Swin3D model")
+    model = swin3d_b(weights="DEFAULT")
 
-# Use the built-in transform.
+# Transformation.
 transform = Swin3D_B_Weights.KINETICS400_V1.transforms()
+if use_custom_transform:
+    transform.crop_size = [150, 150]
+    transform.resize_size = [150]
+
 print(f"Transform type: {type(transform)}")
 print("Transform:")
 print(transform)
 
 # Read video.
-video, _, _ = io.read_video(video_path, pts_unit="sec")
+video, _, _ = torchvision.io.read_video(video_path, pts_unit="sec")
 print(f"Video type: {type(video)}")
 print(f"Original video shape: {video.shape}")
 
@@ -43,8 +55,24 @@ print(f"Video shape after transform: {video.shape}")
 video = video.unsqueeze(0)
 print(f"Video shape after unsqueeze: {video.shape}")
 
-# Perform inference.
-with torch.no_grad():
+# Move data to GPU.
+if use_gpu:
+    print("Using GPU")
+    model.to("cuda")
+    video = video.to("cuda")
+else:
+    print("Not using GPU")
+
+# Inference.
+if infer_in_train_mode:
+    print("Inferring in train mode")
+    model.train()
+    torch.set_grad_enabled(True)
+    outputs = model(video)
+else:
+    print("Inferring in eval mode")
+    model.eval()
+    torch.set_grad_enabled(False)
     outputs = model(video)
 
 # Get the predicted class.
