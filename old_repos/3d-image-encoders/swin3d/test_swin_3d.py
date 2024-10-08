@@ -10,7 +10,7 @@ from custom_swin_3d import CustomSwin3D
 video_path = "/home/andrej/data/kinetics400/chess.mp4"
 labels_path = "/home/andrej/data/kinetics400/labels/kinetics_400_labels.csv"
 use_custom_swin3d = False
-use_custom_transform = True
+custom_video_size = 110  # None
 use_gpu = True
 infer_in_train_mode = True
 
@@ -29,9 +29,9 @@ else:
 
 # Transformation.
 transform = Swin3D_B_Weights.KINETICS400_V1.transforms()
-if use_custom_transform:
-    transform.crop_size = [150, 150]
-    transform.resize_size = [150]
+if custom_video_size is not None:
+    transform.crop_size = [custom_video_size, custom_video_size]
+    transform.resize_size = custom_video_size
 
 print(f"Transform type: {type(transform)}")
 print("Transform:")
