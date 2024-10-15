@@ -4,9 +4,17 @@ import torch
 from torch import nn
 from torchvision.models import swin_v2_t, swin_v2_s, swin_v2_b
 from torchvision.models.video import swin3d_t, swin3d_s, swin3d_b
+from torch.utils.checkpoint import checkpoint
+
 
 class CustomSwin3D(nn.Module):
-    def __init__(self, model_size: str, num_classes, use_pretrained_weights, use_single_channel_input=False, use_swin_v2=True):
+    def __init__(self,
+                 model_size: str,
+                 num_classes,
+                 use_pretrained_weights,
+                 use_single_channel_input=False,
+                 use_swin_v2=True,
+                 perform_gradient_checkpointing=False):
         super(CustomSwin3D, self).__init__()
 
         self.model_size = model_size.lower()
@@ -14,12 +22,15 @@ class CustomSwin3D(nn.Module):
 
         # Load the Swin3D model.
         if self.model_size == "tiny":
+            print("Selected 'tiny' model type")
             self.model = swin3d_t(weights=weights)
             self.__swin_2d_v2 = swin_v2_t(weights=weights) if use_swin_v2 else None
         elif self.model_size == "small":
+            print("Selected 'small' model type")
             self.model = swin3d_s(weights=weights)
             self.__swin_2d_v2 = swin_v2_s(weights=weights) if use_swin_v2 else None
         elif self.model_size == "base":
+            print("Selected 'base' model type")
             self.model = swin3d_b(weights=weights)
             self.__swin_2d_v2 = swin_v2_b(weights=weights) if use_swin_v2 else None
         else:
@@ -39,7 +50,16 @@ class CustomSwin3D(nn.Module):
 
         # Accept single channel inputs instead of 3 channel ones.
         if use_single_channel_input:
-            self.model.patch_embed.proj = nn.Conv3d(1, 128, kernel_size=(2, 4, 4), stride=(2, 4, 4))
+            num_channels = 128 if self.model_size == "base" else 96
+            self.model.patch_embed.proj = nn.Conv3d(1, num_channels, kernel_size=(2, 4, 4), stride=(2, 4, 4))
+
+        # Gradient checkpointing.
+        self.__perform_gradient_checkpointing = perform_gradient_checkpointing
+        if self.__perform_gradient_checkpointing:
+            print("Gradient checkpointing will be performed")
+            self.__wrap_forwards()
+        else:
+            print("Gradient checkpointing won't be performed")
 
     def forward(self, x):
         return self.model(x)
@@ -69,3 +89,15 @@ class CustomSwin3D(nn.Module):
         del org_model
         self.__swin_2d_v2 = None
         del self.__swin_2d_v2
+
+    def __checkpointed_forward(self, module):
+        def custom_forward(*inputs):
+            return checkpoint(module.original_forward, *inputs)
+        return custom_forward
+
+    def __wrap_forwards(self):
+        for module in self.model.modules():
+            if "SwinTransformerBlock" in module.__class__.__name__:
+                print(f"Wrapping forward method in the '{module.__class__.__name__}' module with the gradient checkpoint")
+                module.original_forward = module.forward
+                module.forward = self.__checkpointed_forward(module)

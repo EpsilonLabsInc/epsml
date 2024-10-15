@@ -23,11 +23,11 @@ if __name__ == "__main__":
 
     # Gradient dataset helper settings.
     images_dir = "data"
-    reports_file = "/root/andrej/data/datasets/GRADIENT-DATABASE/REPORTS/CT/output_GRADIENT-DATABASE_REPORTS_CT_ct-16ago2024-batch-1.csv"
-    grouped_labels_file = "/root/andrej/data/datasets/GRADIENT-DATABASE/REPORTS/CT/grouped_labels_GRADIENT-DATABASE_REPORTS_CT_ct-16ago2024-batch-1.json"
-    images_index_file = "/root/andrej/data/datasets/GRADIENT-DATABASE/output/gradient-ct-16AGO2024-images_index.json"
-    generated_data_file = "/root/andrej/data/datasets/GRADIENT-DATABASE/output/gradient-ct-16AGO2024-generated_data_nifti.csv"
-    output_dir = "/root/andrej/data/datasets/GRADIENT-DATABASE/output"
+    reports_file = "/home/andrej/data/datasets/GRADIENT-DATABASE/REPORTS/CT/output_GRADIENT-DATABASE_REPORTS_CT_ct-16ago2024-batch-1.csv"
+    grouped_labels_file = "/home/andrej/data/datasets/GRADIENT-DATABASE/REPORTS/CT/grouped_labels_GRADIENT-DATABASE_REPORTS_CT_ct-16ago2024-batch-1.json"
+    images_index_file = None
+    generated_data_file = "/home/andrej/data/datasets/GRADIENT-DATABASE/output/gradient-ct-16AGO2024-generated_data_nifti.csv"
+    output_dir = "/home/andrej/data/datasets/GRADIENT-DATABASE/output"
     perform_quality_check = False
     gcs_bucket_name = "gradient-cts-nifti"
     modality = "CT"
@@ -39,21 +39,21 @@ if __name__ == "__main__":
 
     # Training settings.
     device = "cuda"
-    # device_ids = None  # Use one (the default) GPU.
-    device_ids = [0, 1, 2, 3]  # Use 4 GPUs.
-    half_model_precision = False
+    device_ids = None  # Use one (the default) GPU.
+    # device_ids = [0, 1, 2, 3]  # Use 4 GPUs.
+    half_model_precision = True
     learning_rate = 1e-5
     num_epochs = 10
-    batch_size = 4
+    batch_size = 1
     images_mean = 0.2567
     images_std = 0.1840
 
     experiment_name = f"{model_name}-finetuning-on-{dataset_name}"
     mlflow_experiment_name = f"{experiment_name}"
-    out_dir = f"/home/ec2-user/data/{experiment_name}"
-    save_model_filename = f"{out_dir}/{experiment_name}.pt"
-    save_parallel_model_filename = f"{out_dir}/{experiment_name}-parallel.pt"
-    checkpoint_dir = f"{out_dir}/checkpoint"
+    experiment_dir = f"{output_dir}/{experiment_name}"
+    save_model_filename = f"{experiment_dir}/{experiment_name}.pt"
+    save_parallel_model_filename = f"{experiment_dir}/{experiment_name}-parallel.pt"
+    checkpoint_dir = f"{experiment_dir}/checkpoint"
 
     # Load the dataset.
     print("Loading the dataset")
@@ -88,8 +88,8 @@ if __name__ == "__main__":
     # Create the model.
     print("Creating the model")
     model = CustomSwin3D(
-        model_size="base", num_classes=num_labels, use_pretrained_weights=True,
-        use_single_channel_input=True, use_swin_v2=True)
+        model_size="tiny", num_classes=num_labels, use_pretrained_weights=True,
+        use_single_channel_input=True, use_swin_v2=True, perform_gradient_checkpointing=True)
 
     for param in model.parameters():
         param.requires_grad = True
@@ -117,14 +117,14 @@ if __name__ == "__main__":
                                           mlflow_parameters=mlflow_parameters)
 
     transform_rgb_image = torchvision.transforms.Compose([
-        torchvision.transforms.Resize((224, 224), interpolation=torchvision.transforms.InterpolationMode.BILINEAR),
+        torchvision.transforms.Resize((512, 512), interpolation=torchvision.transforms.InterpolationMode.BILINEAR),
         torchvision.transforms.ToTensor()
         # TODO: Figure out normalization values. Also consider computing mean and std from the dataset itself.
 #        torchvision.transforms.Normalize(mean=[0.50, 0.50, 0.50], std=[0.25, 0.25, 0.25])
     ])
 
     def transform_uint16_image(image):
-        image = image.resize((224, 224))
+        image = image.resize((512, 512))
         image_np = np.array(image).astype(np.float32)
         image_np /= 65535.0
         image_np = image_np.astype(np.float16) if half_model_precision else image_np.astype(np.float32)

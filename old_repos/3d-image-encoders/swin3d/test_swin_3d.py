@@ -7,12 +7,13 @@ from torchvision.models.video import swin3d_b, Swin3D_B_Weights
 from custom_swin_3d import CustomSwin3D
 
 # Params.
-video_path = "/home/andrej/data/kinetics400/chess.mp4"
-labels_path = "/home/andrej/data/kinetics400/labels/kinetics_400_labels.csv"
+video_path = "/home/andrej/data/kinetics400/accordion.mp4"
+labels_path = "/home/andrej/data/kinetics400/kinetics_400_labels.csv"
 use_custom_swin3d = False
 custom_video_size = 110  # None
 use_gpu = True
 infer_in_train_mode = True
+use_half_precision = False
 
 # Load labels.
 with open(labels_path, mode="r") as file:
@@ -22,7 +23,12 @@ with open(labels_path, mode="r") as file:
 # Load Swin3D model.
 if use_custom_swin3d:
     print("Using custom Swin3D model")
-    model = CustomSwin3D(model_size="base", num_classes=400, use_pretrained_weights=True, use_swin_v2=False)
+    model = CustomSwin3D(model_size="tiny",
+                         num_classes=400,
+                         use_pretrained_weights=True,
+                         use_single_channel_input=False,
+                         use_swin_v2=False,
+                         perform_gradient_checkpointing=False)
 else:
     print("Using default Swin3D model")
     model = swin3d_b(weights="DEFAULT")
@@ -54,6 +60,11 @@ print(f"Video shape after transform: {video.shape}")
 # Add batch dimension.
 video = video.unsqueeze(0)
 print(f"Video shape after unsqueeze: {video.shape}")
+
+# Half precision?
+if use_half_precision:
+    model.half()
+    video = video.half()
 
 # Move data to GPU.
 if use_gpu:
