@@ -12,22 +12,21 @@ import torchvision
 
 from custom_swin_3d import CustomSwin3D
 from gradient_dataset_helper import GradientDatasetHelper
-from torch_training_helper import TorchTrainingHelper, TrainingParameters, MlFlowParameters
+from torch_training_helper import TorchTrainingHelper, TrainingParameters, MlopsType, MlopsParameters
 
 
 if __name__ == "__main__":
     # General settings.
     model_name = "swin3d"
     dataset_name = "gradient-ct-16AGO2024"
-    mlflow_uri = "https://mlflow-f66025e-rcsxwgoiba-uc.a.run.app"
 
     # Gradient dataset helper settings.
-    images_dir = "data"
-    reports_file = "/home/andrej/data/datasets/GRADIENT-DATABASE/REPORTS/CT/output_GRADIENT-DATABASE_REPORTS_CT_ct-16ago2024-batch-1.csv"
-    grouped_labels_file = "/home/andrej/data/datasets/GRADIENT-DATABASE/REPORTS/CT/grouped_labels_GRADIENT-DATABASE_REPORTS_CT_ct-16ago2024-batch-1.json"
+    images_dir = "16AGO2024"
+    reports_file = None
+    grouped_labels_file = "/home/andrej/data/gradient/grouped_labels_GRADIENT-DATABASE_REPORTS_CT_ct-16ago2024-batch-1.json"
     images_index_file = None
-    generated_data_file = "/home/andrej/data/datasets/GRADIENT-DATABASE/output/gradient-ct-16AGO2024-generated_data_nifti.csv"
-    output_dir = "/home/andrej/data/datasets/GRADIENT-DATABASE/output"
+    generated_data_file = "/home/andrej/data/gradient/gradient-ct-16AGO2024-generated_data_nifti.csv"
+    output_dir = "/home/andrej/data/gradient/output"
     perform_quality_check = False
     gcs_bucket_name = "gradient-cts-nifti"
     modality = "CT"
@@ -49,7 +48,7 @@ if __name__ == "__main__":
     images_std = 0.1840
 
     experiment_name = f"{model_name}-finetuning-on-{dataset_name}"
-    mlflow_experiment_name = f"{experiment_name}"
+    mlops_experiment_name = f"{experiment_name}"
     experiment_dir = f"{output_dir}/{experiment_name}"
     save_model_filename = f"{experiment_dir}/{experiment_name}.pt"
     save_parallel_model_filename = f"{experiment_dir}/{experiment_name}-parallel.pt"
@@ -106,15 +105,15 @@ if __name__ == "__main__":
                                              criterion=torch.nn.BCEWithLogitsLoss(),
                                              checkpoint_dir=checkpoint_dir)
 
-    mlflow_parameters = MlFlowParameters(uri=mlflow_uri,
-                                         experiment_name=mlflow_experiment_name)
+    mlops_parameters = MlopsParameters(mlops_type=MlopsType.WANDB,
+                                       experiment_name=mlops_experiment_name)
 
     training_helper = TorchTrainingHelper(model=model,
                                           dataset_helper=dataset_helper,
                                           device=device,
                                           device_ids=device_ids,
                                           training_parameters=training_parameters,
-                                          mlflow_parameters=mlflow_parameters)
+                                          mlops_parameters=mlops_parameters)
 
     transform_rgb_image = torchvision.transforms.Compose([
         torchvision.transforms.Resize((512, 512), interpolation=torchvision.transforms.InterpolationMode.BILINEAR),
