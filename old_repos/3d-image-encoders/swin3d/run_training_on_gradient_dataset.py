@@ -18,14 +18,14 @@ from torch_training_helper import TorchTrainingHelper, TrainingParameters, Mlops
 if __name__ == "__main__":
     # General settings.
     model_name = "swin3d"
-    dataset_name = "gradient-ct-16AGO2024"
+    dataset_name = "ct_chest_training_sample"
 
     # Gradient dataset helper settings.
     images_dir = "16AGO2024"
     reports_file = None
     grouped_labels_file = "/home/andrej/data/gradient/grouped_labels_GRADIENT-DATABASE_REPORTS_CT_ct-16ago2024-batch-1.json"
     images_index_file = None
-    generated_data_file = "/home/andrej/data/gradient/gradient-ct-16AGO2024-generated_data_nifti.csv"
+    generated_data_file = "/home/andrej/data/gradient/ct_chest_training_sample.csv"
     output_dir = "/home/andrej/data/gradient/output"
     perform_quality_check = False
     gcs_bucket_name = "gradient-cts-nifti"
@@ -40,12 +40,13 @@ if __name__ == "__main__":
     device = "cuda"
     device_ids = None  # Use one (the default) GPU.
     # device_ids = [0, 1, 2, 3]  # Use 4 GPUs.
-    half_model_precision = True
-    learning_rate = 1e-5
+    half_model_precision = False
+    learning_rate = 1e-6
     num_epochs = 10
     batch_size = 1
     images_mean = 0.2567
     images_std = 0.1840
+    max_training_volume_depth = 30
 
     experiment_name = f"{model_name}-finetuning-on-{dataset_name}"
     mlops_experiment_name = f"{experiment_name}"
@@ -74,11 +75,7 @@ if __name__ == "__main__":
         seed=seed,
         run_statistics=run_statistics)
 
-    max_depth = dataset_helper.get_max_depth()
-
-    # Volume depth must be greater than max_depth and divisible by 8 (the latter is I3D's constraint).
-    volume_depth = ((max_depth // 8) + 1) * 8
-    print(f"Max depth in the dataset is {max_depth}, setting volume depth to {volume_depth}")
+    print(f"Max training volume depth: {max_training_volume_depth}")
 
     # Get number of labels.
     num_labels = len(dataset_helper.get_labels())
@@ -87,8 +84,8 @@ if __name__ == "__main__":
     # Create the model.
     print("Creating the model")
     model = CustomSwin3D(
-        model_size="tiny", num_classes=num_labels, use_pretrained_weights=True,
-        use_single_channel_input=True, use_swin_v2=True, perform_gradient_checkpointing=True)
+        model_size="base", num_classes=num_labels, use_pretrained_weights=True,
+        use_single_channel_input=True, use_swin_v2=True, perform_gradient_checkpointing=False)
 
     for param in model.parameters():
         param.requires_grad = True
@@ -106,7 +103,8 @@ if __name__ == "__main__":
                                              checkpoint_dir=checkpoint_dir)
 
     mlops_parameters = MlopsParameters(mlops_type=MlopsType.WANDB,
-                                       experiment_name=mlops_experiment_name)
+                                       experiment_name=mlops_experiment_name,
+                                       notes=f"Max volume depth = {max_training_volume_depth}")
 
     training_helper = TorchTrainingHelper(model=model,
                                           dataset_helper=dataset_helper,
@@ -133,7 +131,7 @@ if __name__ == "__main__":
         return image_tensor
 
     def get_torch_image(item):
-        images = dataset_helper.get_pil_image(item, volume_depth)
+        images = dataset_helper.get_pil_image(item, max_training_volume_depth)
         tensors = [transform_uint16_image(image) for image in images]
         stacked_tensor = torch.stack(tensors)
         # Instead of the tensor shape (num_slices, num_channels, image_height, image_width),
