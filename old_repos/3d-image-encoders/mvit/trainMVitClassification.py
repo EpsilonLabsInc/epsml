@@ -165,37 +165,35 @@ def preprocess_volume(volume):
 def train(model, dataloader, criterion, optimizer, device):
     model.train()
     running_loss = 0.0
-    correct = 0
-    total = 0
+    all_targets = []  # To store targets for the whole epoch
+    all_predicted_labels = []  # To store predicted labels for the whole epoch
     error_count = 0
-    
+
     for batch_idx, (inputs, targets) in enumerate(tqdm(dataloader, desc='Training')):
         try:
             # Preprocess volumes
             inputs = preprocess_volume(inputs)
             inputs, targets = inputs.to(device), targets.to(device)
-            
+
             optimizer.zero_grad()
             outputs = model(inputs)
             loss = criterion(outputs, targets)
             loss.backward()
             optimizer.step()
-            
-            running_loss += loss.item()
-            # Calculate F1 score
-            predicted_labels = torch.sigmoid(outputs) > 0.5  # Threshold predictions
-            f1 = f1_score(targets.cpu().numpy(), predicted_labels.cpu().numpy(), average='micro')
 
-            # Calculate Accuracy 
-            accuracy = (predicted_labels == targets.cpu().numpy()).mean() 
-            
-            # Log batch metrics
-            wandb.log({
-                "batch/train_loss": loss.item(),
-                "batch/train_f1": f1,
-                "batch/train_accuracy": accuracy
-            })
-            
+            running_loss += loss.item()
+
+            # Accumulate predictions and targets for the whole epoch
+            predicted_labels = torch.sigmoid(outputs) > 0.5
+            all_targets.extend(targets.cpu().numpy())
+            all_predicted_labels.extend(predicted_labels.cpu().numpy())
+
+            # Log batch metrics (optional, you might want to log less frequently)
+            if batch_idx % 10 == 0:  # Log every 10 batches
+                wandb.log({
+                    "batch/train_loss": loss.item()
+                })
+
         except RuntimeError as e:
             error_count += 1
             logging.error(f"Runtime error in batch {batch_idx}: {str(e)}")
@@ -205,20 +203,28 @@ def train(model, dataloader, criterion, optimizer, device):
             error_count += 1
             logging.error(f"Error in batch {batch_idx}: {str(e)}")
             continue
-    
-    if total == 0:
+
+    if len(all_targets) == 0:
         logging.warning("No samples were successfully processed in training epoch")
-        return float('inf'), 0.0
-    
+        return float('inf'), 0.0, 0.0
+
     logging.info(f"Training completed with {error_count} errors out of {len(dataloader)} batches")
-    
+
+    # Calculate metrics for the whole epoch
+    all_targets = np.array(all_targets)
+    all_predicted_labels = np.array(all_predicted_labels)
+
+    f1 = f1_score(all_targets, all_predicted_labels, average='micro')
+    accuracy = (all_predicted_labels == all_targets).mean()
+
     metrics = {
-        "epoch/train_loss": running_loss/(len(dataloader)-error_count),
-        "epoch/train_acc": 100.*correct/total,
-        "epoch/train_error_rate": error_count/len(dataloader)
+        "epoch/train_loss": running_loss / (len(dataloader) - error_count),
+        "epoch/train_f1": f1,
+        "epoch/train_accuracy": accuracy,
+        "epoch/train_error_rate": error_count / len(dataloader)
     }
     wandb.log(metrics)
-    return metrics["epoch/train_loss"], metrics["epoch/train_acc"]
+    return metrics["epoch/train_loss"], metrics["epoch/train_f1"], metrics["epoch/train_accuracy"]
 
 def validate(model, dataloader, criterion, device):
     model.eval()
@@ -314,7 +320,7 @@ def main():
     # Configuration
     config = {
         "num_classes": 22,
-        "batch_size": 1,
+        "batch_size": 8,
         "num_epochs": 100,
         "learning_rate": 3e-4,
         "early_stopping_patience": 15,
@@ -360,7 +366,7 @@ def main():
         num_classes=config["num_classes"],
         transform=transform,
         split='train',  # Add split parameter to CTDataset
-        target_frames=16
+        target_frames=256
     )
     
     val_dataset = CTDataset(
@@ -369,7 +375,7 @@ def main():
         num_classes=config["num_classes"],
         transform=transform,
         split='test',  # Use test split as validation
-        target_frames=16
+        target_frames=256
     )
     
     # Create dataloaders
