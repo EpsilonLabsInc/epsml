@@ -2,6 +2,7 @@ import torch, logging, os, ast, SimpleITK as sitk, pandas as pd
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
+from sklearn.metrics import f1_score
 from torchvision import transforms
 import numpy as np
 from pathlib import Path
@@ -181,14 +182,18 @@ def train(model, dataloader, criterion, optimizer, device):
             optimizer.step()
             
             running_loss += loss.item()
-            _, predicted = outputs.max(1)
-            total += targets.size(0)
-            correct += predicted.eq(targets).sum().item()
+            # Calculate F1 score
+            predicted_labels = torch.sigmoid(outputs) > 0.5  # Threshold predictions
+            f1 = f1_score(targets.cpu().numpy(), predicted_labels.cpu().numpy(), average='micro')
+
+            # Calculate Accuracy 
+            accuracy = (predicted_labels == targets.cpu().numpy()).mean() 
             
             # Log batch metrics
             wandb.log({
                 "batch/train_loss": loss.item(),
-                "batch/train_acc": 100. * predicted.eq(targets).sum().item() / targets.size(0)
+                "batch/train_f1": f1,
+                "batch/train_accuracy": accuracy
             })
             
         except RuntimeError as e:
@@ -218,25 +223,27 @@ def train(model, dataloader, criterion, optimizer, device):
 def validate(model, dataloader, criterion, device):
     model.eval()
     running_loss = 0.0
-    correct = 0
-    total = 0
+    all_targets = []
+    all_predicted_labels = [] 
     error_count = 0
-    
+
     with torch.no_grad():
         for batch_idx, (inputs, targets) in enumerate(tqdm(dataloader, desc='Validation')):
             try:
                 # Preprocess volumes
                 inputs = preprocess_volume(inputs)
                 inputs, targets = inputs.to(device), targets.to(device)
-                
+
                 outputs = model(inputs)
                 loss = criterion(outputs, targets)
-                
+
                 running_loss += loss.item()
-                _, predicted = outputs.max(1)
-                total += targets.size(0)
-                correct += predicted.eq(targets).sum().item()
-                
+
+                # Accumulate predictions and targets for the whole epoch
+                predicted_labels = torch.sigmoid(outputs) > 0.5
+                all_targets.extend(targets.cpu().numpy())
+                all_predicted_labels.extend(predicted_labels.cpu().numpy())
+
             except RuntimeError as e:
                 error_count += 1
                 logging.error(f"Runtime error in validation batch {batch_idx}: {str(e)}")
@@ -246,20 +253,28 @@ def validate(model, dataloader, criterion, device):
                 error_count += 1
                 logging.error(f"Error in validation batch {batch_idx}: {str(e)}")
                 continue
-    
-    if total == 0:
+
+    if len(all_targets) == 0:
         logging.warning("No samples were successfully processed in validation")
-        return float('inf'), 0.0
-    
+        return float('inf'), 0.0, 0.0
+
     logging.info(f"Validation completed with {error_count} errors out of {len(dataloader)} batches")
-    
+
+    # Calculate metrics for the whole epoch
+    all_targets = np.array(all_targets)
+    all_predicted_labels = np.array(all_predicted_labels)
+
+    f1 = f1_score(all_targets, all_predicted_labels, average='micro')
+    accuracy = (all_predicted_labels == all_targets).mean()
+
     metrics = {
-        "epoch/val_loss": running_loss/(len(dataloader)-error_count),
-        "epoch/val_acc": 100.*correct/total,
-        "epoch/val_error_rate": error_count/len(dataloader)
+        "epoch/val_loss": running_loss / (len(dataloader) - error_count),
+        "epoch/val_f1": f1,
+        "epoch/val_accuracy": accuracy,
+        "epoch/val_error_rate": error_count / len(dataloader)
     }
     wandb.log(metrics)
-    return metrics["epoch/val_loss"], metrics["epoch/val_acc"]
+    return metrics["epoch/val_loss"], metrics["epoch/val_f1"], metrics["epoch/val_accuracy"]
 
 def get_latest_checkpoint(checkpoint_dir):
     """Get latest checkpoint from directory"""
