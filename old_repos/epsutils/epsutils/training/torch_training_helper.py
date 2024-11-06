@@ -161,7 +161,7 @@ class TorchTrainingHelper:
             if self.__validatation_data_loader is not None:
                 print("")
                 print("PER EPOCH VALIDATION")
-                self.__validate(step=epoch, validation_type="per epoch validation")
+                self.__validate(step=epoch, validation_type="Validation")
 
         print("")
         print("Training finished")
@@ -216,16 +216,16 @@ class TorchTrainingHelper:
             # Log intermediate MLOps metrics.
             if self.__mlops_parameters is not None and idx % self.__mlops_parameters.log_metric_step == 0:
                 precision, recall, f1, accuracy = evaluation_metrics_calculator.compute_metrics()
-                metric = [
-                    {"name": "LR (training)", "value": self.__optimizer.param_groups[0]["lr"], "step": step},
-                    {"name": "MA loss (training)", "value": losses.moving_average, "step": step},
-                    {"name": "AVG loss (training)", "value": losses.avg, "step": step},
-                    {"name": "Precision (training)", "value": precision, "step": step},
-                    {"name": "Recall (training)", "value": recall, "step": step},
-                    {"name": "F1 (training)", "value": f1, "step": step},
-                    {"name": "Accuracy (training)", "value": accuracy, "step": step},
-                ]
-                self.__log_metric(metric)
+                values = {
+                    "Training LR": self.__optimizer.param_groups[0]["lr"],
+                    "Training MA Loss": losses.moving_average,
+                    "Training AVG Loss": losses.avg,
+                    "Training Precision": precision,
+                    "Training Recall": recall,
+                    "Training F1": f1,
+                    "Training Accuracy": accuracy
+                }
+                self.__log_metric(values, step)
 
             # Calculate gradients.
             loss.backward()
@@ -244,7 +244,7 @@ class TorchTrainingHelper:
                 print("")
                 print("INTRA-EPOCH VALIDATION")
                 self.__validate(step=step,
-                                validation_type="intra epoch validation",
+                                validation_type="Intra Epoch Validation",
                                 num_batches=self.__training_parameters.num_intra_epoch_validation_batches)
 
                 print("")
@@ -254,8 +254,7 @@ class TorchTrainingHelper:
 
         # Log per-epoch MLOps metrics.
         if self.__mlops_parameters is not None:
-            metric = [{"name": "AVG loss per epoch (training)", "value": losses.avg, "step": epoch}]
-            self.__log_metric(metric)
+            self.__log_metric({"Training Loss Per Epoch": losses.avg}, epoch)
 
     def __validate(self, step, validation_type, num_batches=None):
         self.__parallel_model.eval()
@@ -298,14 +297,14 @@ class TorchTrainingHelper:
         # Log MLOps metrics.
         if self.__mlops_parameters is not None:
             precision, recall, f1, accuracy = evaluation_metrics_calculator.compute_metrics()
-            metric = [
-                {"name": f"AVG loss ({validation_type})", "value": validation_losses.avg, "step": step},
-                {"name": f"Precision ({validation_type})", "value": precision, "step": step},
-                {"name": f"Recall ({validation_type})", "value": recall, "step": step},
-                {"name": f"F1 ({validation_type})", "value": f1, "step": step},
-                {"name": f"Accuracy ({validation_type})", "value": accuracy, "step": step},
-            ]
-            self.__log_metric(metric)
+            values = {
+                f"{validation_type} Precision": precision,
+                f"{validation_type} Recall": recall,
+                f"{validation_type} F1": f1,
+                f"{validation_type} Accuracy": accuracy,
+                f"{validation_type} Loss": validation_losses.avg
+            }
+            self.__log_metric(values, step)
 
     def __connect_to_mlops(self):
         if self.__mlops_parameters.mlops_type == MlopsType.MLFLOW:
@@ -317,6 +316,8 @@ class TorchTrainingHelper:
         elif self.__mlops_parameters.mlops_type == MlopsType.WANDB:
             wandb.login()
             wandb.init(project=self.__mlops_parameters.experiment_name, notes=self.__mlops_parameters.notes)
+            wandb.define_metric("Steps")
+            wandb.define_metric("*", step_metric="Steps")
         else:
             raise ValueError(f"Unsupported MLOps type {self.__mlops_parameters.mlops_type}")
 
@@ -332,16 +333,15 @@ class TorchTrainingHelper:
         else:
             raise ValueError(f"Unsupported MLOps type {self.__mlops_parameters.mlops_type}")
 
-    def __log_metric(self, metric):
-        for item in metric:
-            value = item["value"]
-            step = item["step"] + 1  # We log step in one-based indexing.
-            if self.__mlops_parameters.mlops_type == MlopsType.MLFLOW:
-                mlflow.log_metric(item["name"], f"{value:.4f}", step=step)
-            elif self.__mlops_parameters.mlops_type == MlopsType.WANDB:
-                wandb.log({item["name"]: value}, step=step)
-            else:
-                raise ValueError(f"Unsupported MLOps type {self.__mlops_parameters.mlops_type}")
+    def __log_metric(self, values, step):
+        if self.__mlops_parameters.mlops_type == MlopsType.MLFLOW:
+            for key, value in values.items():
+                mlflow.log_metric(key, f"{value:.4f}", step=step)
+        elif self.__mlops_parameters.mlops_type == MlopsType.WANDB:
+            values["Steps"] = step
+            wandb.log(values)
+        else:
+            raise ValueError(f"Unsupported MLOps type {self.__mlops_parameters.mlops_type}")
 
 
 class AverageMeter(object):
