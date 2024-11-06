@@ -124,37 +124,46 @@ def preprocess_volume(volume):
         volume = volume.repeat(1, 3, 1, 1, 1)
     return volume
 
-def train(model, dataloader, criterion, optimizer, device):
+def train(model, dataloader, criterion, optimizer, device, accumulation_steps=8): 
     model.train()
     running_loss = 0.0
-    all_targets = []  # To store targets for the whole epoch
-    all_predicted_labels = []  # To store predicted labels for the whole epoch
+    all_targets = []
+    all_predicted_labels = []
     error_count = 0
+    optimizer.zero_grad()  # Initialize gradients to zero
 
     for batch_idx, (inputs, targets) in enumerate(tqdm(dataloader, desc='Training')):
         try:
             # Preprocess volumes
             inputs = preprocess_volume(inputs)
-            print(inputs.shape)
             inputs, targets = inputs.to(device), targets.to(device)
 
-            optimizer.zero_grad()
+            # Forward pass
             outputs = model(inputs)
             loss = criterion(outputs, targets)
-            loss.backward()
-            optimizer.step()
 
-            running_loss += loss.item()
+            # Scale the loss by accumulation steps
+            loss = loss / accumulation_steps 
+
+            # Backward pass to accumulate gradients
+            loss.backward()
+
+            # Update weights every accumulation_steps
+            if (batch_idx + 1) % accumulation_steps == 0:
+                optimizer.step()
+                optimizer.zero_grad()
+
+            running_loss += loss.item() * accumulation_steps  # Multiply back to get the actual loss
 
             # Accumulate predictions and targets for the whole epoch
             predicted_labels = torch.sigmoid(outputs) > 0.5
             all_targets.extend(targets.cpu().numpy())
             all_predicted_labels.extend(predicted_labels.cpu().numpy())
 
-            # Log batch metrics (optional, you might want to log less frequently)
-            if batch_idx % 10 == 0:  # Log every 10 batches
+            # Log batch metrics (optional)
+            if batch_idx % 10 == 0:
                 wandb.log({
-                    "batch/train_loss": loss.item()
+                    "batch/train_loss": loss.item() * accumulation_steps 
                 })
 
         except RuntimeError as e:
