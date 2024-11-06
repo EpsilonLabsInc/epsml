@@ -3,7 +3,7 @@ import os
 import torch
 from transformers import TrainingArguments, Trainer
 
-from utils.training import training_utils
+from epsutils.training import training_utils
 
 
 class TrainingParameters:

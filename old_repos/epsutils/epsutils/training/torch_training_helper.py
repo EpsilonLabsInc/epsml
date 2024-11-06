@@ -9,8 +9,8 @@ import wandb
 from torch.optim import AdamW
 from tqdm.auto import tqdm
 
-from utils.training import training_utils
-from utils.training.evaluation_metrics_calculator import EvaluationMetricsCalculator
+from epsutils.training import training_utils
+from epsutils.training.evaluation_metrics_calculator import EvaluationMetricsCalculator
 
 
 class TrainingParameters:

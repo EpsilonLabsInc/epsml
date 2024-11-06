@@ -9,7 +9,7 @@ import SimpleITK as sitk
 from google.cloud import storage
 from tqdm import tqdm
 
-from utils.dicom import dicom_utils
+from epsutils.dicom import dicom_utils
 
 
 def structured_dicom_files_to_nifti_files(structured_dicom_files, base_dir, output_dir, gcs_bucket_name=None, max_workers=20, perform_sanity_check=False):
