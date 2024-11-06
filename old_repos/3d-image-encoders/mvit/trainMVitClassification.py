@@ -124,13 +124,15 @@ def preprocess_volume(volume):
         volume = volume.repeat(1, 3, 1, 1, 1)
     return volume
 
-def train(model, dataloader, criterion, optimizer, device, accumulation_steps=8): 
+def train(model, dataloader, criterion, optimizer, device, 
+          accumulation_steps=8, val_dataloader=None, val_steps=10000):
     model.train()
     running_loss = 0.0
     all_targets = []
     all_predicted_labels = []
     error_count = 0
     optimizer.zero_grad()  # Initialize gradients to zero
+    global_step = 0  # Track the global step
 
     for batch_idx, (inputs, targets) in enumerate(tqdm(dataloader, desc='Training')):
         try:
@@ -163,8 +165,19 @@ def train(model, dataloader, criterion, optimizer, device, accumulation_steps=8)
             # Log batch metrics (optional)
             if batch_idx % 10 == 0:
                 wandb.log({
-                    "batch/train_loss": loss.item() * accumulation_steps 
+                    "batch/train_loss": loss.item() * accumulation_steps,
+                    "global_step": global_step
                 })
+
+            global_step += 1  # Increment global step -- avoid starting with validation
+
+            # Validation every val_steps
+            if val_dataloader and global_step % val_steps == 0:
+                val_loss, val_f1, val_acc = validate(model, val_dataloader, criterion, device)
+                logging.info(
+                    f'Step {global_step} - '
+                    f'Val Loss: {val_loss:.4f}, Val F1: {val_f1:.2f}, Val Acc: {val_acc:.2f}%'
+                )
 
         except RuntimeError as e:
             error_count += 1
@@ -362,7 +375,7 @@ def main():
     
     val_loader = DataLoader(
         val_dataset,
-        batch_size=config["batch_size"],
+        batch_size=config["batch_size"]*8,
         shuffle=False,
         num_workers=12,
         prefetch_factor=4,
@@ -399,7 +412,8 @@ def main():
     
     for epoch in range(start_epoch, config["num_epochs"]):
         train_loss, train_acc = train(
-            model, train_loader, criterion, optimizer, device
+            model, train_loader, criterion, optimizer, device,
+            val_dataloader=val_loader, val_steps=10000
         )
         val_loss, val_acc = validate(
             model, val_loader, criterion, device
