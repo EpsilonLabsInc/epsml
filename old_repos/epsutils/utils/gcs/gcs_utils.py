@@ -1,0 +1,80 @@
+import os
+import time
+
+from google.cloud import storage
+
+
+def list_files(gcs_bucket_name, gcs_dir):
+    # Dir must end with a slash in order for the code below to work correctly (i.e., not to look for files recursively)!
+    if not gcs_dir.endswith("/"):
+        gcs_dir += "/"
+
+    client = storage.Client()
+    bucket = client.bucket(gcs_bucket_name)
+    blobs = bucket.list_blobs(prefix=gcs_dir)
+    return [blob.name for blob in blobs if "/" not in blob.name[len(gcs_dir):]]
+
+
+def download_file(gcs_bucket_name, gcs_file_name, local_file_name, num_retries=0):
+    client = storage.Client()
+    bucket = client.bucket(gcs_bucket_name)
+    blob = bucket.blob(gcs_file_name)
+    blob.download_to_filename(local_file_name)
+
+    retry_count = 0
+    while num_retries is None or retry_count < num_retries:
+        if os.path.exists(local_file_name):
+            break
+
+        time.sleep(1)
+        blob.download_to_filename(local_file_name)
+        retry_count += 1
+
+
+def download_file_as_string(gcs_bucket_name, gcs_file_name):
+    client = storage.Client()
+    bucket = client.bucket(gcs_bucket_name)
+    blob = bucket.blob(gcs_file_name)
+    content = blob.download_as_text()
+    return content
+
+
+def upload_file(local_file_name, gcs_bucket_name, gcs_file_name):
+    try:
+        client = storage.Client()
+        bucket = client.bucket(gcs_bucket_name)
+        blob = bucket.blob(gcs_file_name)  # Destination name of the file.
+        blob.upload_from_filename(local_file_name)  # Local file to be uploaded.
+        return True, ""
+    except Exception as e:
+        return False, str(e)
+
+
+def upload_files(upload_data, gcs_bucket_name):
+    try:
+        client = storage.Client()
+        bucket = client.bucket(gcs_bucket_name)
+
+        for item in upload_data:
+            blob = bucket.blob(item["gcs_file_name"])  # Destination name of the file.
+            if item["is_file"]:
+                blob.upload_from_filename(item["local_file_or_string"])  # Local file to be uploaded.
+            else:
+                blob.upload_from_string(item["local_file_or_string"])  # String to be uploaded.
+
+        return True, ""
+    except Exception as e:
+        return False, str(e)
+
+
+def check_if_file_exists(gcs_bucket_name, gcs_file_name):
+    client = storage.Client()
+    bucket = client.bucket(gcs_bucket_name)
+    blob = bucket.blob(gcs_file_name)
+    return blob.exists()
+
+
+def check_if_files_exist(gcs_bucket_name, gcs_file_names):
+    client = storage.Client()
+    bucket = client.bucket(gcs_bucket_name)
+    return all(bucket.blob(gcs_file_name).exists() for gcs_file_name in gcs_file_names)
