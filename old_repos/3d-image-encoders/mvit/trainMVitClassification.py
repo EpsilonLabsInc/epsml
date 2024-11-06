@@ -15,7 +15,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(f'Using device: {device}')
 
 class CTDataset(Dataset):
-    def __init__(self, csv_path, data_dir, num_classes, transform=None, split=None, target_frames=16):
+    def __init__(self, csv_path, data_dir, num_classes, transform=None, split=None, target_frames=112):
         self.data_dir = Path(data_dir)
         self.num_classes = num_classes
         self.transform = transform
@@ -76,45 +76,7 @@ class CTDataset(Dataset):
             logging.error(f"Error processing index {idx}: {str(e)}")
             raise
 
-class MVitWrapper(nn.Module):
-    def __init__(self, num_classes, pretrained=False, target_frames=16):
-        super().__init__()
-        self.target_frames = target_frames
-        
-        if num_classes <= 0:
-            raise ValueError("num_classes must be positive")
-            
-        # Load MViT-v2-Small with default weights if pretrained
-        weights = "DEFAULT" if pretrained else None
-        
-        self.mvit = mvit_v2_s(
-            weights=weights,
-            num_classes=num_classes,
-            spatial_size=(224, 224),  # Standard input size
-            temporal_size=target_frames
-        )
-        
-        # Modify first conv for single channel
-        old_conv = self.mvit.conv_proj
-        self.mvit.conv_proj = nn.Conv3d(
-            1,  # Input channels
-            old_conv.out_channels,
-            kernel_size=old_conv.kernel_size,
-            stride=old_conv.stride,
-            padding=old_conv.padding,
-            bias=old_conv.bias is not None
-        )
-        
-    def forward(self, x):
-        if x.dim() != 5:  # Expect (B, C, T, H, W)
-            raise ValueError(f"Expected 5D input tensor, got {x.dim()}D")
-        
-        # Use existing pad_or_crop_temporal function
-        x = pad_or_crop_temporal(x, self.target_frames)
-        
-        return self.mvit(x)
-
-def pad_or_crop_spatial(image, target_size=512):
+def pad_or_crop_spatial(image, target_size=224):
     """Center pad or crop image to target size"""
     curr_h, curr_w = image.shape[-2:]
     
@@ -137,7 +99,7 @@ def pad_or_crop_spatial(image, target_size=512):
     
     return image
 
-def pad_or_crop_temporal(volume, target_slices=256):
+def pad_or_crop_temporal(volume, target_slices=112):
     """Center pad or crop volume temporal dimension"""
     curr_slices = volume.shape[0]
     
@@ -173,6 +135,7 @@ def train(model, dataloader, criterion, optimizer, device):
         try:
             # Preprocess volumes
             inputs = preprocess_volume(inputs)
+            print(inputs.shape)
             inputs, targets = inputs.to(device), targets.to(device)
 
             optimizer.zero_grad()
@@ -199,7 +162,7 @@ def train(model, dataloader, criterion, optimizer, device):
             logging.error(f"Runtime error in batch {batch_idx}: {str(e)}")
             logging.error(f"Input shape: {inputs.shape if 'inputs' in locals() else 'unknown'}")
             continue
-        except Exception as e:
+        except Exception as e: 
             error_count += 1
             logging.error(f"Error in batch {batch_idx}: {str(e)}")
             continue
@@ -320,7 +283,7 @@ def main():
     # Configuration
     config = {
         "num_classes": 22,
-        "batch_size": 8,
+        "batch_size": 1,
         "num_epochs": 100,
         "learning_rate": 3e-4,
         "early_stopping_patience": 15,
@@ -331,7 +294,7 @@ def main():
     
     # Initialize wandb
     wandb.init(
-        project="ct-classification-mvit",
+        project="ct-class-mvit-224-224-112",
         config=config,
         name=f"mvit-v2-run-{wandb.util.generate_id()}",
         dir=str(Path('~/kedar/training-logs/mvit-large/wandb').expanduser())
@@ -366,7 +329,7 @@ def main():
         num_classes=config["num_classes"],
         transform=transform,
         split='train',  # Add split parameter to CTDataset
-        target_frames=256
+        target_frames=112
     )
     
     val_dataset = CTDataset(
@@ -375,7 +338,7 @@ def main():
         num_classes=config["num_classes"],
         transform=transform,
         split='test',  # Use test split as validation
-        target_frames=256
+        target_frames=112
     )
     
     # Create dataloaders
