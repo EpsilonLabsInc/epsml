@@ -75,6 +75,15 @@ class TorchTrainingHelper:
         self.__training_parameters = training_parameters
         self.__mlops_parameters = mlops_parameters
 
+        # Dump training information.
+        print("Creating TorchTrainingHelper")
+        print(f"Selected device: {self.__device}")
+        print(f"Selected device IDs: {self.__device_ids}")
+        print("Using the following training parameters:")
+        print(f"{self.__training_parameters.__dict__}")
+        print("Using the following MLOps parameters:")
+        print(f"{self.__mlops_parameters.__dict__}")
+
         # Determine whether the model is single- or multi-parameter.
         forward_method = self.__model.forward
         signature = inspect.signature(forward_method)
