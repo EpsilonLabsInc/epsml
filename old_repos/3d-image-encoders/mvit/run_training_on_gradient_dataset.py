@@ -31,6 +31,8 @@ if __name__ == "__main__":
     run_statistics = False
 
     # Training settings.
+    perform_intra_epoch_validation = True
+    send_wandb_notification = True
     device = "cuda"
     device_ids = None  # Use one (the default) GPU.
     # device_ids = [0, 1, 2, 3]  # Use 4 GPUs.
@@ -111,12 +113,14 @@ if __name__ == "__main__":
                                              validation_batch_size=validation_batch_size,
                                              criterion=torch.nn.BCEWithLogitsLoss(),
                                              checkpoint_dir=checkpoint_dir,
+                                             perform_intra_epoch_validation=perform_intra_epoch_validation,
                                              num_training_workers_per_gpu=num_training_workers_per_gpu,
                                              num_validation_workers_per_gpu=num_validation_workers_per_gpu)
 
     mlops_parameters = MlopsParameters(mlops_type=MlopsType.WANDB,
                                        experiment_name=mlops_experiment_name,
-                                       notes=f"{target_image_size}x{target_image_size}x{normalization_depth}")
+                                       notes=f"{target_image_size}x{target_image_size}x{normalization_depth}",
+                                       send_notification=send_wandb_notification)
 
     training_helper = TorchTrainingHelper(model=model,
                                           dataset_helper=dataset_helper,
