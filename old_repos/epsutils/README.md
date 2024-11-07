@@ -2,5 +2,5 @@
 
 Welcome to the epsutils repository! This repository contains a collection of commonly used utility functions in Python to make your development process smoother and more efficient.
 
-In order to use epsutils in other Python projects add them to Python path:
+In order to use epsutils in other Python projects add them to Python path: 
 `export PYTHONPATH="/path/to/epsutils/repo/:$PYTHONPATH"`
