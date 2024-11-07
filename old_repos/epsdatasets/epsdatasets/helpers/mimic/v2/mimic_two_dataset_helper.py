@@ -6,7 +6,7 @@ import pandas as pd
 from PIL import Image
 from torch.utils.data import DataLoader, Dataset
 
-from epsdatasets.base.base_dataset_helper import BaseDatasetHelper
+from epsdatasets.helpers.base.base_dataset_helper import BaseDatasetHelper
 
 IMAGE_FILENAMES_FILE = "IMAGE_FILENAMES"
 IMAGE_FILENAMES_CORRECTED_FILE = "IMAGE_FILENAMES_CORRECTED"

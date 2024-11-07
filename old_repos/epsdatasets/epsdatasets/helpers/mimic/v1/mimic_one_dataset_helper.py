@@ -6,7 +6,7 @@ import numpy as np
 from PIL import Image
 from torch.utils.data import Dataset, DataLoader
 
-from epsdatasets.base.base_dataset_helper import BaseDatasetHelper
+from epsdatasets.helpers.base.base_dataset_helper import BaseDatasetHelper
 
 
 class MimicOneDatasetHelper(BaseDatasetHelper):

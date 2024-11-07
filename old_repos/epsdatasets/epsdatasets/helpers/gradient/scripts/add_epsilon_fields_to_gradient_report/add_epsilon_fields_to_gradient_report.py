@@ -5,7 +5,7 @@ from io import StringIO
 import pandas as pd
 from tqdm import tqdm
 
-from epsdatasets.gradient import gradient_utils
+from epsdatasets.helpers.gradient import gradient_utils
 from epsutils.gcs import gcs_utils
 
 import config

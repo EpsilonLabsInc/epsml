@@ -9,7 +9,7 @@ import pydicom
 import SimpleITK as sitk
 from google.cloud import storage
 
-from epsdatasets.gradient import gradient_utils
+from epsdatasets.helpers.gradient import gradient_utils
 from epsutils.dicom import dicom_utils
 from epsutils.gcs import gcs_utils
 from epsutils.nifti import nifti_utils

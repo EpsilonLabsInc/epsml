@@ -12,7 +12,7 @@ from PIL import Image
 from sklearn.model_selection import train_test_split
 from torch.utils.data import Dataset, DataLoader
 
-from epsdatasets.base.base_dataset_helper import BaseDatasetHelper
+from epsdatasets.helpers.base.base_dataset_helper import BaseDatasetHelper
 from epsutils.labels.grouped_labels_manager import GroupedLabelsManager
 
 
