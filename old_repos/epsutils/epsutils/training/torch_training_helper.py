@@ -19,6 +19,7 @@ class TrainingParameters:
             learning_rate=1e-6,
             warmup_ratio=0.1,
             num_epochs=10,
+            gradient_accumulation_steps=None,
             training_batch_size=4,
             validation_batch_size=4,
             criterion=torch.nn.CrossEntropyLoss(),
@@ -32,6 +33,7 @@ class TrainingParameters:
         self.learning_rate = learning_rate
         self.warmup_ratio = warmup_ratio
         self.num_epochs = num_epochs
+        self.gradient_accumulation_steps = gradient_accumulation_steps
         self.training_batch_size = training_batch_size
         self.validation_batch_size = validation_batch_size
         self.criterion = criterion
@@ -188,9 +190,6 @@ class TorchTrainingHelper:
             # Get the inputs.
             data, target = batch
 
-            # Zero the parameter gradients.
-            self.__optimizer.zero_grad()
-
             # Forward pass.
             if self.__is_multi_parameter_model:
                 outputs = self.__parallel_model(data.to(self.__device), target.to(self.__device))
@@ -202,6 +201,10 @@ class TorchTrainingHelper:
             # If 'loss' is a vector, it needs to be averaged.
             if loss.numel() > 1:
                 loss = loss.mean()
+
+            # Gradient accumulation.
+            if self.__training_parameters.gradient_accumulation_steps is not None:
+                loss = loss / self.__training_parameters.gradient_accumulation_steps
 
             # Update losses.
             losses.update(loss.item(), data.size(0))
@@ -232,7 +235,11 @@ class TorchTrainingHelper:
             loss.backward()
 
             # Optimization step.
-            self.__optimizer.step()
+            if self.__training_parameters.gradient_accumulation_steps is None or idx % self.__training_parameters.gradient_accumulation_steps == 0:
+                self.__optimizer.step()
+                self.__optimizer.zero_grad()
+
+            # LR scheduler step.
             self.__lr_scheduler.step()
 
             # Intra-epoch validation.
