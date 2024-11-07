@@ -82,7 +82,10 @@ class TorchTrainingHelper:
         print("Using the following training parameters:")
         print(f"{self.__training_parameters.__dict__}")
         print("Using the following MLOps parameters:")
-        print(f"{self.__mlops_parameters.__dict__}")
+        if self.__mlops_parameters is not None:
+            print(f"{self.__mlops_parameters.__dict__}")
+        else:
+            print("None")
 
         # Determine whether the model is single- or multi-parameter.
         forward_method = self.__model.forward
