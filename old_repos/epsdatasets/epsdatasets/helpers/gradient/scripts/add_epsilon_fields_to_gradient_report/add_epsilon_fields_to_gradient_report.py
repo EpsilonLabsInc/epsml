@@ -55,8 +55,17 @@ def main():
             # Read volume info file and determine whether volume uses contrast agent or not.
             volume_info_file_name = gradient_utils.get_volume_info_file_name(
                 patient_id=patient_id, accession_number=accession_number, study_instance_uid=study_instance_uid, series_instance_uid=series_instance_uid)
-            volume_info_file_path = os.path.join(config.NIFTI_FILES_GCS_IMAGES_DIR, volume_info_file_name)
-            volume_info_content = gcs_utils.download_file_as_string(gcs_bucket_name=config.NIFTI_FILES_GCS_BUCKET_NAME, gcs_file_name=volume_info_file_path)
+            if config.LOCAL_IMAGES_DIR is None:
+                volume_info_file_path = os.path.join(config.NIFTI_FILES_GCS_IMAGES_DIR, volume_info_file_name)
+                volume_info_content = gcs_utils.download_file_as_string(gcs_bucket_name=config.NIFTI_FILES_GCS_BUCKET_NAME, gcs_file_name=volume_info_file_path)
+            else:
+                volume_info_file_path = os.path.join(config.LOCAL_IMAGES_DIR, volume_info_file_name)
+                try:
+                    with open(volume_info_file_path, "r") as file:
+                        volume_info_content = file.read()
+                except Exception as e:
+                    print(f"Error reading volume info file: {e}")
+                    continue
 
             if "(0018,0010) Contrast/Bolus Agent" in volume_info_content:
                 df.at[index, "ContrastAgentVolumes"].append(nifti_file_name)
