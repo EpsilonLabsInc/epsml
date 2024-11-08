@@ -4,15 +4,14 @@ sys.path.insert(1, "../../registry/utils/dicom")
 sys.path.insert(1, "../../registry/utils/labels")
 sys.path.insert(1, "../../registry/utils/training")
 
-import copy
-
 import numpy as np
 import torch
 import torchvision
 
+from epsdatasets.helpers.gradient.gradient_dataset_helper import GradientDatasetHelper
+from epsutils.training.torch_training_helper import TorchTrainingHelper, TrainingParameters, MlopsType, MlopsParameters
+
 from custom_swin_3d import CustomSwin3D
-from gradient_dataset_helper import GradientDatasetHelper
-from torch_training_helper import TorchTrainingHelper, TrainingParameters, MlopsType, MlopsParameters
 
 
 if __name__ == "__main__":
@@ -37,16 +36,23 @@ if __name__ == "__main__":
     run_statistics = False
 
     # Training settings.
+    perform_intra_epoch_validation = True
+    send_wandb_notification = True
     device = "cuda"
     device_ids = None  # Use one (the default) GPU.
     # device_ids = [0, 1, 2, 3]  # Use 4 GPUs.
+    num_training_workers_per_gpu = 8
+    num_validation_workers_per_gpu = 8
     half_model_precision = False
-    learning_rate = 1e-6
-    num_epochs = 10
-    batch_size = 1
+    learning_rate = 1e-4
+    warmup_ratio = 1 / 8
+    num_epochs = 3
+    training_batch_size = 2
+    validation_batch_size = 2
     images_mean = 0.2567
     images_std = 0.1840
-    max_training_volume_depth = 30
+    target_image_size = 256
+    normalization_depth = 32
 
     experiment_name = f"{model_name}-finetuning-on-{dataset_name}"
     mlops_experiment_name = f"{experiment_name}"
@@ -75,7 +81,7 @@ if __name__ == "__main__":
         seed=seed,
         run_statistics=run_statistics)
 
-    print(f"Max training volume depth: {max_training_volume_depth}")
+    print(f"Target volume dimensions: {target_image_size}x{target_image_size}x{normalization_depth}")
 
     # Get number of labels.
     num_labels = len(dataset_helper.get_labels())
@@ -97,14 +103,20 @@ if __name__ == "__main__":
     print("Preparing the training data")
 
     training_parameters = TrainingParameters(learning_rate=learning_rate,
+                                             warmup_ratio=warmup_ratio,
                                              num_epochs=num_epochs,
-                                             batch_size=batch_size,
+                                             training_batch_size=training_batch_size,
+                                             validation_batch_size=validation_batch_size,
                                              criterion=torch.nn.BCEWithLogitsLoss(),
-                                             checkpoint_dir=checkpoint_dir)
+                                             checkpoint_dir=checkpoint_dir,
+                                             perform_intra_epoch_validation=perform_intra_epoch_validation,
+                                             num_training_workers_per_gpu=num_training_workers_per_gpu,
+                                             num_validation_workers_per_gpu=num_validation_workers_per_gpu)
 
     mlops_parameters = MlopsParameters(mlops_type=MlopsType.WANDB,
                                        experiment_name=mlops_experiment_name,
-                                       notes=f"Max volume depth = {max_training_volume_depth}")
+                                       notes=f"Volume size = {target_image_size}x{target_image_size}x{normalization_depth}",
+                                       send_notification=send_wandb_notification)
 
     training_helper = TorchTrainingHelper(model=model,
                                           dataset_helper=dataset_helper,
@@ -114,14 +126,12 @@ if __name__ == "__main__":
                                           mlops_parameters=mlops_parameters)
 
     transform_rgb_image = torchvision.transforms.Compose([
-        torchvision.transforms.Resize((512, 512), interpolation=torchvision.transforms.InterpolationMode.BILINEAR),
+        torchvision.transforms.Resize((target_image_size, target_image_size), interpolation=torchvision.transforms.InterpolationMode.BILINEAR),
         torchvision.transforms.ToTensor()
-        # TODO: Figure out normalization values. Also consider computing mean and std from the dataset itself.
-#        torchvision.transforms.Normalize(mean=[0.50, 0.50, 0.50], std=[0.25, 0.25, 0.25])
     ])
 
     def transform_uint16_image(image):
-        image = image.resize((512, 512))
+        image = image.resize((target_image_size, target_image_size))
         image_np = np.array(image).astype(np.float32)
         image_np /= 65535.0
         image_np = image_np.astype(np.float16) if half_model_precision else image_np.astype(np.float32)
@@ -131,7 +141,7 @@ if __name__ == "__main__":
         return image_tensor
 
     def get_torch_image(item):
-        images = dataset_helper.get_pil_image(item, max_training_volume_depth)
+        images = dataset_helper.get_pil_image(item, normalization_depth)
         tensors = [transform_uint16_image(image) for image in images]
         stacked_tensor = torch.stack(tensors)
         # Instead of the tensor shape (num_slices, num_channels, image_height, image_width),

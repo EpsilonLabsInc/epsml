@@ -6,8 +6,6 @@ from torchvision.models.video import mvit_v2_s
 from epsdatasets.helpers.gradient.gradient_dataset_helper import GradientDatasetHelper
 from epsutils.training.torch_training_helper import TorchTrainingHelper, TrainingParameters, MlopsType, MlopsParameters
 
-from trainMVitClassification import create_model
-
 
 if __name__ == "__main__":
     # General settings.

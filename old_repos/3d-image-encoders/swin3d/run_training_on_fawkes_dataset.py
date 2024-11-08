@@ -8,9 +8,10 @@ import copy
 import torch
 import torchvision
 
+from epsdatasets.helpers.fawkes.fawkes_dataset_helper import FawkesDatasetHelper
+from epsutils.training.torch_training_helper import TorchTrainingHelper, TrainingParameters, MlFlowParameters
+
 from custom_swin_3d import CustomSwin3D
-from fawkes_dataset_helper import FawkesDatasetHelper
-from torch_training_helper import TorchTrainingHelper, TrainingParameters, MlFlowParameters
 
 
 if __name__ == "__main__":
