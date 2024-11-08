@@ -1,9 +1,3 @@
-import sys
-sys.path.insert(1, "../../registry/mimic")
-sys.path.insert(1, "../../registry/utils/dicom")
-sys.path.insert(1, "../../registry/utils/labels")
-sys.path.insert(1, "../../registry/utils/training")
-
 import numpy as np
 import torch
 import torchvision

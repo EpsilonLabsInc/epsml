@@ -1,16 +1,12 @@
-import sys
-sys.path.insert(1, "../../registry/mimic")
-sys.path.insert(1, "../../registry/utils/labels")
-sys.path.insert(1, "../../registry/utils/training")
-
 import copy
 
 import torch
 import torchvision
 
+from epsdatasets.helpers.fawkes.fawkes_dataset_helper import FawkesDatasetHelper
+from epsutils.training.torch_training_helper import TorchTrainingHelper, TrainingParameters, MlopsType, MlopsParameters
+
 from i3d_resnet import I3DResNet
-from fawkes_dataset_helper import FawkesDatasetHelper
-from torch_training_helper import TorchTrainingHelper, TrainingParameters, MlFlowParameters
 
 
 if __name__ == "__main__":
@@ -18,7 +14,6 @@ if __name__ == "__main__":
     dataset_name = "fawkes_varying_dataset"
     labeled_data_file="/home/ec2-user/data/mnt/epsilon-datasets/fawkes/fawkes_varying_volumes/labeled_data.json"
     grouped_labels_file="/home/ec2-user/data/mnt/epsilon-datasets/fawkes/grouped_labels.json"
-    mlflow_uri = "https://mlflow-f66025e-rcsxwgoiba-uc.a.run.app"
 
     device = "cuda"
     # device_ids = None  # Use one (the default) GPU.
@@ -27,11 +22,12 @@ if __name__ == "__main__":
     half_model_precision = False
     learning_rate = 1e-6
     num_epochs = 10
-    batch_size = 4
+    training_batch_size = 4
+    validation_batch_size = 4
     seed = 42
 
     experiment_name = f"{model_name}-finetuning-on-{dataset_name}"
-    mlflow_experiment_name = f"{experiment_name}"
+    mlops_experiment_name = f"{experiment_name}"
     out_dir = f"/home/ec2-user/data/{experiment_name}"
     save_model_filename = f"{out_dir}/{experiment_name}.pt"
     save_parallel_model_filename = f"{out_dir}/{experiment_name}-parallel.pt"
@@ -69,25 +65,24 @@ if __name__ == "__main__":
 
     training_parameters = TrainingParameters(learning_rate=learning_rate,
                                              num_epochs=num_epochs,
-                                             batch_size=batch_size,
+                                             training_batch_size=training_batch_size,
+                                             validation_batch_size=validation_batch_size,
                                              criterion=torch.nn.BCEWithLogitsLoss(),
                                              checkpoint_dir=checkpoint_dir)
 
-    mlflow_parameters = MlFlowParameters(uri=mlflow_uri,
-                                         experiment_name=mlflow_experiment_name)
+    mlops_parameters = MlopsParameters(mlops_type=MlopsType.WANDB,
+                                       experiment_name=mlops_experiment_name)
 
     training_helper = TorchTrainingHelper(model=model,
                                           dataset_helper=dataset_helper,
                                           device=device,
                                           device_ids=device_ids,
                                           training_parameters=training_parameters,
-                                          mlflow_parameters=mlflow_parameters)
+                                          mlops_parameters=mlops_parameters)
 
     transform = torchvision.transforms.Compose([
         torchvision.transforms.Resize((224, 224), interpolation=torchvision.transforms.InterpolationMode.BILINEAR),
         torchvision.transforms.ToTensor()
-        # TODO: Figure out normalization values. Also consider computing mean and std from the dataset itself.
-#        torchvision.transforms.Normalize(mean=[0.50, 0.50, 0.50], std=[0.25, 0.25, 0.25])
     ])
 
     def collate_function(samples):
