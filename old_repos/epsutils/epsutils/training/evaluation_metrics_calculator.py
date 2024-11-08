@@ -40,7 +40,11 @@ class EvaluationMetricsCalculator:
         return curr_precision, curr_recall, curr_f1, curr_accuracy, cumulative_precision, cumulative_recall, cumulative_f1, cumulative_accuracy
 
     def reset(self):
-        self.__tp = 0.0
-        self.__tn = 0.0
-        self.__fp = 0.0
-        self.__fn = 0.0
+        self.__curr_tp = 0.0
+        self.__curr_tn = 0.0
+        self.__curr_fp = 0.0
+        self.__curr_fn = 0.0
+        self.__sum_tp = 0.0
+        self.__sum_tn = 0.0
+        self.__sum_fp = 0.0
+        self.__sum_fn = 0.0
