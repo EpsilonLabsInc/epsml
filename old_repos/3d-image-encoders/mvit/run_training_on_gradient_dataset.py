@@ -117,7 +117,7 @@ if __name__ == "__main__":
 
     mlops_parameters = MlopsParameters(mlops_type=MlopsType.WANDB,
                                        experiment_name=mlops_experiment_name,
-                                       notes=f"{target_image_size}x{target_image_size}x{normalization_depth}",
+                                       notes=f"Volume size = {target_image_size}x{target_image_size}x{normalization_depth}",
                                        send_notification=send_wandb_notification)
 
     training_helper = TorchTrainingHelper(model=model,
