@@ -345,7 +345,7 @@ class TorchTrainingHelper:
             wandb.login()
             run = wandb.init(project=self.__mlops_parameters.experiment_name, notes=self.__mlops_parameters.notes)
             if self.__mlops_parameters.send_notification:
-                run.alert(title=self.__mlops_parameters.experiment_name, text="New Training Started!")
+                run.alert(title=self.__mlops_parameters.experiment_name, text=self.__mlops_parameters.notes)
             wandb.define_metric("Steps")
             wandb.define_metric("*", step_metric="Steps")
         else:
