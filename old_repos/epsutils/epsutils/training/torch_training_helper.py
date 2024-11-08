@@ -231,15 +231,19 @@ class TorchTrainingHelper:
 
             # Log intermediate MLOps metrics.
             if self.__mlops_parameters is not None and idx % self.__mlops_parameters.log_metric_step == 0:
-                precision, recall, f1, accuracy = evaluation_metrics_calculator.compute_metrics()
+                curr_precision, curr_recall, curr_f1, curr_accuracy, cum_precision, cum_recall, cum_f1, cum_accuracy = evaluation_metrics_calculator.compute_metrics()
                 values = {
                     "Training LR": self.__optimizer.param_groups[0]["lr"],
                     "Training MA Loss": losses.moving_average,
                     "Training AVG Loss": losses.avg,
-                    "Training Precision": precision,
-                    "Training Recall": recall,
-                    "Training F1": f1,
-                    "Training Accuracy": accuracy
+                    "Training Precision": curr_precision,
+                    "Training Recall": curr_recall,
+                    "Training F1": curr_f1,
+                    "Training Accuracy": curr_accuracy
+                    "Training Cumulative Precision": cum_precision,
+                    "Training Cumulative Recall": cum_recall,
+                    "Training Cumulative F1": cum_f1,
+                    "Training Cumulative Accuracy": cum_accuracy
                 }
                 self.__log_metric(values, step)
 
@@ -316,12 +320,16 @@ class TorchTrainingHelper:
 
         # Log MLOps metrics.
         if self.__mlops_parameters is not None:
-            precision, recall, f1, accuracy = evaluation_metrics_calculator.compute_metrics()
+            curr_precision, curr_recall, curr_f1, curr_accuracy, cum_precision, cum_recall, cum_f1, cum_accuracy = evaluation_metrics_calculator.compute_metrics()
             values = {
-                f"{validation_type} Precision": precision,
-                f"{validation_type} Recall": recall,
-                f"{validation_type} F1": f1,
-                f"{validation_type} Accuracy": accuracy,
+                f"{validation_type} Precision": curr_precision,
+                f"{validation_type} Recall": curr_recall,
+                f"{validation_type} F1": curr_f1,
+                f"{validation_type} Accuracy": curr_accuracy,
+                f"{validation_type} Cumulative Precision": cum_precision,
+                f"{validation_type} Cumulative Recall": cum_recall,
+                f"{validation_type} Cumulative F1": cum_f1,
+                f"{validation_type} Cumulative Accuracy": cum_accuracy,
                 f"{validation_type} Loss": validation_losses.avg
             }
             self.__log_metric(values, step)
