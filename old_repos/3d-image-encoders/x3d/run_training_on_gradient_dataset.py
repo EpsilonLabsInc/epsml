@@ -8,8 +8,8 @@ import numpy as np
 import torch
 import torchvision
 
-from gradient_dataset_helper import GradientDatasetHelper
-from torch_training_helper import TorchTrainingHelper, TrainingParameters, MlopsType, MlopsParameters
+from epsdatasets.helpers.gradient.gradient_dataset_helper import GradientDatasetHelper
+from epsutils.training.torch_training_helper import TorchTrainingHelper, TrainingParameters, MlopsType, MlopsParameters
 
 
 if __name__ == "__main__":
@@ -34,11 +34,13 @@ if __name__ == "__main__":
     run_statistics = False
 
     # Training settings.
+    perform_intra_epoch_validation = True
+    send_wandb_notification = True
     device = "cuda"
     device_ids = None  # Use one (the default) GPU.
     # device_ids = [0, 1, 2, 3]  # Use 4 GPUs.
-    num_training_workers_per_gpu = 4
-    num_validation_workers_per_gpu = 4
+    num_training_workers_per_gpu = 8
+    num_validation_workers_per_gpu = 8
     half_model_precision = False
     learning_rate = 1e-4
     warmup_ratio = 1 / 8
@@ -47,7 +49,7 @@ if __name__ == "__main__":
     validation_batch_size = 2
     images_mean = 0.2567
     images_std = 0.1840
-    target_image_size = 256
+    target_image_size = 512
     normalization_depth = 32
 
     experiment_name = f"{model_name}-finetuning-on-{dataset_name}"
@@ -105,12 +107,14 @@ if __name__ == "__main__":
                                              validation_batch_size=validation_batch_size,
                                              criterion=torch.nn.BCEWithLogitsLoss(),
                                              checkpoint_dir=checkpoint_dir,
+                                             perform_intra_epoch_validation=perform_intra_epoch_validation,
                                              num_training_workers_per_gpu=num_training_workers_per_gpu,
                                              num_validation_workers_per_gpu=num_validation_workers_per_gpu)
 
     mlops_parameters = MlopsParameters(mlops_type=MlopsType.WANDB,
                                        experiment_name=mlops_experiment_name,
-                                       notes=f"{target_image_size}x{target_image_size}x{normalization_depth}")
+                                       notes=f"Volume size = {target_image_size}x{target_image_size}x{normalization_depth}",
+                                       send_notification=send_wandb_notification)
 
     training_helper = TorchTrainingHelper(model=model,
                                           dataset_helper=dataset_helper,
@@ -122,8 +126,6 @@ if __name__ == "__main__":
     transform_rgb_image = torchvision.transforms.Compose([
         torchvision.transforms.Resize((target_image_size, target_image_size), interpolation=torchvision.transforms.InterpolationMode.BILINEAR),
         torchvision.transforms.ToTensor()
-        # TODO: Figure out normalization values. Also consider computing mean and std from the dataset itself.
-#        torchvision.transforms.Normalize(mean=[0.50, 0.50, 0.50], std=[0.25, 0.25, 0.25])
     ])
 
     def transform_uint16_image(image):
