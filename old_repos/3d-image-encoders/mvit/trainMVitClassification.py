@@ -125,7 +125,7 @@ def preprocess_volume(volume):
     return volume
 
 def train(model, dataloader, criterion, optimizer, device, 
-          accumulation_steps=8, val_dataloader=None, val_steps=10000):
+          accumulation_steps=8, val_dataloader=None, val_steps=2000):
     model.train()
     running_loss = 0.0
     all_targets = []
@@ -163,11 +163,11 @@ def train(model, dataloader, criterion, optimizer, device,
             all_predicted_labels.extend(predicted_labels.cpu().numpy())
 
             # Log batch metrics (optional)
-            if batch_idx % 10 == 0:
-                wandb.log({
-                    "batch/train_loss": loss.item() * accumulation_steps,
-                    "global_step": global_step
-                })
+            current_lr = optimizer.param_groups[0]['lr']
+            wandb.log({
+                "batch/train_loss": loss.item() * accumulation_steps,
+                "batch/learning_rate": current_lr
+            })
 
             global_step += 1  # Increment global step -- avoid starting with validation
 
@@ -301,39 +301,21 @@ def create_model(num_classes, device):
         
     return model.to(device)
 
-def main():
-    # Configuration
-    config = {
-        "num_classes": 22,
-        "batch_size": 1,
-        "num_epochs": 100,
-        "learning_rate": 3e-4,
-        "early_stopping_patience": 15,
-        "architecture": "MViT-v2-Small",
-        "optimizer": "AdamW",
-        "scheduler": "ReduceLROnPlateau"
-    }
-    
+def run_training(config, checkpoint_dir, log_dir):
+    """Run a single training experiment with given config"""
     # Initialize wandb
-    wandb.init(
+    run = wandb.init(
         project="ct-class-mvit-224-224-112",
         config=config,
-        name=f"mvit-v2-run-{wandb.util.generate_id()}",
-        dir=str(Path('~/kedar/training-logs/mvit-large/wandb').expanduser())
+        name=f"mvit-v2-lr{config['learning_rate']}-{wandb.util.generate_id()}",
+        dir=str(Path('~/kedar/training-logs/mvit-large/wandb').expanduser()),
+        reinit=True  # Allow multiple runs
     )
     
+    # Rest of the training setup and loop
+    # Configuration
     # Setup checkpoint directory
-    checkpoint_dir = Path('~/kedar/training-logs/mvit-large/checkpoints').expanduser()
     checkpoint_dir.mkdir(parents=True, exist_ok=True)
-    
-    # Setup logging
-    log_dir = checkpoint_dir.parent / 'logs'
-    log_dir.mkdir(exist_ok=True)
-    logging.basicConfig(
-        filename=log_dir / 'training.log',
-        level=logging.INFO,
-        format='%(asctime)s - %(levelname)s - %(message)s'
-    )
     
     # Data transforms
     transform = transforms.Compose([
@@ -413,7 +395,7 @@ def main():
     for epoch in range(start_epoch, config["num_epochs"]):
         train_loss, train_acc = train(
             model, train_loader, criterion, optimizer, device,
-            val_dataloader=val_loader, val_steps=10000
+            val_dataloader=val_loader, val_steps=2000
         )
         val_loss, val_acc = validate(
             model, val_loader, criterion, device
@@ -453,6 +435,51 @@ def main():
             break
 
     wandb.finish()
+
+def main():
+    # Base configuration
+    base_config = {
+        "num_classes": 22,
+        "batch_size": 1,
+        "num_epochs": 1,
+        "early_stopping_patience": 15,
+        "architecture": "MViT-v2-Small",
+        "optimizer": "AdamW",
+        "scheduler": "ReduceLROnPlateau"
+    }
+    
+    # Learning rates to try
+    learning_rates = [1e-6]
+    
+    # Setup directories
+    checkpoint_base_dir = Path('~/kedar/training-logs/mvit-large/checkpoints').expanduser()
+    log_dir = checkpoint_base_dir.parent / 'logs'
+    log_dir.mkdir(exist_ok=True)
+    
+    # Setup logging
+    logging.basicConfig(
+        filename=log_dir / 'training.log',
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s'
+    )
+    
+    # Run experiments for each learning rate
+    for lr in learning_rates:
+        logging.info(f"Starting experiment with learning rate: {lr}")
+        
+        # Create specific checkpoint directory for this run
+        checkpoint_dir = checkpoint_base_dir / f"lr_{lr}"
+        checkpoint_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Update config with current learning rate
+        config = base_config.copy()
+        config["learning_rate"] = lr
+        
+        try:
+            run_training(config, checkpoint_dir, log_dir)
+        except Exception as e:
+            logging.error(f"Error in experiment with lr={lr}: {str(e)}")
+            continue
 
 if __name__ == '__main__':
     main()
