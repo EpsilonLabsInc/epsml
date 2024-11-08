@@ -239,7 +239,7 @@ class TorchTrainingHelper:
                     "Training Precision": curr_precision,
                     "Training Recall": curr_recall,
                     "Training F1": curr_f1,
-                    "Training Accuracy": curr_accuracy
+                    "Training Accuracy": curr_accuracy,
                     "Training Cumulative Precision": cum_precision,
                     "Training Cumulative Recall": cum_recall,
                     "Training Cumulative F1": cum_f1,
