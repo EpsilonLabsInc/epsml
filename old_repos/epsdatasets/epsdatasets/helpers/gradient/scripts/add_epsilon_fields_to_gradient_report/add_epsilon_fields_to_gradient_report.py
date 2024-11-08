@@ -12,6 +12,17 @@ import config
 
 
 def main():
+    print("Using the following config:")
+    print("-------------------------------------------")
+    print(f"SOURCE_GCS_BUCKET_NAME = {config.SOURCE_GCS_BUCKET_NAME}")
+    print(f"SOURCE_GCS_REPORTS_FILE = {config.SOURCE_GCS_REPORTS_FILE}")
+    print(f"NIFTI_FILES_GCS_BUCKET_NAME = {config.NIFTI_FILES_GCS_BUCKET_NAME}")
+    print(f"NIFTI_FILES_GCS_IMAGES_DIR = {config.NIFTI_FILES_GCS_IMAGES_DIR}")
+    print(f"LOCAL_IMAGES_DIR = {config.LOCAL_IMAGES_DIR}")
+    print(f"DESTINATION_GCS_BUCKET_NAME = {config.DESTINATION_GCS_BUCKET_NAME}")
+    print(f"DESTINATION_GCS_REPORTS_FILE = {config.DESTINATION_GCS_REPORTS_FILE}")
+    print("-------------------------------------------")
+
     # Download reports file.
     print(f"Downloading reports file from the GCS bucket")
     reports_file_content = gcs_utils.download_file_as_string(gcs_bucket_name=config.SOURCE_GCS_BUCKET_NAME, gcs_file_name=config.SOURCE_GCS_REPORTS_FILE)
@@ -23,6 +34,7 @@ def main():
     # Get list of NIfTI file paths.
     print("Getting a list of NIfTI file paths")
     files_in_bucket = gcs_utils.list_files(gcs_bucket_name=config.NIFTI_FILES_GCS_BUCKET_NAME, gcs_dir=config.NIFTI_FILES_GCS_IMAGES_DIR)
+    files_in_bucket = set(files_in_bucket)  # Sets have average-time complexity of O(1) for lookups. In contrast, lists have an average-time complexity of O(n).
     print(f"Total files found: {len(files_in_bucket)}")
 
     # Add new fields.
