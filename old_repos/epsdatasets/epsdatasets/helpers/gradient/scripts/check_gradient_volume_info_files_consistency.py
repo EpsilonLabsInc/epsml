@@ -34,9 +34,13 @@ print(f"Number of .txt files: {len(txt_files)}")
 
 print("Looking for inconsistent file pairs")
 
-inconsistent_files = nii_files - txt_files
+inconsistent_nii = nii_files - txt_files
+inconsistent_txt = txt_files - nii_files
 
-if inconsistent_files:
-    print(f"Inconsistent file pairs: {inconsistent_files}")
+if inconsistent_nii or inconsistent_txt:
+    if inconsistent_nii:
+        print(f"Inconsistent .nii.gz files: {inconsistent_nii}")
+    if inconsistent_txt:
+        print(f"Inconsistent .txt files: {inconsistent_txt}")
 else:
-    print("All .nii.gz files have corresponding .txt files")
+    print("All .nii.gz files have corresponding .txt files and vice versa")
