@@ -12,9 +12,9 @@ class EvaluationMetricsCalculator:
         y_pred = predictions.view(-1).cpu().numpy()
         y_true = labels.int().view(-1).cpu().numpy()
 
-        self.__curr_precision = precision_score(y_true=y_true, y_pred=y_pred, labels=[0, 1], average="micro")
-        self.__curr_recall = recall_score(y_true=y_true, y_pred=y_pred, labels=[0, 1], average="micro")
-        self.__curr_f1 = f1_score(y_true=y_true, y_pred=y_pred, labels=[0, 1], average="micro")
+        self.__curr_precision = precision_score(y_true=y_true, y_pred=y_pred, labels=[0, 1], average="macro")
+        self.__curr_recall = recall_score(y_true=y_true, y_pred=y_pred, labels=[0, 1], average="macro")
+        self.__curr_f1 = f1_score(y_true=y_true, y_pred=y_pred, labels=[0, 1], average="macro")
         self.__curr_accuracy = accuracy_score(y_true=y_true, y_pred=y_pred)
 
         self.__sum_precision += self.__curr_precision
