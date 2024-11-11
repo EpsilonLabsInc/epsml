@@ -163,7 +163,7 @@ class GradientDatasetHelper(BaseDatasetHelper):
     def get_max_depth(self):
         return self.__max_depth
 
-    def get_pil_image(self, item, normalization_depth=None):
+    def get_pil_image(self, item, normalization_depth=None, sample_slices=False):
 
         # Load volume from a single NIfTI file.
         if self.__use_nifti_files:
@@ -189,8 +189,21 @@ class GradientDatasetHelper(BaseDatasetHelper):
 
             # Downsample volume.
             if normalization_depth is not None and sitk_image_array.shape[0] != normalization_depth:
-                new_shape = (normalization_depth, sitk_image_array.shape[1], sitk_image_array.shape[2])
-                sitk_image_array = math_utils.interpolate_volume(input_volume=sitk_image_array, new_shape=new_shape)
+                if sample_slices:
+                    if normalization_depth > sitk_image_array.shape[0]:
+                        padding = (normalization_depth - sitk_image_array.shape[0]) // 2
+                        indices = list(range(sitk_image_array.shape[0]))
+                        sitk_image_array = sitk_image_array[indices, :, :]
+                        padded_array = np.zeros((normalization_depth, sitk_image_array.shape[1], sitk_image_array.shape[2]), dtype=sitk_image_array.dtype)
+                        padded_array[padding:padding+len(indices)] = sitk_image_array
+                        sitk_image_array = padded_array
+                    else:
+                        indices = np.random.choice(sitk_image_array.shape[0], normalization_depth, replace=False)
+                        indices = np.sort(indices)
+                        sitk_image_array = sitk_image_array[indices, :, :]
+                else:
+                    new_shape = (normalization_depth, sitk_image_array.shape[1], sitk_image_array.shape[2])
+                    sitk_image_array = math_utils.interpolate_volume(input_volume=sitk_image_array, new_shape=new_shape)
 
             images = [sitk_image_array[i, :, :] for i in range(sitk_image_array.shape[0])]
 
