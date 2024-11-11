@@ -36,7 +36,7 @@ def process_row_impl(row):
         return
 
     # Check modality.
-    if config.MODALITY not in row_data["modalities"]:
+    if not any(modality in config.MODALITIES for modality in row_data["modalities"]):
         logging.warning(f"Invalid modality {row_data['modalities']}, study rejected (row ID: {row_data['row_id']})")
         return
 
@@ -94,6 +94,108 @@ def process_row_impl(row):
         if not res:
             logging.warning(f"{err_msg}, series rejected (row ID: {row_data['row_id']})")
             continue
+
+
+def process_row_cr(row):
+    try:
+        process_row_cr_impl(row)
+    except Exception as e:
+        print(f"Exception in process row CR impl: {str(e)}")
+
+
+def process_row_cr_impl(row):
+    row_data = get_row_data(row)
+    if row_data is None:
+        logging.warning(f"Unable to parse row, study rejected (row ID: N/A)")
+        return
+
+    # Check institution name.
+    if not any(valid_institution in row_data["institution_name"].lower() for valid_institution in config.VALID_INSTITUTION_NAMES):
+        logging.warning(f"Invalid institution {row_data['institution_name']}, study rejected (row ID: {row_data['row_id']})")
+        return
+
+    # Check modality.
+    if not any(modality in config.MODALITIES for modality in row_data["modalities"]):
+        logging.warning(f"Invalid modality {row_data['modalities']}, study rejected (row ID: {row_data['row_id']})")
+        return
+
+    # Iterate volumes.
+    for series_instance_uid in row_data["series_instance_uids"]:
+        instances_dir = gradient_utils.get_gradient_instances_path(patient_id=row_data["patient_id"],
+                                                                   accession_number=row_data["accession_number"],
+                                                                   study_instance_uid=row_data["study_instance_uid"],
+                                                                   series_instance_uid=series_instance_uid)
+
+        # Get DICOM files from GCS bucket.
+        dicom_files, err_msg = get_dicom_files_from_gcs(gcs_bucket_name=config.SOURCE_GCS_BUCKET_NAME, gcs_dir=os.path.join(config.SOURCE_GCS_IMAGES_DIR, instances_dir))
+        if dicom_files is None:
+            logging.warning(f"{err_msg}, series rejected (row ID: {row_data['row_id']})")
+            continue
+
+        # Validate DICOM files.
+        for dicom_file in dicom_files:
+            if pydicom.tag.Tag("ImageType") not in dicom_file:
+                logging.warning(f"ImageType tag not present in the DICOM file, DICOM file in series {series_instance_uid} rejected (row ID: {row_data['row_id']})")
+                continue
+
+            if "PRIMARY" not in dicom_file.ImageType and "ORIGINAL" not in dicom_file.ImageType:
+                logging.warning(f"Ignoring non-primary/non-original image type {dicom_file.ImageType}, DICOM file in series {series_instance_uid} rejected (row ID: {row_data['row_id']})")
+                continue
+
+            if "LOCALIZER" in dicom_file.ImageType:
+                logging.warning(f"Ignoring localizer image type {dicom_file.ImageType}, DICOM file in series {series_instance_uid} rejected (row ID: {row_data['row_id']})")
+                continue
+
+            if dicom_file.SOPClassUID not in config.DICOM_MODALITIES_MAPPING:
+                logging.warning(f"Unsupported SOP Class UID {pydicom.uid.UID(dicom_file.SOPClassUID).name}, DICOM file in series {series_instance_uid} rejected (row ID: {row_data['row_id']})")
+                continue
+
+            if config.DICOM_MODALITIES_MAPPING[dicom_file.SOPClassUID] not in config.MODALITIES:
+                logging.warning(f"Incorrect SOP Class UID {pydicom.uid.UID(dicom_file.SOPClassUID).name}, DICOM file in series {series_instance_uid} rejected (row ID: {row_data['row_id']})")
+                continue
+
+            if dicom_file.Modality not in config.MODALITIES:
+                logging.warning(f"Incorrect modality {dicom_file.Modality}, DICOM file in series {series_instance_uid} rejected (row ID: {row_data['row_id']})")
+                continue
+
+            if dicom_file.StudyInstanceUID != row_data["study_instance_uid"]:
+                logging.warning(f"DICOM Study Instance UID differs from the report value, DICOM file in series {series_instance_uid} rejected (row ID: {row_data['row_id']})")
+                continue
+
+            if dicom_file.PatientID != row_data["patient_id"]:
+                logging.warning(f"DICOM Patient ID differs from the report value, DICOM file in series {series_instance_uid} rejected (row ID: {row_data['row_id']})")
+                continue
+
+            if dicom_file.PatientBirthDate != row_data["patient_birth_date"]:
+                logging.warning(f"DICOM Patient Birth Date differs from the report value, DICOM file in series {series_instance_uid} rejected (row ID: {row_data['row_id']})")
+                continue
+
+            if dicom_file.StudyDate != row_data["study_date"]:
+                logging.warning(f"DICOM Study Date differs from the report value, DICOM file in series {series_instance_uid} rejected (row ID: {row_data['row_id']})")
+                continue
+
+            # Ignore non-grayscale images.
+            if dicom_file.SamplesPerPixel != 1:
+                logging.warning(f"Incorrect number of samples per pixel, should be 1 but got {dicom_file.SamplesPerPixel} instead, DICOM file in series {series_instance_uid} rejected (row ID: {row_data['row_id']})")
+                continue
+
+            # Create volume info.
+            dicom_content = "\n".join(dicom_utils.read_all_dicom_tags_from_dataset(dicom_file))
+            dicom_content = (
+                f"DICOM content:\n"
+                f"{dicom_content}"
+            )
+
+            # Upload dicom content file.
+            dicom_content_file_name = instances_dir.replace("/", "_") + "_" + dicom_file.SOPInstanceUID + ".txt"
+            dicom_content_file_name = os.path.join(config.DESTINATION_GCS_IMAGES_DIR, dicom_content_file_name)
+            upload_data = [
+                {"is_file": False, "local_file_or_string": dicom_content, "gcs_file_name": dicom_content_file_name},
+            ]
+            res, err_msg = gcs_utils.upload_files(upload_data=upload_data, gcs_bucket_name=config.DESTINATION_GCS_BUCKET_NAME)
+            if not res:
+                logging.warning(f"Error uploading, DICOM file in series {series_instance_uid} rejected (row ID: {row_data['row_id']})")
+                continue
 
 
 def get_row_data(row):
@@ -163,10 +265,10 @@ def validate_dicom_files(dicom_files, row_data):
         if dicom_file.SOPClassUID not in config.DICOM_MODALITIES_MAPPING:
             return False, f"Unsupported SOP Class UID {pydicom.uid.UID(dicom_file.SOPClassUID).name}"
 
-        if config.DICOM_MODALITIES_MAPPING[dicom_file.SOPClassUID] != config.MODALITY:
+        if config.DICOM_MODALITIES_MAPPING[dicom_file.SOPClassUID] not in config.MODALITIES:
             return False, f"Incorrect SOP Class UID {pydicom.uid.UID(dicom_file.SOPClassUID).name}"
 
-        if dicom_file.Modality != config.MODALITY:
+        if dicom_file.Modality not in config.MODALITIES:
             return False, f"Incorrect modality {dicom_file.Modality}"
 
         if dicom_file.StudyInstanceUID != row_data["study_instance_uid"]:

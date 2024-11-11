@@ -10,7 +10,7 @@ from epsutils.gcs import gcs_utils
 from epsutils.logging import logging_utils
 
 import config
-from process_row import process_row
+from process_row import process_row, process_row_cr
 
 
 def main():
@@ -31,7 +31,10 @@ def main():
 
     # Process rows in parallel.
     with ProcessPoolExecutor() as executor:  # Use default number of workers.
-        results = list(tqdm(executor.map(process_row, [row for _, row in df.iterrows()]), total=len(df), desc="Processing"))
+        if "CR" in config.MODALITIES:
+            results = list(tqdm(executor.map(process_row_cr, [row for _, row in df.iterrows()]), total=len(df), desc="Processing"))
+        else:
+            results = list(tqdm(executor.map(process_row, [row for _, row in df.iterrows()]), total=len(df), desc="Processing"))
 
 
 if __name__ == "__main__":
