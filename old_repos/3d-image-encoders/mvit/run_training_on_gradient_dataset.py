@@ -17,7 +17,7 @@ if __name__ == "__main__":
     reports_file = None
     grouped_labels_file = "/mnt/gradient-cts-nifti/to_be_deleted/grouped_labels_GRADIENT-DATABASE_REPORTS_CT_ct-16ago2024-batch-1.json"
     images_index_file = None
-    generated_data_file = "/mnt/gradient-cts-nifti/to_be_deleted/ct_chest_training_sample_no_duplicates.csv"
+    generated_data_file = "/mnt/gradient-cts-nifti/to_be_deleted/ct_chest_training_sample_reduced.csv"
     output_dir = f"/root/kedar/mvit-log/output_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}"
     perform_quality_check = False
     gcs_bucket_name = "gradient-cts-nifti"
@@ -78,7 +78,7 @@ if __name__ == "__main__":
     print(f"Target volume dimensions: {target_image_size}x{target_image_size}x{normalization_depth}")
 
     # Get number of labels.
-    num_labels = len(dataset_helper.get_labels())
+    num_labels = 4#len(dataset_helper.get_labels())
     print(f"Number of labels: {num_labels}")
 
     # Create the model and replace its input and head layers.
