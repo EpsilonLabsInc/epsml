@@ -1,5 +1,5 @@
 import numpy as np
-import torch
+import torch, datetime
 import torchvision
 from torchvision.models.video import mvit_v2_s
 
@@ -15,10 +15,10 @@ if __name__ == "__main__":
     # Gradient dataset helper settings.
     images_dir = "16AGO2024"
     reports_file = None
-    grouped_labels_file = "/home/andrej/data/gradient/grouped_labels_GRADIENT-DATABASE_REPORTS_CT_ct-16ago2024-batch-1.json"
+    grouped_labels_file = "/mnt/gradient-cts-nifti/to_be_deleted/grouped_labels_GRADIENT-DATABASE_REPORTS_CT_ct-16ago2024-batch-1.json"
     images_index_file = None
-    generated_data_file = "/home/andrej/data/gradient/ct_chest_training_sample_no_duplicates.csv"
-    output_dir = "/home/andrej/data/gradient/output"
+    generated_data_file = "/mnt/gradient-cts-nifti/to_be_deleted/ct_chest_training_sample_no_duplicates.csv"
+    output_dir = f"/root/kedar/mvit-log/output_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}"
     perform_quality_check = False
     gcs_bucket_name = "gradient-cts-nifti"
     modality = "CT"
@@ -37,18 +37,18 @@ if __name__ == "__main__":
     num_training_workers_per_gpu = 4
     num_validation_workers_per_gpu = 4
     half_model_precision = False
-    learning_rate = 1e-4
-    warmup_ratio = 1 / 8
+    learning_rate = 1e-6
+    warmup_ratio = 1 / 4
     num_epochs = 3
     gradient_accumulation_steps = 4
-    training_batch_size = 2
-    validation_batch_size = 2
-    images_mean = 0.2567
-    images_std = 0.1840
+    training_batch_size = 1
+    validation_batch_size = 1
+    images_mean = 0.5
+    images_std = 0.225
     target_image_size = 224
-    normalization_depth = 16
+    normalization_depth = 112
 
-    experiment_name = f"{model_name}-finetuning-on-{dataset_name}"
+    experiment_name = f"{model_name}-finetuning-on-{dataset_name}-224-112"
     mlops_experiment_name = f"{experiment_name}"
     experiment_dir = f"{output_dir}/{experiment_name}"
     save_model_filename = f"{experiment_dir}/{experiment_name}.pt"
@@ -143,7 +143,7 @@ if __name__ == "__main__":
         return image_tensor
 
     def get_torch_image(item):
-        images = dataset_helper.get_pil_image(item, normalization_depth)
+        images = dataset_helper.get_pil_image(item, normalization_depth, sample_slices=True)
         tensors = [transform_uint16_image(image) for image in images]
         stacked_tensor = torch.stack(tensors)
         # Instead of the tensor shape (num_slices, num_channels, image_height, image_width),
