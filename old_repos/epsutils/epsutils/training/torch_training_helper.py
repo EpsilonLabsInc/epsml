@@ -188,6 +188,10 @@ class TorchTrainingHelper:
         torch.save(self.__parallel_model, parallel_model_file_name)
         print(f"Parallel model saved as '{parallel_model_file_name}'")
 
+    def save_model_weights(self, model_weights_file_name):
+        torch.save(self.__parallel_model.module.state_dict(), model_weights_file_name)
+        print(f"Model weights saved as '{model_weights_file_name}'")
+
     def __train_epoch(self, epoch):
         self.__parallel_model.train()
 
@@ -231,7 +235,7 @@ class TorchTrainingHelper:
 
             # Log intermediate MLOps metrics.
             if self.__mlops_parameters is not None and idx % self.__mlops_parameters.log_metric_step == 0:
-                curr_precision, curr_recall, curr_f1, curr_accuracy, cum_precision, cum_recall, cum_f1, cum_accuracy = evaluation_metrics_calculator.compute_metrics()
+                curr_precision, curr_recall, curr_f1, curr_accuracy, avg_precision, avg_recall, avg_f1, avg_accuracy = evaluation_metrics_calculator.compute_metrics()
                 values = {
                     "Training LR": self.__optimizer.param_groups[0]["lr"],
                     "Training MA Loss": losses.moving_average,
@@ -240,10 +244,10 @@ class TorchTrainingHelper:
                     "Training Recall": curr_recall,
                     "Training F1": curr_f1,
                     "Training Accuracy": curr_accuracy,
-                    "Training Cumulative Precision": cum_precision,
-                    "Training Cumulative Recall": cum_recall,
-                    "Training Cumulative F1": cum_f1,
-                    "Training Cumulative Accuracy": cum_accuracy
+                    "Training AVG Precision": avg_precision,
+                    "Training AVG Recall": avg_recall,
+                    "Training AVG F1": avg_f1,
+                    "Training AVG Accuracy": avg_accuracy
                 }
                 self.__log_metric(values, step)
 
@@ -320,16 +324,12 @@ class TorchTrainingHelper:
 
         # Log MLOps metrics.
         if self.__mlops_parameters is not None:
-            curr_precision, curr_recall, curr_f1, curr_accuracy, cum_precision, cum_recall, cum_f1, cum_accuracy = evaluation_metrics_calculator.compute_metrics()
+            _, _, _, _, avg_precision, avg_recall, avg_f1, avg_accuracy = evaluation_metrics_calculator.compute_metrics()
             values = {
-                f"{validation_type} Precision": curr_precision,
-                f"{validation_type} Recall": curr_recall,
-                f"{validation_type} F1": curr_f1,
-                f"{validation_type} Accuracy": curr_accuracy,
-                f"{validation_type} Cumulative Precision": cum_precision,
-                f"{validation_type} Cumulative Recall": cum_recall,
-                f"{validation_type} Cumulative F1": cum_f1,
-                f"{validation_type} Cumulative Accuracy": cum_accuracy,
+                f"{validation_type} AVG Precision": avg_precision,
+                f"{validation_type} AVG Recall": avg_recall,
+                f"{validation_type} AVG F1": avg_f1,
+                f"{validation_type} AVG Accuracy": avg_accuracy,
                 f"{validation_type} Loss": validation_losses.avg
             }
             self.__log_metric(values, step)
