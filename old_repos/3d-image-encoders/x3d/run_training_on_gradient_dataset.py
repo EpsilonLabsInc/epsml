@@ -36,21 +36,21 @@ if __name__ == "__main__":
     num_training_workers_per_gpu = 8
     num_validation_workers_per_gpu = 8
     half_model_precision = False
-    learning_rate = 1e-4
-    warmup_ratio = 1 / 8
+    learning_rate = 1e-5
+    warmup_ratio = 1 / 6
     num_epochs = 3
+    gradient_accumulation_steps = 4
     training_batch_size = 2
     validation_batch_size = 2
     images_mean = 0.2567
     images_std = 0.1840
     target_image_size = 512
-    normalization_depth = 32
+    normalization_depth = 64
 
     experiment_name = f"{model_name}-finetuning-on-{dataset_name}"
     mlops_experiment_name = f"{experiment_name}"
     experiment_dir = f"{output_dir}/{experiment_name}"
-    save_model_filename = f"{experiment_dir}/{experiment_name}.pt"
-    save_parallel_model_filename = f"{experiment_dir}/{experiment_name}-parallel.pt"
+    save_model_weights_filename = f"{experiment_dir}/{experiment_name}-weights.pt"
     checkpoint_dir = f"{experiment_dir}/checkpoint"
 
     # Load the dataset.
@@ -149,4 +149,4 @@ if __name__ == "__main__":
         return images, labels
 
     training_helper.start_training(collate_function=collate_function)
-    training_helper.save_model(model_file_name=save_model_filename, parallel_model_file_name=save_parallel_model_filename)
+    training_helper.save_model_weights(model_weights_file_name=save_model_weights_filename)
