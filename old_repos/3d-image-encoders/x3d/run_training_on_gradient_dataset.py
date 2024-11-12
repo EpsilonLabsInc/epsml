@@ -5,6 +5,8 @@ import torchvision
 from epsdatasets.helpers.gradient.gradient_dataset_helper import GradientDatasetHelper
 from epsutils.training.torch_training_helper import TorchTrainingHelper, TrainingParameters, MlopsType, MlopsParameters
 
+from epsutils.training.sample_balanced_bce_with_logits_loss import SampleBalancedBCEWithLogitsLoss
+
 
 if __name__ == "__main__":
     # General settings.
@@ -46,6 +48,7 @@ if __name__ == "__main__":
     images_std = 0.1840
     target_image_size = 512
     normalization_depth = 64
+    loss_function = SampleBalancedBCEWithLogitsLoss()  # torch.nn.BCEWithLogitsLoss()
 
     experiment_name = f"{model_name}-finetuning-on-{dataset_name}"
     mlops_experiment_name = f"{experiment_name}"
@@ -99,7 +102,7 @@ if __name__ == "__main__":
                                              num_epochs=num_epochs,
                                              training_batch_size=training_batch_size,
                                              validation_batch_size=validation_batch_size,
-                                             criterion=torch.nn.BCEWithLogitsLoss(),
+                                             criterion=loss_function,
                                              checkpoint_dir=checkpoint_dir,
                                              perform_intra_epoch_validation=perform_intra_epoch_validation,
                                              num_training_workers_per_gpu=num_training_workers_per_gpu,
