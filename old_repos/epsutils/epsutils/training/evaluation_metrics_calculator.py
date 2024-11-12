@@ -65,10 +65,10 @@ class EvaluationMetricsCalculator:
         self.__curr_fp = 0.0
         self.__curr_fn = 0.0
 
-        self.__sum_tp += 0.0
-        self.__sum_tn += 0.0
-        self.__sum_fp += 0.0
-        self.__sum_fn += 0.0
+        self.__sum_tp = 0.0
+        self.__sum_tn = 0.0
+        self.__sum_fp = 0.0
+        self.__sum_fn = 0.0
 
         self.__curr_precision = 0.0
         self.__curr_recall = 0.0
