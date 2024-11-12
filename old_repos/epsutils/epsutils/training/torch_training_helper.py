@@ -235,21 +235,18 @@ class TorchTrainingHelper:
 
             # Log intermediate MLOps metrics.
             if self.__mlops_parameters is not None and idx % self.__mlops_parameters.log_metric_step == 0:
-                curr_precision, curr_recall, curr_f1, curr_accuracy, avg_precision, avg_recall, avg_f1, avg_accuracy = evaluation_metrics_calculator.compute_metrics()
+                avg_precision, avg_recall, avg_f1, avg_accuracy = evaluation_metrics_calculator.get_average_metrics()
                 values = {
                     "Training LR": self.__optimizer.param_groups[0]["lr"],
                     "Training MA Loss": losses.moving_average,
                     "Training AVG Loss": losses.avg,
-                    "Training Precision": curr_precision,
-                    "Training Recall": curr_recall,
-                    "Training F1": curr_f1,
-                    "Training Accuracy": curr_accuracy,
-                    "Training AVG Precision": avg_precision,
-                    "Training AVG Recall": avg_recall,
-                    "Training AVG F1": avg_f1,
-                    "Training AVG Accuracy": avg_accuracy
+                    "Training MA Precision": avg_precision,
+                    "Training MA Recall": avg_recall,
+                    "Training MA F1": avg_f1,
+                    "Training MA Accuracy": avg_accuracy,
                 }
                 self.__log_metric(values, step)
+                evaluation_metrics_calculator.reset()
 
             # Calculate gradients.
             loss.backward()
@@ -324,12 +321,12 @@ class TorchTrainingHelper:
 
         # Log MLOps metrics.
         if self.__mlops_parameters is not None:
-            _, _, _, _, avg_precision, avg_recall, avg_f1, avg_accuracy = evaluation_metrics_calculator.compute_metrics()
+            acc_precision, acc_recall, acc_f1, acc_accuracy = evaluation_metrics_calculator.get_accumulated_metrics()
             values = {
-                f"{validation_type} AVG Precision": avg_precision,
-                f"{validation_type} AVG Recall": avg_recall,
-                f"{validation_type} AVG F1": avg_f1,
-                f"{validation_type} AVG Accuracy": avg_accuracy,
+                f"{validation_type} Accumulated Precision": acc_precision,
+                f"{validation_type} Accumulated Recall": acc_recall,
+                f"{validation_type} Accumulated F1": acc_f1,
+                f"{validation_type} Accumulated Accuracy": acc_accuracy,
                 f"{validation_type} Loss": validation_losses.avg
             }
             self.__log_metric(values, step)
