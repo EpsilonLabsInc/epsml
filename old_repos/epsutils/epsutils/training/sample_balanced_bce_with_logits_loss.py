@@ -1,7 +1,7 @@
-import torch.nn as nn
+import torch
 
 
-class SampleBalancedBCEWithLogitsLoss(nn.Module):
+class SampleBalancedBCEWithLogitsLoss(torch.nn.Module):
     def __init__(self, reduction="mean"):
         super(SampleBalancedBCEWithLogitsLoss, self).__init__()
         self.reduction = reduction
