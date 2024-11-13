@@ -230,7 +230,7 @@ class TorchTrainingHelper:
             losses.update(loss.item(), data.size(0))
 
             # Check if we need to checkpoint.
-            if self.__training_parameters.num_steps_per_checkpoint is not None and step and step % self.num_steps_per_checkpoint == 0:
+            if self.__training_parameters.num_steps_per_checkpoint is not None and step and step % self.__training_parameters.num_steps_per_checkpoint == 0:
                 checkpoint = {
                     "epoch": epoch + 1,
                     "step": step + 1,
