@@ -11,6 +11,7 @@ from tqdm.auto import tqdm
 
 from epsutils.training import training_utils
 from epsutils.training.evaluation_metrics_calculator import EvaluationMetricsCalculator
+from datetime import datetime
 
 
 class TrainingParameters:
@@ -28,8 +29,10 @@ class TrainingParameters:
             perform_intra_epoch_validation=False,
             intra_epoch_validation_step=1000,
             num_intra_epoch_validation_batches=500,
+            num_steps_per_checkpoint=None,
             num_training_workers_per_gpu=4,
-            num_validation_workers_per_gpu=4):
+            num_validation_workers_per_gpu=4
+            ):
         self.learning_rate = learning_rate
         self.warmup_ratio = warmup_ratio
         self.num_epochs = num_epochs
@@ -42,6 +45,7 @@ class TrainingParameters:
         self.perform_intra_epoch_validation = perform_intra_epoch_validation
         self.intra_epoch_validation_step = intra_epoch_validation_step
         self.num_intra_epoch_validation_batches = num_intra_epoch_validation_batches
+        self.num_steps_per_checkpoint = num_steps_per_checkpoint
         self.num_training_workers_per_gpu = num_training_workers_per_gpu
         self.num_validation_workers_per_gpu = num_validation_workers_per_gpu
 
@@ -224,6 +228,18 @@ class TorchTrainingHelper:
 
             # Update losses.
             losses.update(loss.item(), data.size(0))
+
+            # Check if we need to checkpoint.
+            if self.__training_parameters.num_steps_per_checkpoint is not None and step and step % self.num_steps_per_checkpoint == 0:
+                checkpoint = {
+                    "epoch": epoch + 1,
+                    "step": step + 1,
+                    "parallel_model_state_dict": self.__parallel_model.state_dict(),
+                    "model_state_dict": self.__parallel_model.module.state_dict(),
+                    "optimizer_state_dict": self.__optimizer.state_dict()
+                }
+                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                torch.save(checkpoint, os.path.join(self.__training_parameters.checkpoint_dir, f"checkpoint_step_{step}_{timestamp}.pt"))
 
             # Update evaluation metrics calculator.
             evaluation_metrics_calculator.add(outputs, target)
