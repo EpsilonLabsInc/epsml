@@ -250,8 +250,8 @@ class GradientDatasetHelper(BaseDatasetHelper):
 
         return images
 
-    def get_torch_image(self, item, transform, normalization_depth=None):
-        images = self.get_pil_image(item, normalization_depth)
+    def get_torch_image(self, item, transform, normalization_depth=None, sample_slices=False):
+        images = self.get_pil_image(item, normalization_depth, sample_slices)
 
         if self.__preserve_image_format:
             tensors = [transform(image).to(self.__dtype) / 65535.0 for image in images]
