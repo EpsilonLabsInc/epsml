@@ -21,6 +21,7 @@ from torch.utils.data import Dataset, DataLoader
 
 from epsdatasets.helpers.base.base_dataset_helper import BaseDatasetHelper
 from epsutils.dicom import dicom_utils
+from epsutils.gcs import gcs_utils
 from epsutils.labels.grouped_labels_manager import GroupedLabelsManager
 from epsutils.math import math_utils
 
@@ -170,10 +171,11 @@ class GradientDatasetHelper(BaseDatasetHelper):
             nifti_file = item["volume"]["nifti_file"]
 
             if self.__use_gcs:
-                client = storage.Client()
-                bucket = client.bucket(self.__gcs_bucket_name)
-                blob = bucket.blob(os.path.join(self.__images_dir, nifti_file))
-                blob.download_to_filename(nifti_file)
+                gcs_utils.download_file(gcs_bucket_name=self.__gcs_bucket_name,
+                                        gcs_file_name=os.path.join(self.__images_dir, nifti_file),
+                                        local_file_name=nifti_file,
+                                        num_retries=None,  # Retry indefinitely.
+                                        show_warning_on_retry=True)
 
                 if not os.path.exists(nifti_file):
                     raise ValueError(f"NIfTI file '{nifti_file}' not properly downloaded")
