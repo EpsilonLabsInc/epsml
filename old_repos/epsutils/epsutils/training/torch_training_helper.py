@@ -1,6 +1,7 @@
 import inspect
 import math
 import os
+from datetime import datetime
 from enum import Enum
 
 import mlflow
@@ -11,7 +12,6 @@ from tqdm.auto import tqdm
 
 from epsutils.training import training_utils
 from epsutils.training.evaluation_metrics_calculator import EvaluationMetricsCalculator
-from datetime import datetime
 
 
 class TrainingParameters:
@@ -31,8 +31,7 @@ class TrainingParameters:
             num_intra_epoch_validation_batches=500,
             num_steps_per_checkpoint=None,
             num_training_workers_per_gpu=4,
-            num_validation_workers_per_gpu=4
-            ):
+            num_validation_workers_per_gpu=4):
         self.learning_rate = learning_rate
         self.warmup_ratio = warmup_ratio
         self.num_epochs = num_epochs
@@ -168,13 +167,7 @@ class TorchTrainingHelper:
             self.__train_epoch(epoch)
 
             # Save checkpoint.
-            checkpoint = {
-                "epoch": epoch + 1,
-                "parallel_model_state_dict": self.__parallel_model.state_dict(),
-                "model_state_dict": self.__parallel_model.module.state_dict(),
-                "optimizer_state_dict": self.__optimizer.state_dict()
-            }
-            torch.save(checkpoint, os.path.join(self.__training_parameters.checkpoint_dir, f"checkpoint_epoch_{epoch + 1}.pt"))
+            self.__save_checkpoint(epoch=epoch)
 
             # Per epoch validation.
             if self.__validatation_data_loader is not None:
@@ -231,15 +224,7 @@ class TorchTrainingHelper:
 
             # Check if we need to checkpoint.
             if self.__training_parameters.num_steps_per_checkpoint is not None and step and step % self.__training_parameters.num_steps_per_checkpoint == 0:
-                checkpoint = {
-                    "epoch": epoch + 1,
-                    "step": step + 1,
-                    "parallel_model_state_dict": self.__parallel_model.state_dict(),
-                    "model_state_dict": self.__parallel_model.module.state_dict(),
-                    "optimizer_state_dict": self.__optimizer.state_dict()
-                }
-                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-                torch.save(checkpoint, os.path.join(self.__training_parameters.checkpoint_dir, f"checkpoint_step_{step}_{timestamp}.pt"))
+                self.__save_checkpoint(epoch=epoch, step=step)
 
             # Update evaluation metrics calculator.
             evaluation_metrics_calculator.add(outputs, target)
@@ -346,6 +331,24 @@ class TorchTrainingHelper:
                 f"{validation_type} Loss": validation_losses.avg
             }
             self.__log_metric(values, step)
+
+    def __save_checkpoint(self, epoch, step=None):
+        checkpoint = {
+            "epoch": epoch + 1,
+            "step": None if step is None else step + 1,
+            "parallel_model_state_dict": self.__parallel_model.state_dict(),
+            "model_state_dict": self.__parallel_model.module.state_dict(),
+            "optimizer_state_dict": self.__optimizer.state_dict(),
+            "training_parameters_dict": self.__training_parameters.__dict__,
+            "mlops_parameters_dict": self.__mlops_parameters.__dict__
+        }
+
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+        if step is None:
+            torch.save(checkpoint, os.path.join(self.__training_parameters.checkpoint_dir, f"checkpoint_epoch_{epoch + 1}_{timestamp}.pt"))
+        else:
+            torch.save(checkpoint, os.path.join(self.__training_parameters.checkpoint_dir, f"checkpoint_step_{step + 1}_{timestamp}.pt"))
 
     def __connect_to_mlops(self):
         if self.__mlops_parameters.mlops_type == MlopsType.MLFLOW:

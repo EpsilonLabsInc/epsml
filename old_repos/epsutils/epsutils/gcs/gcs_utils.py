@@ -15,7 +15,7 @@ def list_files(gcs_bucket_name, gcs_dir):
     return [blob.name for blob in blobs if "/" not in blob.name[len(gcs_dir):]]
 
 
-def download_file(gcs_bucket_name, gcs_file_name, local_file_name, num_retries=0):
+def download_file(gcs_bucket_name, gcs_file_name, local_file_name, num_retries=0, show_warning_on_retry=False):
     client = storage.Client()
     bucket = client.bucket(gcs_bucket_name)
     blob = bucket.blob(gcs_file_name)
@@ -25,6 +25,9 @@ def download_file(gcs_bucket_name, gcs_file_name, local_file_name, num_retries=0
     while num_retries is None or retry_count < num_retries:
         if os.path.exists(local_file_name):
             break
+
+        if show_warning_on_retry:
+            print(f"Downloading of '{gcs_file_name}' from the '{gcs_bucket_name}' GCS bucket failed, retrying in 1 sec")
 
         time.sleep(1)
         blob.download_to_filename(local_file_name)
