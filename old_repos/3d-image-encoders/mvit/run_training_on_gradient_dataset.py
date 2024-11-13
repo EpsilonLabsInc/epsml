@@ -5,7 +5,7 @@ from torchvision.models.video import mvit_v2_s
 
 from epsdatasets.helpers.gradient.gradient_dataset_helper import GradientDatasetHelper
 from epsutils.training.torch_training_helper import TorchTrainingHelper, TrainingParameters, MlopsType, MlopsParameters
-
+from epsutils.training.sample_balanced_bce_with_logits_loss import SampleBalancedBCEWithLogitsLoss
 
 if __name__ == "__main__":
     # General settings.
@@ -17,7 +17,7 @@ if __name__ == "__main__":
     reports_file = None
     grouped_labels_file = "/mnt/gradient-cts-nifti/to_be_deleted/grouped_labels_GRADIENT-DATABASE_REPORTS_CT_ct-16ago2024-batch-1.json"
     images_index_file = None
-    generated_data_file = "/mnt/gradient-cts-nifti/to_be_deleted/ct_chest_training_sample_reduced.csv"
+    generated_data_file = "/mnt/gradient-cts-nifti/to_be_deleted/ct_chest_training_sample.csv"
     output_dir = f"/root/kedar/mvit-log/output_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}"
     perform_quality_check = False
     gcs_bucket_name = "gradient-cts-nifti"
@@ -37,9 +37,10 @@ if __name__ == "__main__":
     num_training_workers_per_gpu = 4
     num_validation_workers_per_gpu = 4
     half_model_precision = False
-    learning_rate = 1e-6
+    learning_rate = 5e-6
     warmup_ratio = 1 / 4
     num_epochs = 3
+    num_steps_per_checkpoint = 5000
     gradient_accumulation_steps = 4
     training_batch_size = 1
     validation_batch_size = 1
@@ -47,6 +48,7 @@ if __name__ == "__main__":
     images_std = 0.225
     target_image_size = 224
     normalization_depth = 112
+    loss_function = SampleBalancedBCEWithLogitsLoss() #torch.nn.BCEWithLogitsLoss()
 
     experiment_name = f"{model_name}-finetuning-on-{dataset_name}-224-112"
     mlops_experiment_name = f"{experiment_name}"
@@ -78,7 +80,7 @@ if __name__ == "__main__":
     print(f"Target volume dimensions: {target_image_size}x{target_image_size}x{normalization_depth}")
 
     # Get number of labels.
-    num_labels = 4#len(dataset_helper.get_labels())
+    num_labels = len(dataset_helper.get_labels())
     print(f"Number of labels: {num_labels}")
 
     # Create the model and replace its input and head layers.
@@ -109,15 +111,16 @@ if __name__ == "__main__":
                                              gradient_accumulation_steps=gradient_accumulation_steps,
                                              training_batch_size=training_batch_size,
                                              validation_batch_size=validation_batch_size,
-                                             criterion=torch.nn.BCEWithLogitsLoss(),
+                                             criterion=loss_function,
                                              checkpoint_dir=checkpoint_dir,
                                              perform_intra_epoch_validation=perform_intra_epoch_validation,
+                                             num_steps_per_checkpoint=num_steps_per_checkpoint,
                                              num_training_workers_per_gpu=num_training_workers_per_gpu,
                                              num_validation_workers_per_gpu=num_validation_workers_per_gpu)
 
     mlops_parameters = MlopsParameters(mlops_type=MlopsType.WANDB,
                                        experiment_name=mlops_experiment_name,
-                                       notes=f"Volume size = {target_image_size}x{target_image_size}x{normalization_depth}",
+                                       notes=f"Balanced loss(zero/one weighting). One weight*0.5. LR 5e-6. Volume size = {target_image_size}x{target_image_size}x{normalization_depth}",
                                        send_notification=send_wandb_notification)
 
     training_helper = TorchTrainingHelper(model=model,
