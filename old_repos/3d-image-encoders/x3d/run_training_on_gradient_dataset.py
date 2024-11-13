@@ -3,22 +3,21 @@ import torch
 import torchvision
 
 from epsdatasets.helpers.gradient.gradient_dataset_helper import GradientDatasetHelper
-from epsutils.training.torch_training_helper import TorchTrainingHelper, TrainingParameters, MlopsType, MlopsParameters
-
 from epsutils.training.sample_balanced_bce_with_logits_loss import SampleBalancedBCEWithLogitsLoss
+from epsutils.training.torch_training_helper import TorchTrainingHelper, TrainingParameters, MlopsType, MlopsParameters
 
 
 if __name__ == "__main__":
     # General settings.
     model_name = "x3d"
-    dataset_name = "ct_chest_training_sample"
+    dataset_name = "ct_chest_training_sample_reduced"
 
     # Gradient dataset helper settings.
     images_dir = "16AGO2024"
     reports_file = None
     grouped_labels_file = "/home/andrej/data/gradient/grouped_labels_GRADIENT-DATABASE_REPORTS_CT_ct-16ago2024-batch-1.json"
     images_index_file = None
-    generated_data_file = "/home/andrej/data/gradient/ct_chest_training_sample.csv"
+    generated_data_file = "/home/andrej/data/gradient/ct_chest_training_sample_reduced.csv"
     output_dir = "/home/andrej/data/gradient/output"
     perform_quality_check = False
     gcs_bucket_name = "gradient-cts-nifti"
@@ -41,13 +40,14 @@ if __name__ == "__main__":
     learning_rate = 1e-5
     warmup_ratio = 1 / 6
     num_epochs = 3
+    num_steps_per_checkpoint = 5000
     gradient_accumulation_steps = 4
     training_batch_size = 2
     validation_batch_size = 2
     images_mean = 0.2567
     images_std = 0.1840
-    target_image_size = 512
-    normalization_depth = 64
+    target_image_size = 224
+    normalization_depth = 112
     loss_function = SampleBalancedBCEWithLogitsLoss()  # torch.nn.BCEWithLogitsLoss()
 
     experiment_name = f"{model_name}-finetuning-on-{dataset_name}"
@@ -105,6 +105,7 @@ if __name__ == "__main__":
                                              criterion=loss_function,
                                              checkpoint_dir=checkpoint_dir,
                                              perform_intra_epoch_validation=perform_intra_epoch_validation,
+                                             num_steps_per_checkpoint = num_steps_per_checkpoint,
                                              num_training_workers_per_gpu=num_training_workers_per_gpu,
                                              num_validation_workers_per_gpu=num_validation_workers_per_gpu)
 
@@ -136,7 +137,7 @@ if __name__ == "__main__":
         return image_tensor
 
     def get_torch_image(item):
-        images = dataset_helper.get_pil_image(item, normalization_depth)
+        images = dataset_helper.get_pil_image(item, normalization_depth, sample_slices=True)
         tensors = [transform_uint16_image(image) for image in images]
         stacked_tensor = torch.stack(tensors)
         # Instead of the tensor shape (num_slices, num_channels, image_height, image_width),
