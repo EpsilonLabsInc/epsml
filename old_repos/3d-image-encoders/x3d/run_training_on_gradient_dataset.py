@@ -37,6 +37,7 @@ if __name__ == "__main__":
     num_training_workers_per_gpu = 8
     num_validation_workers_per_gpu = 8
     half_model_precision = False
+    use_pretrained_model = False
     learning_rate = 1e-5
     warmup_ratio = 1 / 6
     num_epochs = 3
@@ -45,10 +46,13 @@ if __name__ == "__main__":
     training_batch_size = 2
     validation_batch_size = 2
     images_mean = 0.2567
+
     images_std = 0.1840
     target_image_size = 224
     normalization_depth = 112
-    loss_function = SampleBalancedBCEWithLogitsLoss()  # torch.nn.BCEWithLogitsLoss()
+    sample_slices = True
+    pos_weight_fact = 10.0
+    loss_function = SampleBalancedBCEWithLogitsLoss(pos_weight_fact=pos_weight_fact)  # torch.nn.BCEWithLogitsLoss()
 
     experiment_name = f"{model_name}-finetuning-on-{dataset_name}"
     mlops_experiment_name = f"{experiment_name}"
@@ -80,11 +84,12 @@ if __name__ == "__main__":
 
     # Get number of labels.
     num_labels = len(dataset_helper.get_labels())
+    num_labels = 4
     print(f"Number of labels: {num_labels}")
 
     # Create the model and replace its input and head layers.
     print("Creating the X3D model")
-    model = torch.hub.load("facebookresearch/pytorchvideo", "x3d_m", pretrained=True)
+    model = torch.hub.load("facebookresearch/pytorchvideo", "x3d_m", pretrained=use_pretrained_model)
     model.blocks[0].conv.conv_t = torch.nn.Conv3d(1, 24, kernel_size=(1, 3, 3), stride=(1, 2, 2), padding=(0, 1, 1), bias=False)
     model.blocks[5].proj = torch.nn.Linear(model.blocks[5].proj.in_features, num_labels)
 
@@ -111,7 +116,8 @@ if __name__ == "__main__":
 
     mlops_parameters = MlopsParameters(mlops_type=MlopsType.WANDB,
                                        experiment_name=mlops_experiment_name,
-                                       notes=f"Volume size = {target_image_size}x{target_image_size}x{normalization_depth}",
+                                       notes=f"Volume size = {target_image_size}x{target_image_size}x{normalization_depth}, "
+                                             f"sample_slices={sample_slices}, use_pretrained_model={use_pretrained_model}, pos_weight_fact={pos_weight_fact}",
                                        send_notification=send_wandb_notification)
 
     training_helper = TorchTrainingHelper(model=model,
@@ -137,7 +143,7 @@ if __name__ == "__main__":
         return image_tensor
 
     def get_torch_image(item):
-        images = dataset_helper.get_pil_image(item, normalization_depth, sample_slices=True)
+        images = dataset_helper.get_pil_image(item, normalization_depth, sample_slices=sample_slices)
         tensors = [transform_uint16_image(image) for image in images]
         stacked_tensor = torch.stack(tensors)
         # Instead of the tensor shape (num_slices, num_channels, image_height, image_width),
