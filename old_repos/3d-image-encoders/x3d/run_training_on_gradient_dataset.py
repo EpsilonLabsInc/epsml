@@ -46,7 +46,6 @@ if __name__ == "__main__":
     training_batch_size = 2
     validation_batch_size = 2
     images_mean = 0.2567
-
     images_std = 0.1840
     target_image_size = 224
     normalization_depth = 112
