@@ -2,7 +2,7 @@ import torch
 
 
 class SampleBalancedBCEWithLogitsLoss(torch.nn.Module):
-    def __init__(self, reduction="mean"):
+    def __init__(self, pos_weight_fact=1.0, neg_weight_fact=1.0, reduction="mean"):
         super(SampleBalancedBCEWithLogitsLoss, self).__init__()
         self.reduction = reduction
 
@@ -19,8 +19,8 @@ class SampleBalancedBCEWithLogitsLoss(torch.nn.Module):
         num_zeros = torch.where(num_zeros == 0, torch.ones_like(num_zeros), num_zeros)
 
         # Calculate sample-specific weights.
-        pos_weight = len(labels) / num_ones  # Shape: (batch_size, 1)
-        neg_weight = len(labels) / num_zeros  # Shape: (batch_size, 1)
+        pos_weight = pos_weight_fact * len(labels) / num_ones  # Shape: (batch_size, 1)
+        neg_weight = neg_weight_fact * len(labels) / num_zeros  # Shape: (batch_size, 1)
         pos_weight = pos_weight / (pos_weight + neg_weight)
         neg_weight = neg_weight / (pos_weight + neg_weight)
 

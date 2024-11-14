@@ -143,10 +143,10 @@ class TorchTrainingHelper:
         # Model statistics.
         self.__model_size_in_mib = training_utils.get_torch_model_size_in_mib(self.__parallel_model)
         self.__model_dtype = next(self.__parallel_model.parameters()).dtype
-        num_params = training_utils.get_num_torch_parameters(self.__parallel_model, requires_grad_only=False)
+        self.__num_model_params = training_utils.get_num_torch_parameters(self.__parallel_model, requires_grad_only=False)
         print(f"Model size: {self.__model_size_in_mib:.2f} MiB")
         print(f"Model's dtype: {self.__model_dtype}")
-        print(f"Num model params: {num_params}")
+        print(f"Num model params: {self.__num_model_params}")
 
         print("Training started")
 
@@ -371,11 +371,11 @@ class TorchTrainingHelper:
         if self.__mlops_parameters.mlops_type == MlopsType.MLFLOW:
             mlflow.log_params(self.__training_parameters.__dict__)
             mlflow.log_params(self.__mlops_parameters.__dict__)
-            mlflow.log_params({"model_size_in_mib": self.__model_size_in_mib, "model_dtype": self.__model_dtype})
+            mlflow.log_params({"num_model_params": self.__num_model_params, "model_size_in_mib": self.__model_size_in_mib, "model_dtype": self.__model_dtype})
         elif self.__mlops_parameters.mlops_type == MlopsType.WANDB:
             wandb.config.update(self.__training_parameters.__dict__)
             wandb.config.update(self.__mlops_parameters.__dict__)
-            wandb.config.update({"model_size_in_mib": self.__model_size_in_mib, "model_dtype": self.__model_dtype})
+            wandb.config.update({"num_model_params": self.__num_model_params, "model_size_in_mib": self.__model_size_in_mib, "model_dtype": self.__model_dtype})
         else:
             raise ValueError(f"Unsupported MLOps type {self.__mlops_parameters.mlops_type}")
 
