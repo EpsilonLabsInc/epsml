@@ -29,7 +29,7 @@ def main():
     print("Reading reports file")
     in_df = pd.read_csv(StringIO(reports_file_content), sep=",", low_memory=False)
 
-    # Get a list of file paths in the Epsilon GCS bucket.
+    # Get a list of files in the Epsilon GCS bucket.
     print("Getting a list of files in the Epsilon GCS bucket")
     files_in_bucket = gcs_utils.list_files(gcs_bucket_name=config.EPSILON_GCS_BUCKET_NAME, gcs_dir=config.EPSILON_GCS_IMAGES_DIR)
     files_in_bucket = set(files_in_bucket)  # Sets have average-time complexity of O(1) for lookups. In contrast, lists have an average-time complexity of O(n).
