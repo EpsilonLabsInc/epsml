@@ -14,7 +14,7 @@ DESTINATION_GCS_BUCKET_NAME = "gradient-crs"
 DESTINATION_GCS_IMAGES_DIR = "16AG02924"
 
 # Filtering config.
-MODALITIES = ["CR", "DX", "RF"]
+MODALITIES = ["CR", "DX", "RF", "DR"]
 VALID_INSTITUTION_NAMES = ["tachyeres", "thryothor", "xenops"]
 MIN_VOLUME_DEPTH = None
 MAX_VOLUME_DEPTH = None
@@ -22,6 +22,7 @@ MAX_VOLUME_DEPTH = None
 # DICOM.
 DICOM_MODALITIES_MAPPING = {
     pydicom.uid.ComputedRadiographyImageStorage: "CR",
+    pydicom.uid.DigitalXRayImageStorageForProcessing: "DX",
     pydicom.uid.DigitalXRayImageStorageForPresentation: "DX",
     pydicom.uid.XRayRadiofluoroscopicImageStorage: "RF"
 }

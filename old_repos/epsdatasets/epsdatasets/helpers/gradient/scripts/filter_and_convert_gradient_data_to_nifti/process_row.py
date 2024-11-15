@@ -179,14 +179,14 @@ def process_row_cr_impl(row):
                 logging.warning(f"Incorrect number of samples per pixel, should be 1 but got {dicom_file.SamplesPerPixel} instead, DICOM file in series {series_instance_uid} rejected (row ID: {row_data['row_id']})")
                 continue
 
-            # Create volume info.
+            # Create DICOM content.
             dicom_content = "\n".join(dicom_utils.read_all_dicom_tags_from_dataset(dicom_file))
             dicom_content = (
                 f"DICOM content:\n"
                 f"{dicom_content}"
             )
 
-            # Upload dicom content file.
+            # Upload DICOM content file.
             dicom_content_file_name = instances_dir.replace("/", "_") + "_" + dicom_file.SOPInstanceUID + ".txt"
             dicom_content_file_name = os.path.join(config.DESTINATION_GCS_IMAGES_DIR, dicom_content_file_name)
             upload_data = [
