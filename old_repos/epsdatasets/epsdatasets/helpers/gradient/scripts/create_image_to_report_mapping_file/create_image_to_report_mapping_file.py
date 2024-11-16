@@ -15,7 +15,7 @@ def main():
     print("-------------------------------------------")
     print(f"GRADIENT_GCS_BUCKET_NAME = {config.GRADIENT_GCS_BUCKET_NAME}")
     print(f"GRADIENT_GCS_REPORTS_FILE = {config.GRADIENT_GCS_REPORTS_FILE}")
-    print(f"GRADIENT_GCS_ROOT_IMAGES_DIR = {config.GRADIENT_GCS_ROOT_IMAGES_DIR}")
+    print(f"GRADIENT_GCS_IMAGES_DIR = {config.GRADIENT_GCS_IMAGES_DIR}")
     print(f"EPSILON_GCS_BUCKET_NAME = {config.EPSILON_GCS_BUCKET_NAME}")
     print(f"EPSILON_GCS_IMAGES_DIR = {config.EPSILON_GCS_IMAGES_DIR}")
     print(f"OUT_FILE_NAME = {config.OUT_FILE_NAME}")
@@ -50,7 +50,6 @@ def main():
 
         for series_instance_uid in series_instance_uids:
             prefix = patient_id + "_" + accession_number + "_studies_" + study_instance_uid + "_series_" + series_instance_uid + "_instances_"
-            prefix = os.path.join(config.EPSILON_GCS_IMAGES_DIR, prefix)
             row_ids[prefix] = row_id
 
     # Create out table.
@@ -65,12 +64,21 @@ def main():
             print(f"Cannot locate '{pattern}' in '{file_name}'")
             continue
 
+        # Remove directory from the filename, keep base name only.
+        file_name = os.path.basename(file_name)
+
+        # Trim the filename so that it ends with the pattern.
         prefix = file_name[:pos + len(pattern)]
         assert prefix in row_ids
+
+        # Get corresponding row ID.
         row_id = row_ids[prefix]
 
+        # Get corresponding DICOM file path.
         dicom_file = file_name.replace("_", "/").replace(".txt", ".dcm")
-        new_row = {"ImagePath": os.path.join(config.GRADIENT_GCS_ROOT_IMAGES_DIR, dicom_file), "RowId": row_id}
+
+        # Update table.
+        new_row = {"ImagePath": os.path.join(config.GRADIENT_GCS_IMAGES_DIR, dicom_file), "RowId": row_id}
         out_df = out_df._append(new_row, ignore_index=True)
 
     # Save out table as CSV file.
