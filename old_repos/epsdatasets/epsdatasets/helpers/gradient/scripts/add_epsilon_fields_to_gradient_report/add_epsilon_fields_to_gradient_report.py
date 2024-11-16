@@ -15,7 +15,6 @@ def main():
     print("-------------------------------------------")
     print(f"GRADIENT_GCS_BUCKET_NAME = {config.GRADIENT_GCS_BUCKET_NAME}")
     print(f"GRADIENT_GCS_REPORTS_FILE = {config.GRADIENT_GCS_REPORTS_FILE}")
-    print(f"GRADIENT_GCS_ROOT_IMAGES_DIR = {config.GRADIENT_GCS_ROOT_IMAGES_DIR}")
     print(f"EPSILON_GCS_BUCKET_NAME = {config.EPSILON_GCS_BUCKET_NAME}")
     print(f"EPSILON_GCS_IMAGES_DIR = {config.EPSILON_GCS_IMAGES_DIR}")
     print(f"EPSILON_LOCAL_IMAGES_DIR = {config.EPSILON_LOCAL_IMAGES_DIR}")
