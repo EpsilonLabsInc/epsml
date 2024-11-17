@@ -59,13 +59,13 @@ def main():
     print("Assigning row IDs to image files")
     pattern = "_instances_"
     for file_name in tqdm(files_in_bucket, total=len(files_in_bucket), desc="Processing"):
+        # Remove directory from the filename, keep base name only.
+        file_name = os.path.basename(file_name)
+
         pos = file_name.find(pattern)
         if pos == -1:
             print(f"Cannot locate '{pattern}' in '{file_name}'")
             continue
-
-        # Remove directory from the filename, keep base name only.
-        file_name = os.path.basename(file_name)
 
         # Trim the filename so that it ends with the pattern.
         prefix = file_name[:pos + len(pattern)]
