@@ -2,6 +2,7 @@ import ast
 import os
 from concurrent.futures import ProcessPoolExecutor
 
+import pandas as pd
 from google.cloud import bigquery, storage
 from tqdm import tqdm
 
