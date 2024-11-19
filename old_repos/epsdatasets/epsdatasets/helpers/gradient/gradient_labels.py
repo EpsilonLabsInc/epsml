@@ -1,0 +1,23 @@
+GROUPED_GRADIENT_LABELS = {
+    "Inflammation": [],
+    "Infection": [],
+    "Masses": [],
+    "Cyst": [],
+    "Trauma": [],
+    "Bleeding": [],
+    "Obstruction": [],
+    "Ischemia": [],
+    "Lithiasis": [],
+    "Effusion": [],
+    "Steatosis": [],
+    "Hernia": [],
+    "Calcification": [],
+    "Diverticulosis": [],
+    "Cardiomegaly": [],
+    "Emphysema": [],
+    "Degenerative": [],
+    "Fibrosis": [],
+    "Nerve Impingement": [],
+    "Fistula": [],
+    "Support Devices": []
+}
