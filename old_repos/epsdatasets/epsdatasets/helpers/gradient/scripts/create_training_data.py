@@ -17,7 +17,7 @@ WHERE body_part = "['Chest']" AND study_accepted = true
 """
 
 CONTENT_TO_SEARCH = "(0018,0015) Body Part Examined: Chest\n"
-OUTPUT_FILE = "ct_chest_only_training_data_temp.csv"
+OUTPUT_FILE = "ct_chest_only_training_data.csv"
 
 
 def process_row(row):
