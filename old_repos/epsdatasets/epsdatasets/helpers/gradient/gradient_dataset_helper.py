@@ -162,7 +162,7 @@ class GradientDatasetHelper(BaseDatasetHelper):
         self.__create_torch_datasets()
 
     def get_max_depth(self):
-        return self.__max_depth
+        raise NotImplementedError("Method not implemented")
 
     def get_pil_image(self, item, normalization_depth=None, sample_slices=False):
 
@@ -171,8 +171,12 @@ class GradientDatasetHelper(BaseDatasetHelper):
             nifti_file = item["volume"]["nifti_file"]
 
             if self.__use_gcs:
+                file_dir = os.path.dirname(nifti_file)
+                images_dir = self.__images_dir if file_dir == "" else file_dir
+                nifti_file = nifti_file if file_dir == "" else os.path.basename(nifti_file)
+
                 gcs_utils.download_file(gcs_bucket_name=self.__gcs_bucket_name,
-                                        gcs_file_name=os.path.join(self.__images_dir, nifti_file),
+                                        gcs_file_name=os.path.join(images_dir, nifti_file),
                                         local_file_name=nifti_file,
                                         num_retries=None,  # Retry indefinitely.
                                         show_warning_on_retry=True)
@@ -747,11 +751,7 @@ class GradientDatasetHelper(BaseDatasetHelper):
             volume = self.__pandas_full_dataset.iloc[0]["volume"]
             self.__use_nifti_files = "nifti_file" in volume
 
-        # Determine max number of slices in the dataset.
-        if self.__use_nifti_files:
-            self.__max_depth = self.__pandas_full_dataset["volume"].apply(lambda volume: volume["num_slices"]).max()
-        else:
-            self.__max_depth = self.__pandas_full_dataset["volume"].apply(lambda volume: len(volume["dicom_files"])).max()
+        self.__max_depth = 0
 
     def __split_data(self):
         if "split" in self.__pandas_full_dataset.columns:

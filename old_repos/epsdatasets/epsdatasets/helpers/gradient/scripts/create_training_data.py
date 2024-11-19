@@ -1,5 +1,4 @@
 import ast
-import json
 import os
 from concurrent.futures import ProcessPoolExecutor
 
@@ -17,6 +16,7 @@ WHERE body_part = "['Chest']" AND study_accepted = true
 """
 
 CONTENT_TO_SEARCH = "(0018,0015) Body Part Examined: Chest\n"
+OUTPUT_FILE = "ct_chest_only_training_data_temp.csv"
 
 
 def process_row(row):
@@ -92,10 +92,18 @@ def main():
     # Flatten results.
     training_data = [item for result in results for item in result]
 
+    # Convert to pandas.
+    out_df = pd.DataFrame(columns=["volume", "label"])
+    for item in tqdm(training_data, total=len(training_data)):
+        nifti_file = item["nifti_file"]
+        labels = item["labels"]
+        gcs_images_dir = item["gcs_images_dir"]
+
+        new_row = {"volume": {"nifti_file": os.path.join(gcs_images_dir, nifti_file)}, "label": labels}
+        out_df = out_df._append(new_row, ignore_index=True)
+
     # Save training data.
-    with open("chest_only_training_data.jsonl", "w") as file:
-        for item in training_data:
-            file.write(json.dumps(item) + "\n")
+    out_df.to_csv(OUTPUT_FILE, index=False)
 
 
 if __name__ == "__main__":
