@@ -16,8 +16,9 @@ FROM `datalake.CT-2024-11-18`
 WHERE body_part = "['Chest']" AND study_accepted = true
 """
 
+LABEL_NAMES_TO_INCLUDE = ["EMPHYSEMA", "TRAUMA", "CALCIFICATION", "ISCHEMIA"]
 CONTENT_TO_SEARCH = "(0018,0015) Body Part Examined: Chest\n"
-OUTPUT_FILE = "ct_chest_only_training_data.csv"
+OUTPUT_FILE = "ct_chest_only_training_data_4_labels_emph_trau_calc_isch.csv"
 
 
 def process_row(row):
@@ -51,7 +52,11 @@ def process_row(row):
 
 def main():
     # Get all labels.
-    labels_manager = LabelsManager(all_label_names=GRADIENT_LABELS)
+    if LABEL_NAMES_TO_INCLUDE is not None:
+        labels_manager = LabelsManager(all_label_names=LABEL_NAMES_TO_INCLUDE)
+    else:
+        labels_manager = LabelsManager(all_label_names=GRADIENT_LABELS)
+
     all_labels = labels_manager.get_all_label_names()
     print(f"All labels: {all_labels}")
 
@@ -76,8 +81,8 @@ def main():
         labels = [label.upper() for label in labels]
         multi_hot_vector = labels_manager.to_multi_hot_vector(label_names=labels)
 
-        if all(item == 1 for item in multi_hot_vector):
-            raise ValueError("All labels are 1")
+        # if all(item == 1 for item in multi_hot_vector):
+        #     raise ValueError("All labels are 1")
 
         training_data.append({
             "nifti_files": primary_volumes,
