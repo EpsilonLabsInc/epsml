@@ -6,9 +6,9 @@ import pandas as pd
 from google.cloud import bigquery, storage
 from tqdm import tqdm
 
-from epsdatasets.helpers.gradient.gradient_labels import GROUPED_GRADIENT_LABELS
+from epsdatasets.helpers.gradient.gradient_labels import GRADIENT_LABELS
 from epsutils.gcs import gcs_utils
-from epsutils.labels.grouped_labels_manager import GroupedLabelsManager
+from epsutils.labels.labels_manager import LabelsManager
 
 DATALAKE_QUERY = """
 SELECT primary_volumes, structured_labels, gcs_bucket_name, gcs_images_dir
@@ -51,8 +51,8 @@ def process_row(row):
 
 def main():
     # Get all labels.
-    grouped_labels_manager = GroupedLabelsManager(grouped_labels=GROUPED_GRADIENT_LABELS)
-    all_labels = grouped_labels_manager.get_groups()
+    labels_manager = LabelsManager(all_label_names=GRADIENT_LABELS)
+    all_labels = labels_manager.get_all_label_names()
     print(f"All labels: {all_labels}")
 
     # Query data lake.
@@ -74,14 +74,14 @@ def main():
         if "Other" in labels:
             labels.remove("Other")
         labels = [label.upper() for label in labels]
-        multi_hot_encoding = [1 if item in labels else 0 for item in all_labels]
+        multi_hot_vector = labels_manager.to_multi_hot_vector(label_names=labels)
 
-        if all(item == 1 for item in multi_hot_encoding):
+        if all(item == 1 for item in multi_hot_vector):
             raise ValueError("All labels are 1")
 
         training_data.append({
             "nifti_files": primary_volumes,
-            "labels": multi_hot_encoding,
+            "labels": multi_hot_vector,
             "gcs_bucket_name": gcs_bucket_name,
             "gcs_images_dir": gcs_images_dir
         })
