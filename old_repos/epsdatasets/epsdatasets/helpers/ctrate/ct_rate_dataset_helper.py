@@ -2,6 +2,7 @@ import os
 
 import numpy as np
 import pandas as pd
+import torch
 from huggingface_hub import hf_hub_download
 from huggingface_hub.utils import disable_progress_bars
 from torch.utils.data import Dataset, DataLoader
@@ -30,6 +31,9 @@ class CtRateDatasetHelper(BaseDatasetHelper):
 
         self.__torch_train_dataset = CtRateTorchDataset(pandas_dataframe=self.__pandas_train_dataset)
         self.__torch_validation_dataset = CtRateTorchDataset(pandas_dataframe=self.__pandas_validation_dataset)
+
+        self.__labels = list(self.__pandas_train_dataset.columns)
+        self.__labels.remove("VolumeName")
 
     def get_max_depth(self):
         raise NotImplementedError("Method not implemented")
@@ -69,7 +73,7 @@ class CtRateDatasetHelper(BaseDatasetHelper):
         raise NotImplementedError("Method not implemented")
 
     def get_labels(self):
-        raise NotImplementedError("Method not implemented")
+        return self.__labels
 
     def get_ids_to_labels(self):
         raise NotImplementedError("Method not implemented")
