@@ -27,7 +27,7 @@ def process_row(row):
     gcs_bucket_name = row["gcs_bucket_name"]
     gcs_images_dir = row["gcs_images_dir"]
 
-    chest_nifti_files = []
+    nifti_files = []
 
     client = storage.Client()
     bucket = client.get_bucket(gcs_bucket_name)
@@ -41,14 +41,14 @@ def process_row(row):
             continue
 
         if CONTENT_TO_SEARCH in dicom_content:
-            chest_nifti_files.append({
+            nifti_files.append({
                 "nifti_file": nifti_file,
                 "labels": labels,
                 "gcs_bucket_name": gcs_bucket_name,
                 "gcs_images_dir": gcs_images_dir
             })
 
-    return chest_nifti_files
+    return nifti_files
 
 def main():
     # Get all labels.
@@ -81,9 +81,6 @@ def main():
         labels = [label.upper() for label in labels]
         multi_hot_vector = labels_manager.to_multi_hot_vector(label_names=labels)
 
-        # if all(item == 1 for item in multi_hot_vector):
-        #     raise ValueError("All labels are 1")
-
         training_data.append({
             "nifti_files": primary_volumes,
             "labels": multi_hot_vector,
@@ -91,7 +88,7 @@ def main():
             "gcs_images_dir": gcs_images_dir
         })
 
-    # Make sure all the volumes have 'Chest' body part in DICOM.
+    # Make sure all the volumes have the same body part in DICOM.
     with ProcessPoolExecutor() as executor:
         results = list(tqdm(executor.map(process_row, [row for row in training_data]), total=len(training_data), desc="Processing"))
 
