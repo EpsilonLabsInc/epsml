@@ -11,6 +11,7 @@ from torch.optim import AdamW
 from tqdm.auto import tqdm
 
 from epsutils.training import training_utils
+from epsutils.training.confusion_matrix_calculator import ConfusionMatrixCalculator
 from epsutils.training.evaluation_metrics_calculator import EvaluationMetricsCalculator
 
 
@@ -55,7 +56,7 @@ class MlopsType(Enum):
 
 
 class MlopsParameters:
-    def __init__(self, mlops_type, experiment_name, notes="", log_metric_step=100, send_notification=False, uri=None):
+    def __init__(self, mlops_type, experiment_name, notes="", label_names=None, log_metric_step=100, send_notification=False, uri=None):
         try:
             self.mlops_type = MlopsType(mlops_type)
         except ValueError:
@@ -63,6 +64,7 @@ class MlopsParameters:
 
         self.experiment_name = experiment_name
         self.notes = notes
+        self.label_names = label_names
         self.log_metric_step = log_metric_step
         self.send_notification = send_notification
         self.uri = uri
@@ -107,12 +109,12 @@ class TorchTrainingHelper:
         # Create checkpoint dir.
         os.makedirs(self.__training_parameters.checkpoint_dir, exist_ok=True)
 
-    def start_training(self, collate_function):
+    def start_training(self, collate_function_for_training, collate_function_for_validation=None):
         torch.cuda.empty_cache()
 
         # Create train data loader.
         self.__train_data_loader = self.__dataset_helper.get_torch_train_data_loader(
-            collate_function=collate_function,
+            collate_function=collate_function_for_training,
             batch_size=self.__training_parameters.training_batch_size,
             num_workers=self.__training_parameters.num_training_workers_per_gpu * len(self.__device_ids)
                 if self.__device_ids is not None else self.__training_parameters.num_training_workers_per_gpu)
@@ -120,7 +122,7 @@ class TorchTrainingHelper:
         # Create validation data loader.
         try:
             self.__validatation_data_loader = self.__dataset_helper.get_torch_validation_data_loader(
-                collate_function=collate_function,
+                collate_function=collate_function_for_validation if collate_function_for_validation is not None else collate_function_for_training,
                 batch_size=self.__training_parameters.validation_batch_size,
                 num_workers=self.__training_parameters.num_validation_workers_per_gpu * len(self.__device_ids)
                     if self.__device_ids is not None else self.__training_parameters.num_validation_workers_per_gpu)
@@ -289,6 +291,9 @@ class TorchTrainingHelper:
         evaluation_metrics_calculator = EvaluationMetricsCalculator()
         tqdm_loader = tqdm(self.__validatation_data_loader)
 
+        all_targets = torch.empty(0)
+        all_outputs = torch.empty(0)
+
         with torch.no_grad():
             for idx, batch in enumerate(tqdm_loader):
                 if num_batches is not None and idx >= num_batches:
@@ -304,6 +309,10 @@ class TorchTrainingHelper:
                 else:
                     outputs = self.__parallel_model(data.to(self.__device))
                     loss = self.__training_parameters.criterion(outputs, target.to(self.__device))
+
+                # Stack all targets and outputs.
+                all_targets = target if all_targets.numel() == 0 else torch.cat((all_targets, target), dim=0)
+                all_outputs = outputs if all_outputs.numel() == 0 else torch.cat((all_outputs, outputs), dim=0)
 
                 # If 'loss' is a vector, it needs to be averaged.
                 if loss.numel() > 1:
@@ -331,6 +340,21 @@ class TorchTrainingHelper:
                 f"{validation_type} Loss": validation_losses.avg
             }
             self.__log_metric(values, step)
+
+        if validation_type == "Validation":
+            all_targets = all_targets.tolist()
+            all_outputs = (all_outputs > 0.5).int().tolist()
+
+            # Log confusion matrix.
+            calc = ConfusionMatrixCalculator()
+            cm = calc.compute_confusion_matrix(y_true=all_targets, y_pred=all_outputs)
+            plot = calc.create_plot(confusion_matrices=[cm], titles=["All labels"], grid_shape=(1, 1))
+            self.__log_confusion_matrix(plot, "Validation CM")
+
+            # Log confusion matrices.
+            cms = calc.compute_per_class_confusion_matrices(y_true=all_targets, y_pred=all_outputs)
+            plot = calc.create_plot(confusion_matrices=cms, titles=self.__mlops_parameters.label_names)
+            self.__log_confusion_matrix(plot, "Validation Per-Label CMs")
 
     def __save_checkpoint(self, epoch, step=None):
         checkpoint = {
@@ -378,6 +402,9 @@ class TorchTrainingHelper:
             wandb.config.update({"num_model_params": self.__num_model_params, "model_size_in_mib": self.__model_size_in_mib, "model_dtype": self.__model_dtype})
         else:
             raise ValueError(f"Unsupported MLOps type {self.__mlops_parameters.mlops_type}")
+
+    def __log_confusion_matrix(self, confusion_matrix_plot, title):
+        wandb.log({title: wandb.Image(confusion_matrix_plot)})
 
     def __log_metric(self, values, step):
         if self.__mlops_parameters.mlops_type == MlopsType.MLFLOW:
