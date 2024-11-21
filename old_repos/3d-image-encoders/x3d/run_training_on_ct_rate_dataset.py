@@ -57,7 +57,8 @@ if __name__ == "__main__":
 
     # Get number of labels.
     labels = dataset_helper.get_labels()
-    print(f"Number of labels: {len(labels)}")
+    num_labels = len(labels)
+    print(f"Number of labels: {num_labels}")
 
     # Create the model and replace its input and head layers.
     print("Creating the X3D model")
