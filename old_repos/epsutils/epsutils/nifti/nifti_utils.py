@@ -5,8 +5,10 @@ import shutil
 import tempfile
 import time
 
+import numpy as np
 import SimpleITK as sitk
 from google.cloud import storage
+from PIL import Image
 from tqdm import tqdm
 
 from epsutils.dicom import dicom_utils
@@ -57,6 +59,7 @@ def structured_dicom_files_to_nifti_files(structured_dicom_files, base_dir, outp
 
         for future in tqdm(concurrent.futures.as_completed(futures), total=num_files, desc="Processing"):
             future.result()
+
 
 def __structured_dicom_files_to_nifti_files_worker(item, base_dir, output_dir, gcs_bucket_name=None, sanity_check_paths=None):
     images = None
@@ -143,6 +146,7 @@ def __structured_dicom_files_to_nifti_files_worker(item, base_dir, output_dir, g
         if gcs_bucket_name is not None and dicom_info_file_path and os.path.exists(dicom_info_file_path):
             os.remove(dicom_info_file_path)
 
+
 def numpy_images_to_nifti_volume(images):
     """
     Converts a list of numpy images to a NIfTI volume.
@@ -158,3 +162,54 @@ def numpy_images_to_nifti_volume(images):
     volume = sitk.JoinSeries(nifti_images)
 
     return volume
+
+
+def nifti_file_to_pil_images(nifti_file, source_data_type, target_data_type, target_image_size=None, normalization_depth=None, sample_slices=False):
+    sitk_image = sitk.ReadImage(nifti_file)
+    return nifti_volume_to_pil_images(sitk_image=sitk_image,
+                                      source_data_type=source_data_type,
+                                      target_data_type=target_data_type,
+                                      target_image_size=target_image_size,
+                                      normalization_depth=normalization_depth,
+                                      sample_slices=sample_slices)
+
+
+def nifti_volume_to_pil_images(sitk_image, source_data_type, target_data_type, target_image_size=None, normalization_depth=None, sample_slices=False):
+    # Get numpy array.
+    sitk_image_array = sitk.GetArrayFromImage(sitk_image)
+
+    # Normalize image.
+    if normalization_depth is not None and sitk_image_array.shape[0] != normalization_depth:
+        if sample_slices:
+            if normalization_depth > sitk_image_array.shape[0]:
+                padding = (normalization_depth - sitk_image_array.shape[0]) // 2
+                indices = list(range(sitk_image_array.shape[0]))
+                sitk_image_array = sitk_image_array[indices, :, :]
+                padded_array = np.zeros((normalization_depth, sitk_image_array.shape[1], sitk_image_array.shape[2]), dtype=sitk_image_array.dtype)
+                padded_array[padding:padding+len(indices)] = sitk_image_array
+                sitk_image_array = padded_array
+            else:
+                indices = np.random.choice(sitk_image_array.shape[0], normalization_depth, replace=False)
+                indices = np.sort(indices)
+                sitk_image_array = sitk_image_array[indices, :, :]
+        else:
+            new_shape = (normalization_depth, sitk_image_array.shape[1], sitk_image_array.shape[2])
+            sitk_image_array = math_utils.interpolate_volume(input_volume=sitk_image_array, new_shape=new_shape)
+
+    # Split image into a list of slices.
+    slices = [sitk_image_array[i, :, :] for i in range(sitk_image_array.shape[0])]
+
+    # Make sure all the slices are in proper format.
+    assert all(slice.dtype == source_data_type for slice in slices)
+
+    # Convert slices to PIL images.
+    if target_data_type == np.float32:
+        slices = [Image.fromarray(slice.astype(np.float32), mode="F") for slice in slices]
+    else:
+        raise NotImplementedError(f"Function not implemented yet for {target_data_type} data type")
+
+    # Resize if needed.
+    if target_image_size is not None:
+        slices = [slice.resize((target_image_size, target_image_size)) for slice in slices]
+
+    return slices
