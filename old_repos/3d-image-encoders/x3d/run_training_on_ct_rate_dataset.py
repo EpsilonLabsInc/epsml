@@ -124,7 +124,7 @@ if __name__ == "__main__":
 
     def collate_function_for_validation(samples):
         images = torch.stack([get_torch_image(item, "valid") for item in samples])
-        labels = torch.stack([dataset_helper.get_torch_labels(item) for item in samples])
+        labels = torch.stack([dataset_helper.get_torch_label(item) for item in samples])
         return images, labels
 
     training_helper.start_training(collate_function_for_training=collate_function_for_training, collate_function_for_validation=collate_function_for_validation)
