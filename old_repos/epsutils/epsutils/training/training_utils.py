@@ -1,4 +1,6 @@
+import numpy as np
 import pynvml
+import torch
 from torch.optim.lr_scheduler import LambdaLR, CosineAnnealingLR, SequentialLR
 
 
@@ -40,3 +42,27 @@ def create_lr_scheduler_with_warmup_and_cosine_annealing(optimizer, total_steps,
     )
 
     return lr_scheduler
+
+
+def convert_pil_image_to_normalized_torch_tensor(image, normalization_mean=None, normalization_std=None, use_half_precision=False):
+    # Cast image to float32.
+    image_np = np.array(image).astype(np.float32)
+
+    # Normalize to [0, 1] range.
+    epsilon = 1e-10
+    min_val = np.min(image_np)
+    max_val = np.max(image_np)
+    image_np = (image_np - min_val) / (max_val - min_val + epsilon)
+
+    # Use half precision.
+    if use_half_precision:
+        image_np = image_np.astype(np.float16)
+
+    # Normalize image.
+    if normalization_mean is not None and normalization_std is not None:
+        image_np = (image_np - normalization_mean) / normalization_std
+
+    # Convert to torch tensor.
+    tensor = torch.from_numpy(image_np).unsqueeze(0)
+
+    return tensor
