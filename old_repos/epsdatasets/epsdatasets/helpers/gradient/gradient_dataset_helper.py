@@ -741,7 +741,7 @@ class GradientDatasetHelper(BaseDatasetHelper):
         return all(volume[i]["dicom_values"]["InstanceNumber"] + 1 == volume[i + 1]["dicom_values"]["InstanceNumber"] for i in range(len(volume) - 1))
 
     def __load_generated_data(self):
-        self.__pandas_full_dataset = pd.read_csv(self.__generated_data_file)
+        self.__pandas_full_dataset = pd.read_csv(self.__generated_data_file, sep=",", low_memory=False)
         # Make sure all the elements are converted from strings back to original Python types.
         self.__pandas_full_dataset["volume"] = self.__pandas_full_dataset["volume"].map(ast.literal_eval)
         self.__pandas_full_dataset["label"] = self.__pandas_full_dataset["label"].map(ast.literal_eval)
