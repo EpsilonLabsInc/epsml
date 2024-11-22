@@ -213,30 +213,32 @@ class TorchTrainingHelper:
                 outputs = self.__parallel_model(data.to(self.__device))
                 loss = self.__training_parameters.criterion(outputs, target.to(self.__device))
 
-            # If 'loss' is a vector, it needs to be averaged.
+            # If loss is a vector, it needs to be averaged.
             if loss.numel() > 1:
                 loss = loss.mean()
 
-            # Gradient accumulation.
+            # Normalize loss if gradient accumulation is used.
             if self.__training_parameters.gradient_accumulation_steps is not None:
                 loss = loss / self.__training_parameters.gradient_accumulation_steps
 
-            # Update losses.
+            # Calculate gradients.
+            loss.backward()
+
+            # Optimization step.
+            if self.__training_parameters.gradient_accumulation_steps is None or idx % self.__training_parameters.gradient_accumulation_steps == 0:
+                self.__optimizer.step()
+                self.__optimizer.zero_grad()
+
+            # LR scheduler step.
+            self.__lr_scheduler.step()
+
+            # Update data.
             losses.update(loss.item(), data.size(0))
-
-            # Check if we need to checkpoint.
-            if self.__training_parameters.num_steps_per_checkpoint is not None and step and step % self.__training_parameters.num_steps_per_checkpoint == 0:
-                self.__save_checkpoint(epoch=epoch, step=step)
-
-            # Update evaluation metrics calculator.
             evaluation_metrics_calculator.add(outputs, target)
-
-            # Refresh tqdm loader.
             tqdm_loader.set_description(
-                f"Loss = {losses.val:.4f}, MA loss = {losses.moving_average:.4f}, " \
-                f"AVG loss = {losses.avg:.4f}, LR = {self.__optimizer.param_groups[0]['lr']:.4e}")
+                f"Loss = {losses.val:.4f}, MA loss = {losses.moving_average:.4f}, AVG loss = {losses.avg:.4f}, LR = {self.__optimizer.param_groups[0]['lr']:.4e}")
 
-            # Log intermediate MLOps metrics.
+            # Log MLOps metrics.
             if self.__mlops_parameters is not None and idx % self.__mlops_parameters.log_metric_step == 0:
                 avg_precision, avg_recall, avg_f1, avg_accuracy = evaluation_metrics_calculator.get_average_metrics()
                 values = {
@@ -251,16 +253,9 @@ class TorchTrainingHelper:
                 self.__log_metric(values, step)
                 evaluation_metrics_calculator.reset()
 
-            # Calculate gradients.
-            loss.backward()
-
-            # Optimization step.
-            if self.__training_parameters.gradient_accumulation_steps is None or idx % self.__training_parameters.gradient_accumulation_steps == 0:
-                self.__optimizer.step()
-                self.__optimizer.zero_grad()
-
-            # LR scheduler step.
-            self.__lr_scheduler.step()
+            # Check if we need to save the checkpoint.
+            if self.__training_parameters.num_steps_per_checkpoint is not None and step and step % self.__training_parameters.num_steps_per_checkpoint == 0:
+                self.__save_checkpoint(epoch=epoch, step=step)
 
             # Intra-epoch validation.
             if (self.__training_parameters.perform_intra_epoch_validation and
