@@ -94,6 +94,9 @@ def read_all_dicom_tags(dicom_file_name, include_pixel_data=False):
 def get_dicom_image_from_dataset(dataset: pydicom.dataset.FileDataset, custom_windowing_parameters=None):
     pixel_array = dataset.pixel_array
 
+    if pixel_array.dtype not in [np.uint16, np.int16]:
+        return None
+
     # Handle PhotometricInterpretation.
     if dataset.PhotometricInterpretation == "MONOCHROME1":
         pixel_array = np.max(pixel_array) - pixel_array
@@ -123,10 +126,8 @@ def get_dicom_image_from_dataset(dataset: pydicom.dataset.FileDataset, custom_wi
             max_val = custom_windowing_parameters["window_center"] + (custom_windowing_parameters["window_width"] / 2)
             pixel_array = np.clip(pixel_array, min_val, max_val)
 
-    # Normalize and convert to 16 bit.
-    eps = 1e-10
-    pixel_array = (pixel_array - np.min(pixel_array)) / (np.max(pixel_array) - np.min(pixel_array) + eps)
-    pixel_array = pixel_array * 65535
+    # Shift intensities and cast back to 16 bit.
+    pixel_array = pixel_array - np.min(pixel_array)
     image_uint16 = pixel_array.astype(np.uint16)
 
     return image_uint16
