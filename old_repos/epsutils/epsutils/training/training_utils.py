@@ -45,14 +45,20 @@ def create_lr_scheduler_with_warmup_and_cosine_annealing(optimizer, total_steps,
 
 
 def convert_pil_image_to_normalized_torch_tensor(image, normalization_mean=None, normalization_std=None, use_half_precision=False):
+    # Convert to numpy array.
+    image_np = np.array(image)
+    dtype = image_np.dtype
+    assert dtype in (np.int16, np.uint16)
+
     # Cast image to float32.
-    image_np = np.array(image).astype(np.float32)
+    image_np = image_np.astype(np.float32)
 
     # Normalize to [0, 1] range.
-    epsilon = 1e-10
-    min_val = np.min(image_np)
-    max_val = np.max(image_np)
-    image_np = (image_np - min_val) / (max_val - min_val + epsilon)
+    if dtype == np.uint16:
+        image_np /= 65535
+    elif dtype == np.int16:
+        image_np = image_np - image_np.min()
+        image_np /= 65535
 
     # Use half precision.
     if use_half_precision:

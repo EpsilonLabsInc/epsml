@@ -175,17 +175,15 @@ def dicom_datasets_to_nifti_file(dicom_datasets: List[pydicom.dataset.Dataset], 
         dicom2nifti.convert_dicom.dicom_array_to_nifti(dicom_list=dicom_datasets, output_file=output_nifti_file_name, reorient_nifti=False)
 
 
-def nifti_file_to_pil_images(nifti_file, source_data_type, target_data_type, target_image_size=None, normalization_depth=None, sample_slices=False):
+def nifti_file_to_pil_images(nifti_file, target_image_size=None, normalization_depth=None, sample_slices=False):
     sitk_image = sitk.ReadImage(nifti_file)
     return nifti_volume_to_pil_images(sitk_image=sitk_image,
-                                      source_data_type=source_data_type,
-                                      target_data_type=target_data_type,
                                       target_image_size=target_image_size,
                                       normalization_depth=normalization_depth,
                                       sample_slices=sample_slices)
 
 
-def nifti_volume_to_pil_images(sitk_image, source_data_type, target_data_type, target_image_size=None, normalization_depth=None, sample_slices=False):
+def nifti_volume_to_pil_images(sitk_image, target_image_size=None, normalization_depth=None, sample_slices=False):
     # Get numpy array.
     sitk_image_array = sitk.GetArrayFromImage(sitk_image)
 
@@ -210,14 +208,8 @@ def nifti_volume_to_pil_images(sitk_image, source_data_type, target_data_type, t
     # Split image into a list of slices.
     slices = [sitk_image_array[i, :, :] for i in range(sitk_image_array.shape[0])]
 
-    # Make sure all the slices are in proper format.
-    assert all(slice.dtype == source_data_type for slice in slices)
-
-    # Convert slices to PIL images.
-    if target_data_type == np.float32:
-        slices = [Image.fromarray(slice.astype(np.float32), mode="F") for slice in slices]
-    else:
-        raise NotImplementedError(f"Function not implemented yet for {target_data_type} data type")
+    # Convert to PIL images.
+    slices = [Image.fromarray(slice) for slice in slices]
 
     # Resize if needed.
     if target_image_size is not None:
