@@ -1,11 +1,14 @@
 import concurrent.futures
+import logging
 import os
 import random
 import shutil
 import tempfile
-import time
+from typing import List
 
+import dicom2nifti
 import numpy as np
+import pydicom
 import SimpleITK as sitk
 from google.cloud import storage
 from PIL import Image
@@ -158,10 +161,22 @@ def numpy_images_to_nifti_volume(images):
     SimpleITK.Image: A SimpleITK volume created from the input images.
     """
 
+    logging.warning("Function numpy_images_to_nifti_volume() generates a NIfTI volume solely from the input images. "
+                    "For including other volume-related data such as image spacing, image origin, etc., please use "
+                    "dicom_datasets_to_nifti_file() instead.")
+
     nifti_images = [sitk.GetImageFromArray(image) for image in images]
     volume = sitk.JoinSeries(nifti_images)
 
     return volume
+
+
+def dicom_datasets_to_nifti_file(dicom_datasets: List[pydicom.dataset.Dataset], output_nifti_file_name: str) -> None:
+        logging.warning("Function numpy_images_to_nifti_volume() generates a NIfTI volume solely from the input images. "
+                        "For including other volume-related data such as image spacing, image origin, etc., please use "
+                        "dicom_datasets_to_nifti_file() instead.")
+
+        dicom2nifti.convert_dicom.dicom_array_to_nifti(dicom_list=dicom_datasets, output_file=output_nifti_file_name, reorient_nifti=False)
 
 
 def nifti_file_to_pil_images(nifti_file, source_data_type, target_data_type, target_image_size=None, normalization_depth=None, sample_slices=False):

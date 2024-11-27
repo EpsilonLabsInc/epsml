@@ -95,21 +95,22 @@ def get_dicom_image_from_dataset(dataset: pydicom.dataset.FileDataset, custom_wi
     pixel_array = dataset.pixel_array
 
     if pixel_array.dtype not in [np.uint16, np.int16]:
-        return None
+        raise ValueError(f"{pixel_array.dtype} not supported, the image type should be either int16 or uint16 format")
 
     # Handle PhotometricInterpretation.
     if dataset.PhotometricInterpretation == "MONOCHROME1":
         pixel_array = np.max(pixel_array) - pixel_array
     elif dataset.PhotometricInterpretation == "MONOCHROME2":
         pass
-    elif dataset.PhotometricInterpretation == "PALETTE COLOR":
-        pixel_array = pydicom.pixels.apply_color_lut(pixel_array, dataset)
     else:
         raise ValueError(f"Unsupported PhotometricInterpretation '{dataset.PhotometricInterpretation}'")
 
-    # Apply modality LUT.
-    if "ModalityLUTSequence" in dataset or ("RescaleIntercept" in dataset and "RescaleSlope" in dataset):
-        pixel_array = pydicom.pixels.apply_modality_lut(pixel_array, dataset)
+    # Handle rescaling.
+    if "RescaleIntercept" not in dataset:
+        raise ValueError("The DICOM file is missing RescaleIntercept tag")
+    if "RescaleSlope" not in dataset:
+        raise ValueError("The DICOM file is missing RescaleSlope tag")
+    pixel_array = pydicom.pixels.apply_modality_lut(pixel_array, dataset)
 
     # Apply windowing operation.
     if custom_windowing_parameters is None:
@@ -126,8 +127,10 @@ def get_dicom_image_from_dataset(dataset: pydicom.dataset.FileDataset, custom_wi
             max_val = custom_windowing_parameters["window_center"] + (custom_windowing_parameters["window_width"] / 2)
             pixel_array = np.clip(pixel_array, min_val, max_val)
 
-    # Shift intensities and cast back to 16 bit.
+    # Shift intensities to zero.
     pixel_array = pixel_array - np.min(pixel_array)
+
+    # Cast to uint16.
     image_uint16 = pixel_array.astype(np.uint16)
 
     return image_uint16
