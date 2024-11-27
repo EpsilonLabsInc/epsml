@@ -57,8 +57,6 @@ class CtRateDatasetHelper(BaseDatasetHelper):
         # Read image.
         nifti_file = os.path.join(subfolder, file_name)
         slices = nifti_utils.nifti_file_to_pil_images(nifti_file=nifti_file,
-                                                      source_data_type=np.float64,
-                                                      target_data_type=np.float32,
                                                       target_image_size=target_image_size,
                                                       normalization_depth=normalization_depth,
                                                       sample_slices=sample_slices)
