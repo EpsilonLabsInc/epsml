@@ -14,6 +14,8 @@ from process_row import process_row, process_row_cr
 
 
 def main():
+    raise NotImplementedError("Do not use this script until the latest DICOM to NIfTI conversion is integrated.")
+
     # Configure logger.
     logging_utils.configure_logger(logger_file_name=os.path.join(config.OUTPUT_DIR, config.DISPLAY_NAME + "-log.txt"))
 
