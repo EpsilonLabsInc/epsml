@@ -172,10 +172,6 @@ def numpy_images_to_nifti_volume(images):
 
 
 def dicom_datasets_to_nifti_file(dicom_datasets: List[pydicom.dataset.Dataset], output_nifti_file_name: str) -> None:
-        logging.warning("Function numpy_images_to_nifti_volume() generates a NIfTI volume solely from the input images. "
-                        "For including other volume-related data such as image spacing, image origin, etc., please use "
-                        "dicom_datasets_to_nifti_file() instead.")
-
         dicom2nifti.convert_dicom.dicom_array_to_nifti(dicom_list=dicom_datasets, output_file=output_nifti_file_name, reorient_nifti=False)
 
 

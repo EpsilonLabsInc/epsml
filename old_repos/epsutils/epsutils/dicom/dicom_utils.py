@@ -95,7 +95,7 @@ def get_dicom_image_from_dataset(dataset: pydicom.dataset.FileDataset, custom_wi
     pixel_array = dataset.pixel_array
 
     if pixel_array.dtype not in [np.uint16, np.int16]:
-        raise ValueError(f"{pixel_array.dtype} not supported, the image type should be either int16 or uint16 format")
+        raise ValueError(f"{pixel_array.dtype} not supported, the image type should be in either int16 or uint16 format")
 
     # Handle PhotometricInterpretation.
     if dataset.PhotometricInterpretation == "MONOCHROME1":
