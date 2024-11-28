@@ -127,13 +127,10 @@ def get_dicom_image_from_dataset(dataset: pydicom.dataset.FileDataset, custom_wi
             max_val = custom_windowing_parameters["window_center"] + (custom_windowing_parameters["window_width"] / 2)
             pixel_array = np.clip(pixel_array, min_val, max_val)
 
-    # Shift intensities to zero.
-    pixel_array = pixel_array - np.min(pixel_array)
+    # Cast to int16.
+    image_int16 = pixel_array.astype(np.int16)
 
-    # Cast to uint16.
-    image_uint16 = pixel_array.astype(np.uint16)
-
-    return image_uint16
+    return image_int16
 
 
 def get_dicom_image(dicom_file_name, custom_windowing_parameters=None):

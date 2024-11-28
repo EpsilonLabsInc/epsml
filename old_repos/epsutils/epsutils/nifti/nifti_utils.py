@@ -150,7 +150,7 @@ def __structured_dicom_files_to_nifti_files_worker(item, base_dir, output_dir, g
             os.remove(dicom_info_file_path)
 
 
-def numpy_images_to_nifti_volume(images):
+def numpy_images_to_nifti_volume(images, show_warning=True):
     """
     Converts a list of numpy images to a NIfTI volume.
 
@@ -161,9 +161,10 @@ def numpy_images_to_nifti_volume(images):
     SimpleITK.Image: A SimpleITK volume created from the input images.
     """
 
-    logging.warning("Function numpy_images_to_nifti_volume() generates a NIfTI volume solely from the input images. "
-                    "For including other volume-related data such as image spacing, image origin, etc., please use "
-                    "dicom_datasets_to_nifti_file() instead.")
+    if show_warning:
+        logging.warning("Function numpy_images_to_nifti_volume() generates a NIfTI volume solely from the input images. "
+                        "For including other volume-related data such as image spacing, image origin, etc., please use "
+                        "dicom_datasets_to_nifti_file() instead.")
 
     nifti_images = [sitk.GetImageFromArray(image) for image in images]
     volume = sitk.JoinSeries(nifti_images)
@@ -171,8 +172,18 @@ def numpy_images_to_nifti_volume(images):
     return volume
 
 
-def dicom_datasets_to_nifti_file(dicom_datasets: List[pydicom.dataset.Dataset], output_nifti_file_name: str) -> None:
-        dicom2nifti.convert_dicom.dicom_array_to_nifti(dicom_list=dicom_datasets, output_file=output_nifti_file_name, reorient_nifti=False)
+def dicom_datasets_to_nifti_file_advanced(dicom_datasets: List[pydicom.dataset.Dataset], output_nifti_file_name: str) -> None:
+    assert len(dicom_datasets) > 0
+    dicom2nifti.convert_dicom.dicom_array_to_nifti(dicom_list=dicom_datasets, output_file=output_nifti_file_name, reorient_nifti=False)
+
+
+def dicom_datasets_to_nifti_file_basic(dicom_datasets: List[pydicom.dataset.Dataset], output_nifti_file_name: str) -> None:
+    assert len(dicom_datasets) > 0
+    sorted_dicom_datasets = sorted(dicom_datasets, key=lambda dicom_dataset: dicom_dataset.InstanceNumber, reverse=True)
+    images = [dicom_utils.get_dicom_image_from_dataset(dataset, {"window_center": 0, "window_width": 0}) for dataset in sorted_dicom_datasets]
+    volume = numpy_images_to_nifti_volume(images=images, show_warning=False)
+    volume.SetSpacing((sorted_dicom_datasets[0].PixelSpacing[1], sorted_dicom_datasets[0].PixelSpacing[0], sorted_dicom_datasets[0].SliceThickness))
+    sitk.WriteImage(volume, output_nifti_file_name, useCompression=True)
 
 
 def nifti_file_to_pil_images(nifti_file, target_image_size=None, normalization_depth=None, sample_slices=False):
