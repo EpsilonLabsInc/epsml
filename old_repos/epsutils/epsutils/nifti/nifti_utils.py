@@ -164,7 +164,7 @@ def numpy_images_to_nifti_volume(images, show_warning=True):
     if show_warning:
         logging.warning("Function numpy_images_to_nifti_volume() generates a NIfTI volume solely from the input images. "
                         "For including other volume-related data such as image spacing, image origin, etc., please use "
-                        "dicom_datasets_to_nifti_file() instead.")
+                        "dicom_datasets_to_nifti_file_basic() or dicom_datasets_to_nifti_file_advanced() instead.")
 
     nifti_images = [sitk.GetImageFromArray(image) for image in images]
     volume = sitk.JoinSeries(nifti_images)
