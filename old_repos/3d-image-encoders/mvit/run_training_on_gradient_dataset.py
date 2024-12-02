@@ -10,15 +10,15 @@ from epsutils.training.sample_balanced_bce_with_logits_loss import SampleBalance
 if __name__ == "__main__":
     # General settings.
     model_name = "mvit"
-    dataset_name = "ct_chest_training_sample"
+    dataset_name = "ct_chest_vs_head_training_data"
 
     # Gradient dataset helper settings.
     images_dir = "16AGO2024"
     reports_file = None
-    grouped_labels_file = "/mnt/gradient-cts-nifti/to_be_deleted/grouped_labels_GRADIENT-DATABASE_REPORTS_CT_ct-16ago2024-batch-1.json"
+    grouped_labels_file = "/home/andrej/data/gradient/grouped_labels_GRADIENT-DATABASE_REPORTS_CT_ct-16ago2024-batch-1.json"
     images_index_file = None
-    generated_data_file = "/mnt/gradient-cts-nifti/to_be_deleted/ct_chest_training_sample.csv"
-    output_dir = f"/root/kedar/mvit-log/output_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}"
+    generated_data_file = "/home/andrej/data/gradient/ct_chest_vs_head_training_data.csv"
+    output_dir = "/home/andrej/data/gradient/output"
     perform_quality_check = False
     gcs_bucket_name = "gradient-cts-nifti"
     modality = "CT"
@@ -30,6 +30,8 @@ if __name__ == "__main__":
 
     # Training settings.
     perform_intra_epoch_validation = True
+    intra_epoch_validation_step = 3000
+    num_intra_epoch_validation_batches = 1500
     send_wandb_notification = True
     device = "cuda"
     device_ids = None  # Use one (the default) GPU.
@@ -37,25 +39,31 @@ if __name__ == "__main__":
     num_training_workers_per_gpu = 4
     num_validation_workers_per_gpu = 4
     half_model_precision = False
-    learning_rate = 5e-6
-    warmup_ratio = 1 / 4
+    use_pretrained_model = False
+    learning_rate = 0.0001
+    warmup_ratio = 1 / 100
     num_epochs = 3
     num_steps_per_checkpoint = 5000
-    gradient_accumulation_steps = 4
+    gradient_accumulation_steps = 8
     training_batch_size = 1
     validation_batch_size = 1
-    images_mean = 0.5
-    images_std = 0.225
+    images_mean = 0.2567
+    images_std = 0.1840
     target_image_size = 224
     normalization_depth = 112
-    loss_function = SampleBalancedBCEWithLogitsLoss() #torch.nn.BCEWithLogitsLoss()
+    sample_slices = True
+    pos_weight_fact = 1.0
+    loss_function = torch.nn.BCEWithLogitsLoss()  # SampleBalancedBCEWithLogitsLoss(pos_weight_fact=pos_weight_fact)
 
-    experiment_name = f"{model_name}-finetuning-on-{dataset_name}-224-112"
+    experiment_name = f"{model_name}-finetuning-on-{dataset_name}"
     mlops_experiment_name = f"{experiment_name}"
     experiment_dir = f"{output_dir}/{experiment_name}"
     save_model_filename = f"{experiment_dir}/{experiment_name}.pt"
+    save_model_weights_filename = f"{experiment_dir}/{experiment_name}-weights.pt"
     save_parallel_model_filename = f"{experiment_dir}/{experiment_name}-parallel.pt"
     checkpoint_dir = f"{experiment_dir}/checkpoint"
+
+    print(f"Target volume dimensions: {target_image_size}x{target_image_size}x{normalization_depth}")
 
     # Load the dataset.
     print("Loading the dataset")
@@ -77,15 +85,14 @@ if __name__ == "__main__":
         seed=seed,
         run_statistics=run_statistics)
 
-    print(f"Target volume dimensions: {target_image_size}x{target_image_size}x{normalization_depth}")
-
     # Get number of labels.
-    num_labels = len(dataset_helper.get_labels())
+    # num_labels = len(dataset_helper.get_labels())
+    num_labels = 2
     print(f"Number of labels: {num_labels}")
 
     # Create the model and replace its input and head layers.
     print("Creating the MVIT model")
-    model = mvit_v2_s(pretrained=False, num_classes=num_labels)
+    model = mvit_v2_s(pretrained=use_pretrained_model, num_classes=num_labels)
     org_conv_proj = model.conv_proj
     model.conv_proj = torch.nn.Conv3d(
         1,  # Input channels
@@ -114,13 +121,16 @@ if __name__ == "__main__":
                                              criterion=loss_function,
                                              checkpoint_dir=checkpoint_dir,
                                              perform_intra_epoch_validation=perform_intra_epoch_validation,
+                                             intra_epoch_validation_step=intra_epoch_validation_step,
+                                             num_intra_epoch_validation_batches=num_intra_epoch_validation_batches,
                                              num_steps_per_checkpoint=num_steps_per_checkpoint,
                                              num_training_workers_per_gpu=num_training_workers_per_gpu,
                                              num_validation_workers_per_gpu=num_validation_workers_per_gpu)
 
     mlops_parameters = MlopsParameters(mlops_type=MlopsType.WANDB,
                                        experiment_name=mlops_experiment_name,
-                                       notes=f"Balanced loss(zero/one weighting). One weight*0.5. LR 5e-6. Volume size = {target_image_size}x{target_image_size}x{normalization_depth}",
+                                       notes=f"Volume size = {target_image_size}x{target_image_size}x{normalization_depth}, "
+                                             f"sample_slices={sample_slices}, use_pretrained_model={use_pretrained_model}, pos_weight_fact={pos_weight_fact}",
                                        send_notification=send_wandb_notification)
 
     training_helper = TorchTrainingHelper(model=model,
@@ -129,11 +139,6 @@ if __name__ == "__main__":
                                           device_ids=device_ids,
                                           training_parameters=training_parameters,
                                           mlops_parameters=mlops_parameters)
-
-    transform_rgb_image = torchvision.transforms.Compose([
-        torchvision.transforms.Resize((target_image_size, target_image_size), interpolation=torchvision.transforms.InterpolationMode.BILINEAR),
-        torchvision.transforms.ToTensor()
-    ])
 
     def transform_uint16_image(image):
         image = image.resize((target_image_size, target_image_size))
@@ -161,5 +166,5 @@ if __name__ == "__main__":
         labels = torch.stack([dataset_helper.get_torch_label(item) for item in samples])
         return images, labels
 
-    training_helper.start_training(collate_function=collate_function)
+    training_helper.start_training(collate_function_for_training=collate_function)
     training_helper.save_model(model_file_name=save_model_filename, parallel_model_file_name=save_parallel_model_filename)
