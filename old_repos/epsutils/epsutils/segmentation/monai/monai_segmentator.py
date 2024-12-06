@@ -28,16 +28,14 @@ class MonaiSegmentator:
 
     def run_segmentation_pipeline(self, file_or_dir):
         data = self.preprocessing(file_or_dir=file_or_dir)
-        data = self.inference(data=data)
-        data = self.postprocessing(data=data)
-        output = self.output(data=data)
-        return output
+        result = self.segmentation(data=data)
+        return result
 
     def preprocessing(self, file_or_dir):
         data = self.__preprocessing({"image": file_or_dir})
         return data
 
-    def inference(self, data):
+    def segmentation(self, data):
         # Add batch dimension and move to GPU.
         data["image"] = data["image"].unsqueeze(0).cuda()
 
@@ -46,17 +44,24 @@ class MonaiSegmentator:
             data["pred"] = self.__inferer(data["image"], network=self.__model)
 
         # Remove batch dimension.
+        data["image"] = data["image"][0]
         data["pred"] = data["pred"][0]
 
-        return data
+        # Move image back to CPU to have more GPU mem for postprocessing.
+        image_cpu = data["image"].cpu()
+        del data["image"]
+        torch.cuda.empty_cache()
+        data["image"] = image_cpu
 
-    def postprocessing(self, data):
+        # Postprocessing.
         data = self.__postprocessing(data)
-        return data
 
-    def output(self, data):
+        # Move segmentation results to CPU.
         segmentation = data["pred"][0].cpu().numpy()
+
+        # Get segmentation info.
         info = self.__get_segmentation_info(segmentation=segmentation)
+
         return {"segmentation": segmentation, "info": info}
 
     def __get_segmentation_info(self, segmentation):
