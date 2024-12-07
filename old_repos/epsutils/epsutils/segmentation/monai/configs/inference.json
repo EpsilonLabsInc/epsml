@@ -118,14 +118,6 @@
                 "_target_": "AsDiscreted",
                 "keys": "pred",
                 "argmax": true
-            },
-            {
-                "_target_": "Invertd",
-                "keys": "pred",
-                "transform": "@preprocessing",
-                "orig_keys": "@image_key",
-                "nearest_interp": true,
-                "to_tensor": true
             }
         ]
     },

@@ -47,12 +47,6 @@ class MonaiSegmentator:
         data["image"] = data["image"][0]
         data["pred"] = data["pred"][0]
 
-        # Move image back to CPU to have more GPU mem for postprocessing.
-        image_cpu = data["image"].cpu()
-        del data["image"]
-        torch.cuda.empty_cache()
-        data["image"] = image_cpu
-
         # Postprocessing.
         data = self.__postprocessing(data)
 
@@ -61,6 +55,10 @@ class MonaiSegmentator:
 
         # Get segmentation info.
         info = self.__get_segmentation_info(segmentation=segmentation)
+
+        # Expicitly free GPU memory.
+        del data
+        torch.cuda.empty_cache()
 
         return {"segmentation": segmentation, "info": info}
 
