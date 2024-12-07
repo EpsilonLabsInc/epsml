@@ -7,7 +7,8 @@ GCS_BUCKET_NAME = "gradient-cts-fixed-nifti"
 GCS_IMAGES_DIR = "16AGO2024"
 
 # Processing.
-NUM_PREPROCESSING_WORKERS = 16
+NUM_PREPROCESSING_WORKERS = 12
+MAX_QUEUE_SIZE = 50
 EMPTY_QUEUE_WAIT_TIMEOUT_SEC = 60
 
 
@@ -19,5 +20,6 @@ Output dir: {OUTPUT_DIR}
 GCS bucket name: {GCS_BUCKET_NAME}
 GCS images dir: {GCS_IMAGES_DIR}
 Num preprocessing workers: {NUM_PREPROCESSING_WORKERS}
+Max queue size: {MAX_QUEUE_SIZE}
 Empty queue wait timeout (sec): {EMPTY_QUEUE_WAIT_TIMEOUT_SEC}
 ------------------------------------------------------""")

@@ -3,6 +3,7 @@ import multiprocessing
 import os
 import queue
 import threading
+import time
 from concurrent.futures import ProcessPoolExecutor
 
 from tqdm import tqdm
@@ -18,16 +19,23 @@ segmentator = MonaiSegmentator()
 
 
 def start(nifti_files):
-    inference_thread = threading.Thread(target=inference_task)
+    progress_bar = tqdm(total=len(nifti_files), leave=False, desc="Processing")
+    inference_thread = threading.Thread(target=inference_task, args=(progress_bar,))
     inference_thread.start()
 
     with ProcessPoolExecutor(max_workers=config.NUM_PREPROCESSING_WORKERS) as executor:
-        results = list(tqdm(executor.map(preprocessing_task, nifti_files), total=len(nifti_files), desc="Preprocessing"))
+        results = list(executor.map(preprocessing_task, nifti_files))
+
+    print("All preprocessing tasks finished")
 
     inference_thread.join()
+    progress_bar.close()
 
 def preprocessing_task(nifti_file):
     try:
+        while gpu_queue.qsize() > config.MAX_QUEUE_SIZE:
+            time.sleep(0.1)
+
         gcs_nifti_file = os.path.join(config.GCS_IMAGES_DIR, nifti_file)
         gcs_utils.download_file(gcs_bucket_name=config.GCS_BUCKET_NAME,
                                 gcs_file_name=gcs_nifti_file,
@@ -51,7 +59,9 @@ def preprocessing_task(nifti_file):
         if os.path.exists(nifti_file):
             os.remove(nifti_file)
 
-def inference_task():
+def inference_task(progress_bar):
+    print("Inference task started")
+
     while True:
         gcs_nifti_file = None
 
@@ -67,3 +77,7 @@ def inference_task():
             err_msg = f"ERROR: {str(e)} ({gcs_nifti_file})"
             print(err_msg)
             logging.error(err_msg)
+        finally:
+            progress_bar.update(1)
+
+    print("Inference task finished")
