@@ -67,15 +67,23 @@ class MonaiSegmentator:
         return {"segmentation": segmentation, "info": info}
 
     def __get_segmentation_info(self, segmentation):
-        info = {}
+        info = {
+            "all_labels": [],
+            "label_counts": [],
+            "top_label": None,
+            "labels_distribution": {}
+        }
 
         labels, counts = np.unique(segmentation, return_counts=True)
         labels = labels.astype(int)
         non_zero_labels = labels != 0  # Exclude background.
         labels = labels[non_zero_labels]
         counts = counts[non_zero_labels]
-        top_label = labels[np.argmax(counts)]
 
+        if labels.size == 0:
+            return info
+
+        top_label = labels[np.argmax(counts)]
         info["all_labels"] = labels.tolist()
         info["label_counts"] = counts.tolist()
         info["top_label"] = top_label
