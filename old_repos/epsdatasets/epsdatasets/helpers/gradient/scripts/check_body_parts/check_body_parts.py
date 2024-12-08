@@ -17,6 +17,9 @@ def main():
                                    show_logging_level=False,
                                    append_to_existing_log_file=config.SKIP_ALREADY_PROCESSED_IMAGES)
 
+    # Show configuration settings.
+    config.dump_config()
+
     # Get a list of already processed images.
     if config.SKIP_ALREADY_PROCESSED_IMAGES:
         print("Getting a list of already processed NIfTI files")
@@ -33,9 +36,6 @@ def main():
 
         # Sets offer average O(1) time complexity for membership checks, making them much faster than lists.
         nifti_files_to_skip = set(nifti_files_to_skip)
-
-    # Show configuration settings.
-    config.dump_config()
 
     # Get all the files in the bucket.
     client = storage.Client()
