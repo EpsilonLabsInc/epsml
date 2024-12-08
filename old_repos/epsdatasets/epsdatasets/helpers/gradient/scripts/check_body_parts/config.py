@@ -1,6 +1,7 @@
 # General config.
 DISPLAY_NAME = "body-part-ct-16AGO2024"
 OUTPUT_DIR = "/home/andrej/data/bodypart"
+SKIP_ALREADY_PROCESSED_IMAGES = True
 
 # GCS config.
 GCS_BUCKET_NAME = "gradient-cts-fixed-nifti"
