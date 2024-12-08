@@ -18,6 +18,7 @@ def dump_config():
 ------------------------------------------------------
 Display name: {DISPLAY_NAME}
 Output dir: {OUTPUT_DIR}
+Skip already processed images: {SKIP_ALREADY_PROCESSED_IMAGES}
 GCS bucket name: {GCS_BUCKET_NAME}
 GCS images dir: {GCS_IMAGES_DIR}
 Num preprocessing workers: {NUM_PREPROCESSING_WORKERS}
