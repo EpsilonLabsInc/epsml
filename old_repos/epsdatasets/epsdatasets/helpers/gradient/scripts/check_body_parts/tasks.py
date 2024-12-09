@@ -77,7 +77,10 @@ def inference_task(progress_bar):
                 gpu_err = None
                 res = segmentator.segmentation(data=data, run_postprocessing_on_gpu=True)
             except Exception as e:
-                gpu_err = str(e)
+                if config.USE_CPU_FOR_FAIL_SAFE:
+                    gpu_err = str(e)
+                else:
+                    raise
 
             # If segmentation with postprocessing on GPU fails (usually due to CUDA out of memory), try segmentation with postprocessing on CPU.
             if gpu_err is not None:

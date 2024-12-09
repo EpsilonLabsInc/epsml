@@ -2,6 +2,7 @@
 DISPLAY_NAME = "body-part-ct-16AGO2024"
 OUTPUT_DIR = "/home/andrej/data/bodypart"
 SKIP_ALREADY_PROCESSED_IMAGES = True
+USE_CPU_FOR_FAIL_SAFE = False
 
 # GCS config.
 GCS_BUCKET_NAME = "gradient-cts-fixed-nifti"
@@ -19,6 +20,7 @@ def dump_config():
 Display name: {DISPLAY_NAME}
 Output dir: {OUTPUT_DIR}
 Skip already processed images: {SKIP_ALREADY_PROCESSED_IMAGES}
+Use CPU for fail-safe: {USE_CPU_FOR_FAIL_SAFE}
 GCS bucket name: {GCS_BUCKET_NAME}
 GCS images dir: {GCS_IMAGES_DIR}
 Num preprocessing workers: {NUM_PREPROCESSING_WORKERS}
