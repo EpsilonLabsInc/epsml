@@ -1,3 +1,4 @@
+import copy
 import logging
 import multiprocessing
 import os
@@ -6,6 +7,7 @@ import threading
 import time
 from concurrent.futures import ProcessPoolExecutor
 
+import torch
 from tqdm import tqdm
 
 from epsutils.gcs import gcs_utils
@@ -67,15 +69,24 @@ def inference_task(progress_bar):
 
         try:
             data = gpu_queue.get(block=True, timeout=config.EMPTY_QUEUE_WAIT_TIMEOUT_SEC)
+            org_data = copy.deepcopy(data)
             gcs_nifti_file = os.path.join(config.GCS_IMAGES_DIR, data["image"].meta["filename_or_obj"])
 
-            # If segmentation with postprocessing on GPU fails (usually due to CUDA out of memory), try segmentation with postprocessing on CPU.
+            # Try segmentation with postprocessing on GPU.
             try:
+                gpu_err = None
                 res = segmentator.segmentation(data=data, run_postprocessing_on_gpu=True)
             except Exception as e:
-                warn_msg = f"WARNING: Re-running segmentation with postprocessing on CPU because segmentation with postprocessing on GPU failed due to the following error: {str(e)} ({gcs_nifti_file})"
+                gpu_err = str(e)
+
+            # If segmentation with postprocessing on GPU fails (usually due to CUDA out of memory), try segmentation with postprocessing on CPU.
+            if gpu_err is not None:
+                warn_msg = f"WARNING: Re-running segmentation with postprocessing on CPU because segmentation with postprocessing on GPU failed due to the following error: {gpu_err} ({gcs_nifti_file})"
                 print(warn_msg)
-                res = segmentator.segmentation(data=data, run_postprocessing_on_gpu=False)
+
+                del data
+                torch.cuda.empty_cache()
+                res = segmentator.segmentation(data=org_data, run_postprocessing_on_gpu=False)
 
             logging.info(f"{res['info']},{gcs_nifti_file}")
         except queue.Empty:
