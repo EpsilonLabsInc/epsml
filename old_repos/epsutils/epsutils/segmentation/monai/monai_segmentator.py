@@ -30,16 +30,16 @@ class MonaiSegmentator:
         self.__model.cuda()
         self.__model.eval()
 
-    def run_segmentation_pipeline(self, file_or_dir):
+    def run_segmentation_pipeline(self, file_or_dir, run_postprocessing_on_gpu=True):
         data = self.preprocessing(file_or_dir=file_or_dir)
-        result = self.segmentation(data=data)
+        result = self.segmentation(data=data, run_postprocessing_on_gpu=run_postprocessing_on_gpu)
         return result
 
     def preprocessing(self, file_or_dir):
         data = self.__preprocessing({"image": file_or_dir})
         return data
 
-    def segmentation(self, data):
+    def segmentation(self, data, run_postprocessing_on_gpu=True):
         # Add batch dimension and move to GPU.
         data["image"] = data["image"].unsqueeze(0).cuda()
 
@@ -51,10 +51,14 @@ class MonaiSegmentator:
         data["image"] = data["image"][0]
         data["pred"] = data["pred"][0]
 
+        # Move prediction to CPU?
+        if not run_postprocessing_on_gpu:
+            data["pred"] = data["pred"].cpu()
+
         # Postprocessing.
         data = self.__postprocessing(data)
 
-        # Move segmentation results to CPU.
+        # Move segmentation results to CPU if they're not already on CPU.
         segmentation = data["pred"][0].cpu().numpy()
 
         # Get segmentation info.
