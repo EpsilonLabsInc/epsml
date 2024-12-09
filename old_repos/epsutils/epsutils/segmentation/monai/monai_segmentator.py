@@ -7,10 +7,6 @@ from monai.bundle import ConfigParser
 
 class MonaiSegmentator:
     def __init__(self):
-        print("----------------------------------------------------------------------------------------------------------")
-        print("WARNING: There are issues with Monai 1.4.0 so it is adviced to use version 1.3.0: pip install monai==1.3.0")
-        print("----------------------------------------------------------------------------------------------------------")
-
         self.__base_dir = os.path.dirname(os.path.abspath(__file__))
         self.__config_path = os.path.join(self.__base_dir, "configs/inference.json")
         self.__model_path = os.path.join(self.__base_dir, "models/model.pt")
