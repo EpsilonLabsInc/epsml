@@ -68,7 +68,15 @@ def inference_task(progress_bar):
         try:
             data = gpu_queue.get(block=True, timeout=config.EMPTY_QUEUE_WAIT_TIMEOUT_SEC)
             gcs_nifti_file = os.path.join(config.GCS_IMAGES_DIR, data["image"].meta["filename_or_obj"])
-            res = segmentator.segmentation(data=data)
+
+            # If segmentation with postprocessing on GPU fails (usually due to CUDA out of memory), try segmentation with postprocessing on CPU.
+            try:
+                res = segmentator.segmentation(data=data, run_postprocessing_on_gpu=True)
+            except Exception as e:
+                warn_msg = f"WARNING: Re-running segmentation with postprocessing on CPU because segmentation with postprocessing on GPU failed due to the following error: {str(e)} ({gcs_nifti_file})"
+                print(warn_msg)
+                res = segmentator.segmentation(data=data, run_postprocessing_on_gpu=False)
+
             logging.info(f"{res['info']},{gcs_nifti_file}")
         except queue.Empty:
             # Stop task when GPU queue empty.
