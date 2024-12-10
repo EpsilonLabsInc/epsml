@@ -1,3 +1,4 @@
+import json
 import os
 
 import numpy as np
@@ -7,14 +8,10 @@ from monai.bundle import ConfigParser
 
 class MonaiSegmentator:
     def __init__(self):
-        self.__base_dir = os.path.dirname(os.path.abspath(__file__))
-        self.__config_path = os.path.join(self.__base_dir, "configs/inference.json")
-        self.__model_path = os.path.join(self.__base_dir, "models/model.pt")
-
         # Get config.
         print("Reading Monai configuration")
         self.__config = ConfigParser()
-        self.__config.read_config(self.__config_path)
+        self.__config.read_config(self.get_config_path())
         self.__preprocessing = self.__config.get_parsed_content("preprocessing")
         self.__inferer = self.__config.get_parsed_content("inferer")
         self.__postprocessing = self.__config.get_parsed_content("postprocessing")
@@ -22,9 +19,35 @@ class MonaiSegmentator:
         # Load the model.
         print("Loading Monai model")
         self.__model = self.__config.get_parsed_content("network")
-        self.__model.load_state_dict(torch.load(self.__model_path))
+        self.__model.load_state_dict(torch.load(self.get_model_path()))
         self.__model.cuda()
         self.__model.eval()
+
+    @staticmethod
+    def get_config_path():
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        config_path = os.path.join(base_dir, "configs/inference.json")
+        return config_path
+
+    @staticmethod
+    def get_meta_data_path():
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        meta_data_path = os.path.join(base_dir, "configs/metadata.json")
+        return meta_data_path
+
+    @staticmethod
+    def get_model_path():
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        model_path = os.path.join(base_dir, "models/model.pt")
+        return model_path
+
+    @staticmethod
+    def get_labels():
+        with open(MonaiSegmentator.get_meta_data_path(), "r") as file:
+            data = json.load(file)
+
+        labels = data["network_data_format"]["outputs"]["pred"]["channel_def"]
+        return labels
 
     def run_segmentation_pipeline(self, file_or_dir, run_postprocessing_on_gpu=True):
         data = self.preprocessing(file_or_dir=file_or_dir)
