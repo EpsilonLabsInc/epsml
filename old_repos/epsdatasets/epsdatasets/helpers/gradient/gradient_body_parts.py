@@ -17,7 +17,21 @@ EPSILON_BODY_PARTS = [
 
 assert len(EPSILON_BODY_PARTS) == 14
 
-GRADIENT_TO_EPSILON_BODY_PARTS_MAPPING = {
+CSV_TO_EPSILON_BODY_PARTS_MAPPING = {
+    "Head": "Head/Brain",
+    "Neck": "Neck",
+    "Chest": "Chest",
+    "Heart": "Chest",
+    "Abdomen": "Abdomen",
+    "Pelvis": "Pelvis",
+    "Spine": "Spine",
+    "Arm": "Upper Extremities",
+    "Leg": "Lower Extremities",
+    "Foot": "Lower Extremities",
+    "Whole Body": "Whole Body"
+}
+
+GPT_TO_EPSILON_BODY_PARTS_MAPPING = {
     # Head/Brain.
     "Head/Brain": "Head/Brain",
     "Face": "Head/Brain",
