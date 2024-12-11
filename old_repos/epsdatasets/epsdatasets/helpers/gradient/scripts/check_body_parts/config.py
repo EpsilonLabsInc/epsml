@@ -18,6 +18,7 @@ def dump_config():
     print(f"""Using the following configuration settings:
 ------------------------------------------------------
 Check body parts output file: {CHECK_BODY_PARTS_OUTPUT_FILE}
+Convert to Epsilon body parts output file: {CONVERT_TO_EPSILON_BODY_PARTS_OUTPUT_FILE}
 Skip already processed images: {SKIP_ALREADY_PROCESSED_IMAGES}
 Use CPU for fail-safe: {USE_CPU_FOR_FAIL_SAFE}
 GCS bucket name: {GCS_BUCKET_NAME}
