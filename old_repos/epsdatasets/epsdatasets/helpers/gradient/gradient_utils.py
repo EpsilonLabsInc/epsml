@@ -34,11 +34,11 @@ def nifti_file_name_to_gradient_instances_path(nifti_file_name):
 
 
 class BodyPartType(Enum):
-    DICOM = 1
+    CSV = 1
     GPT = 2
 
 
-def get_all_body_parts_from_report(reports_file_path, gcs_bucket_name=None, body_part_type: BodyPartType=BodyPartType.GPT):
+def get_all_body_parts_from_report(reports_file_path, gcs_bucket_name=None, body_part_type=BodyPartType.GPT):
     if gcs_bucket_name is None:
         report = reports_file_path
     else:
@@ -53,7 +53,7 @@ def get_all_body_parts_from_report(reports_file_path, gcs_bucket_name=None, body
     return all_values
 
 
-def get_unique_body_parts_from_report(reports_file_path, gcs_bucket_name=None, body_part_type: BodyPartType=BodyPartType.GPT):
+def get_unique_body_parts_from_report(reports_file_path, gcs_bucket_name=None, body_part_type=BodyPartType.GPT):
     if gcs_bucket_name is None:
         report = reports_file_path
     else:

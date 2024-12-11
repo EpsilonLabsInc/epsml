@@ -3,17 +3,22 @@ from epsdatasets.helpers.gradient.gradient_utils import BodyPartType
 
 GCS_BUCKET_NAME = "gradient-cts-nifti"
 REPORTS_FILE_PATH = "to_be_deleted/kedar-body-part/GRADIENT-DATABASE_REPORTS_CT_ct-16ago2024-batch-1_bodyPart_contrast_anon_check_filtered_us_data.csv"
-BODY_PART_TYPE = BodyPartType.GPT
+BODY_PART_TYPE = BodyPartType.CSV
 
 
 def main():
     all_body_parts = gradient_utils.get_all_body_parts_from_report(reports_file_path=REPORTS_FILE_PATH,
                                                                    gcs_bucket_name=GCS_BUCKET_NAME,
-                                                                   body_part_type=BodyPartType.DICOM)
+                                                                   body_part_type=BODY_PART_TYPE)
+
     all_body_parts = [item for sublist in all_body_parts for item in sublist]  # Flatten list.
+
     print(f"All body parts found: {len(all_body_parts)}")
 
-    unique_body_parts = gradient_utils.get_unique_body_parts_from_report(reports_file_path=REPORTS_FILE_PATH, gcs_bucket_name=GCS_BUCKET_NAME)
+    unique_body_parts = gradient_utils.get_unique_body_parts_from_report(reports_file_path=REPORTS_FILE_PATH,
+                                                                         gcs_bucket_name=GCS_BUCKET_NAME,
+                                                                         body_part_type=BODY_PART_TYPE)
+
     print(f"All unique body parts found: {len(unique_body_parts)}")
 
     distribution = {}
@@ -23,7 +28,7 @@ def main():
         else:
             distribution[body_part] = 1
 
-    print(f"Body part distribution:")
+    print(f"Body parts distribution:")
     print(distribution)
 
 
