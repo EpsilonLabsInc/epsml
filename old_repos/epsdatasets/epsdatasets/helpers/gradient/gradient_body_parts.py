@@ -160,10 +160,10 @@ MONAI_TO_EPSILON_BODY_PARTS_MAPPING = {
     "81": "Chest",  # rib_right_12
     "82": "Upper Extremities",  # humerus_left
     "83": "Upper Extremities",  # humerus_right
-    "84": "Upper Extremities",  # scapula_left
-    "85": "Upper Extremities",  # scapula_right
-    "86": "Upper Extremities",  # clavicula_left
-    "87": "Upper Extremities",  # clavicula_right
+    "84": "Chest",  # scapula_left
+    "85": "Chest",  # scapula_right
+    "86": "Chest",  # clavicula_left
+    "87": "Chest",  # clavicula_right
     "88": "Lower Extremities",  # femur_left
     "89": "Lower Extremities",  # femur_right
     "90": "Pelvis",  # hip_left
@@ -176,8 +176,8 @@ MONAI_TO_EPSILON_BODY_PARTS_MAPPING = {
     "97": "Pelvis",  # gluteus_medius_right
     "98": "Pelvis",  # gluteus_minimus_left
     "99": "Pelvis",  # gluteus_minimus_right
-    "100": "Lower Extremities",  # autochthon_left
-    "101": "Lower Extremities",  # autochthon_right
+    "100": "Spine",  # autochthon_left
+    "101": "Spine",  # autochthon_right
     "102": "Pelvis",  # iliopsoas_left
     "103": "Pelvis",  # iliopsoas_right
     "104": "Abdomen"  # urinary_bladder

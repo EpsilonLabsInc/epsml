@@ -1,5 +1,6 @@
 import ast
 import os
+from enum import Enum
 
 from epsutils.csv import csv_utils
 from epsutils.gcs import gcs_utils
@@ -32,7 +33,12 @@ def nifti_file_name_to_gradient_instances_path(nifti_file_name):
     return nifti_file_name[:-7].replace("_", "/")  # Get rid of '.nii.gz' and replace slashes with underscores.
 
 
-def get_all_body_parts_from_report(reports_file_path, gcs_bucket_name=None):
+class BodyPartType(Enum):
+    DICOM = 1
+    GPT = 2
+
+
+def get_all_body_parts_from_report(reports_file_path, gcs_bucket_name=None, body_part_type: BodyPartType=BodyPartType.GPT):
     if gcs_bucket_name is None:
         report = reports_file_path
     else:
@@ -40,13 +46,14 @@ def get_all_body_parts_from_report(reports_file_path, gcs_bucket_name=None):
         report = gcs_utils.download_file_as_string(gcs_bucket_name=gcs_bucket_name, gcs_file_name=reports_file_path)
 
     print("Loading reports file")
-    all_values = csv_utils.get_all_values(csv_file_name=report, column_name="BodyPart")
+    column_name = "BodyPart" if body_part_type == BodyPartType.GPT else "BodyPartExamined"
+    all_values = csv_utils.get_all_values(csv_file_name=report, column_name=column_name)
     all_values = [ast.literal_eval(value) for value in all_values if isinstance(value, str)]
 
     return all_values
 
 
-def get_unique_body_parts_from_report(reports_file_path, gcs_bucket_name=None):
+def get_unique_body_parts_from_report(reports_file_path, gcs_bucket_name=None, body_part_type: BodyPartType=BodyPartType.GPT):
     if gcs_bucket_name is None:
         report = reports_file_path
     else:
@@ -54,7 +61,8 @@ def get_unique_body_parts_from_report(reports_file_path, gcs_bucket_name=None):
         report = gcs_utils.download_file_as_string(gcs_bucket_name=gcs_bucket_name, gcs_file_name=reports_file_path)
 
     print("Loading reports file")
-    lists = csv_utils.get_unique_values(csv_file_name=report, column_name="BodyPart")
+    column_name = "BodyPart" if body_part_type == BodyPartType.GPT else "BodyPartExamined"
+    lists = csv_utils.get_unique_values(csv_file_name=report, column_name=column_name)
 
     unique_body_parts = set()
     for sublist in lists:
