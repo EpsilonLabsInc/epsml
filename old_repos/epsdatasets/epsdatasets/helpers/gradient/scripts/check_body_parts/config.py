@@ -1,6 +1,6 @@
 # General config.
-DISPLAY_NAME = "body-part-ct-16AGO2024"
-OUTPUT_DIR = "/home/andrej/data/bodypart"
+CHECK_BODY_PARTS_OUTPUT_FILE = "/home/andrej/data/bodypart/body-part-ct-16AGO2024-log.txt"
+CONVERT_TO_EPSILON_BODY_PARTS_OUTPUT_FILE = "/home/andrej/data/bodypart/body-part-ct-16AGO2024.csv"
 SKIP_ALREADY_PROCESSED_IMAGES = True
 USE_CPU_FOR_FAIL_SAFE = False
 
@@ -17,8 +17,7 @@ EMPTY_QUEUE_WAIT_TIMEOUT_SEC = 60
 def dump_config():
     print(f"""Using the following configuration settings:
 ------------------------------------------------------
-Display name: {DISPLAY_NAME}
-Output dir: {OUTPUT_DIR}
+Check body parts output file: {CHECK_BODY_PARTS_OUTPUT_FILE}
 Skip already processed images: {SKIP_ALREADY_PROCESSED_IMAGES}
 Use CPU for fail-safe: {USE_CPU_FOR_FAIL_SAFE}
 GCS bucket name: {GCS_BUCKET_NAME}

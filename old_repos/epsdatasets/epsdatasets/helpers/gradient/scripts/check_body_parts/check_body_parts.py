@@ -11,8 +11,7 @@ import tasks
 
 def main():
     # Configure logger.
-    logger_file_name = os.path.join(config.OUTPUT_DIR, config.DISPLAY_NAME + "-log.txt")
-    logging_utils.configure_logger(logger_file_name=logger_file_name,
+    logging_utils.configure_logger(logger_file_name=config.CHECK_BODY_PARTS_OUTPUT_FILE,
                                    logging_level=logging.INFO,
                                    show_logging_level=False,
                                    append_to_existing_log_file=config.SKIP_ALREADY_PROCESSED_IMAGES)
@@ -25,7 +24,7 @@ def main():
         print("Getting a list of already processed NIfTI files")
         nifti_files_to_skip = []
 
-        with open(logger_file_name, "r") as file:
+        with open(config.CHECK_BODY_PARTS_OUTPUT_FILE, "r") as file:
             for line in file:
                 start_index = line.find(config.GCS_IMAGES_DIR + "/")
                 if start_index != -1:
