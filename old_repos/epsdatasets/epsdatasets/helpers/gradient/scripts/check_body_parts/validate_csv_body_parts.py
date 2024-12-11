@@ -34,14 +34,14 @@ def main():
         claimed_body_parts = list(set(claimed_body_parts))
         claimed_body_parts = [CSV_TO_EPSILON_BODY_PARTS_MAPPING[p] for p in claimed_body_parts if p in CSV_TO_EPSILON_BODY_PARTS_MAPPING]
 
-        # Iterate volumes and look gather found body parts.
+        # Iterate volumes and gather found body parts.
         all_volumes_found = True
         found_body_parts = set()
         for primary_volume in primary_volumes:
             full_path = os.path.join(gcs_images_dir, primary_volume)
             if full_path not in body_parts_dict:
                 all_volumes_found = False
-                continue
+                break
 
             found_body_parts.add(body_parts_dict[full_path])
 
