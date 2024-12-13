@@ -4,14 +4,14 @@ import time
 from google.cloud import storage
 
 
-def list_files(gcs_bucket_name, gcs_dir):
+def list_files(gcs_bucket_name, gcs_dir, max_results=None):
     # Dir must end with a slash in order for the code below to work correctly (i.e., not to look for files recursively)!
     if not gcs_dir.endswith("/"):
         gcs_dir += "/"
 
     client = storage.Client()
     bucket = client.bucket(gcs_bucket_name)
-    blobs = bucket.list_blobs(prefix=gcs_dir)
+    blobs = bucket.list_blobs(prefix=gcs_dir, max_results=max_results)
     return [blob.name for blob in blobs if "/" not in blob.name[len(gcs_dir):]]
 
 
