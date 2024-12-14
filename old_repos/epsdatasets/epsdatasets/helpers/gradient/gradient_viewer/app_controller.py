@@ -41,6 +41,7 @@ class AppController(QObject):
         self.__main_window.load_button_clicked_signal.connect(self.on_load_button_clicked)
         self.__main_window.table_selection_changed_signal.connect(self.on_table_selection_changed)
         self.__main_window.table_selection_double_clicked_signal.connect(self.on_table_selection_changed)
+        self.__main_window.search_edit_text_changed_signal.connect(self.on_search_edit_text_changed)
         self.__main_window.nifti_image_viewer.sync_mode_sliding_signal.connect(self.__main_window.dicom_image_viewer.change_position)
         self.__main_window.dicom_image_viewer.sync_mode_sliding_signal.connect(self.__main_window.nifti_image_viewer.change_position)
 
@@ -95,6 +96,14 @@ class AppController(QObject):
 
         except Exception as e:
             self.show_error_signal.emit(f"{e}", 10000)
+
+    def on_search_edit_text_changed(self, search_text):
+        for row in range(self.__main_window.table_widget.rowCount()):
+            item = self.__main_window.table_widget.item(row, 0)
+            if search_text.lower() in item.text().lower():
+                self.__main_window.table_widget.setRowHidden(row, False)
+            else:
+                self.__main_window.table_widget.setRowHidden(row, True)
 
     def __load_from_bucket(self):
         gcs_bucket_name = self.__main_window.get_nifti_gcs_bucket()

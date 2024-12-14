@@ -10,6 +10,7 @@ class MainWindow(QMainWindow):
     load_button_clicked_signal = pyqtSignal()
     table_selection_changed_signal = pyqtSignal(int)
     table_selection_double_clicked_signal = pyqtSignal(int)
+    search_edit_text_changed_signal = pyqtSignal(str)
 
     def __init__(self):
         super(MainWindow, self).__init__()
@@ -108,6 +109,7 @@ class MainWindow(QMainWindow):
         self.table_widget.selectionModel().selectionChanged.connect(self.table_selection_changed_handler)
         self.table_widget.cellDoubleClicked.connect(self.table_selection_double_clicked_handler)
         self.include_dicom_check_box.stateChanged.connect(self.include_dicom_check_box_state_changed_handler)
+        self.search_edit.textChanged.connect(self.search_edit_text_changed_handler)
 
     def __init_controls(self):
         self.image_source_combo_box.setCurrentIndex(0)
@@ -214,6 +216,9 @@ class MainWindow(QMainWindow):
         self.dicom_gcs_bucket_edit.setVisible(self.include_dicom_check_box.isChecked())
         self.dicom_gcs_images_dir_label.setVisible(self.include_dicom_check_box.isChecked())
         self.dicom_gcs_images_dir_edit.setVisible(self.include_dicom_check_box.isChecked())
+
+    def search_edit_text_changed_handler(self):
+        self.search_edit_text_changed_signal.emit(self.search_edit.text())
 
     def __copy_to_clipboard(self):
         selected_indexes = self.table_widget.selectedIndexes()
