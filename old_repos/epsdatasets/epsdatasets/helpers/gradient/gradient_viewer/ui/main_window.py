@@ -88,18 +88,18 @@ class MainWindow(QMainWindow):
         self.table_widget.setRowCount(0)
 
     def clear_preview(self):
-        self.nifti_preview_label.clear()
-        self.dicom_preview_label.clear()
-        self.image_info_label.clear()
+        self.nifti_image_viewer.clear()
+        self.dicom_image_viewer.clear()
+        self.image_info_edit.clear()
 
-    def show_nifti(self, pixmap):
-        self.nifti_preview_label.setPixmap(pixmap.scaled(self.nifti_preview_label.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation))
+    def show_nifti(self, numpy_image_array):
+        self.nifti_image_viewer.load_image(numpy_image_array)
+
+    def show_dicom(self, numpy_image_array):
+        self.dicom_image_viewer.load_image(numpy_image_array)
 
     def show_image_info(self, image_info):
-        self.image_info_label.setText(image_info)
-
-    def show_dicom(self, pixmap):
-        self.dicom_preview_label.setPixmap(pixmap.scaled(self.dicom_preview_label.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        self.image_info_edit.setText(image_info)
 
     def __create_connections(self):
         self.image_source_combo_box.currentIndexChanged.connect(self.image_source_combo_box_changed_handler)

@@ -7,7 +7,7 @@ import time
 import numpy as np
 import pandas as pd
 import SimpleITK as sitk
-from PyQt5.QtCore import QObject, pyqtSignal, Qt
+from PyQt5.QtCore import QObject, pyqtSignal
 from PyQt5.QtGui import QPixmap, QImage
 from PyQt5.QtWidgets import QTableWidgetItem, QApplication
 
@@ -21,9 +21,9 @@ class AppController(QObject):
     clear_status_signal = pyqtSignal()
     clear_table_signal = pyqtSignal()
     clear_preview_signal = pyqtSignal()
-    show_nifti_signal = pyqtSignal(QPixmap)
+    show_nifti_signal = pyqtSignal(np.ndarray)
+    show_dicom_signal = pyqtSignal(np.ndarray)
     show_image_info_signal = pyqtSignal(str)
-    show_dicom_signal = pyqtSignal(QPixmap)
 
     def __init__(self, main_window):
         QObject.__init__(self)
@@ -207,11 +207,8 @@ class AppController(QObject):
 
         # Show NIfTI file.
         image = sitk.ReadImage(file_names["local_nifti_file_name"])
-        image_array = sitk.GetArrayFromImage(image)
-        slice_index = image_array.shape[0] // 2  # Get the middle slice
-        image = image_array[slice_index, :, :]
-        pixmap = self.__numpy_image_to_pixmap(image)
-        self.show_nifti_signal.emit(pixmap)
+        numpy_image_array = sitk.GetArrayFromImage(image)
+        self.show_nifti_signal.emit(numpy_image_array)
 
         # Show image info.
         with open(file_names["local_txt_file_name"], "r") as file:
@@ -254,13 +251,3 @@ class AppController(QObject):
                 return os.path.abspath(os.path.join(dicom_dir, entry))
 
         return None
-
-    def __numpy_image_to_pixmap(self, numpy_image):
-        numpy_image = (numpy_image - numpy_image.min()) / (numpy_image.max() - numpy_image.min()) * 255
-        numpy_image = numpy_image.astype(np.uint8)
-        height, width = numpy_image.shape
-        num_bytes_per_line = width
-        q_image = QImage(numpy_image.data, width, height, num_bytes_per_line, QImage.Format_Grayscale8)
-        pixmap = QPixmap.fromImage(q_image)
-
-        return pixmap
