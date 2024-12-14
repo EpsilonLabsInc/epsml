@@ -1,11 +1,13 @@
+import ast
 import concurrent.futures
 import os
 import shutil
 import time
 
 import numpy as np
+import pandas as pd
 import SimpleITK as sitk
-from PyQt5.QtCore import QObject, pyqtSignal
+from PyQt5.QtCore import QObject, pyqtSignal, Qt
 from PyQt5.QtGui import QPixmap, QImage
 from PyQt5.QtWidgets import QTableWidgetItem, QApplication
 
@@ -38,6 +40,7 @@ class AppController(QObject):
     def __create_connections(self):
         self.__main_window.load_button_clicked_signal.connect(self.on_load_button_clicked)
         self.__main_window.table_selection_changed_signal.connect(self.on_table_selection_changed)
+        self.__main_window.table_selection_double_clicked_signal.connect(self.on_table_selection_changed)
 
         self.show_status_signal.connect(self.__main_window.show_status)
         self.show_error_signal.connect(self.__main_window.show_error)
@@ -106,13 +109,31 @@ class AppController(QObject):
             self.__main_window.table_widget.setItem(row_count, 0, item)
 
     def __load_from_csv(self):
-        pass
+        columns = self.__main_window.get_csv_column().split(';')
+        if len(columns) > 2:
+            raise ValueError("CSV column can be either single name (e.g., 'volume') or composite of two names (e.g., 'volume;nifti_file')")
+
+        column = columns[0]
+        key = columns[1] if len(columns) == 2 else None
+
+        df = pd.read_csv(self.__main_window.get_csv_file())
+        items = df[column]
+        row_count = self.__main_window.table_widget.rowCount()
+
+        for item in items:
+            file_name = item if key is None else ast.literal_eval(item)[key]
+            self.__main_window.table_widget.insertRow(row_count)
+            self.__main_window.table_widget.setItem(row_count, 0, QTableWidgetItem(file_name))
 
     def __load_from_data_lake(self):
-        pass
+        raise RuntimeError(f"Not implemented yet")
 
     def __load_from_single_file(self):
-        pass
+        file_name = self.__main_window.get_nifti_gcs_images_dir() + "/" + self.__main_window.get_single_file()
+
+        row_count = self.__main_window.table_widget.rowCount()
+        self.__main_window.table_widget.insertRow(row_count)
+        self.__main_window.table_widget.setItem(row_count, 0, QTableWidgetItem(file_name))
 
     def __download_data(self, file_name):
         file_names = self.__generate_file_names(file_name)

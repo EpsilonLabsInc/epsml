@@ -2,13 +2,14 @@ import os
 
 from PyQt5 import uic
 from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtGui import QIntValidator
-from PyQt5.QtWidgets import QMainWindow
+from PyQt5.QtGui import QIntValidator, QKeySequence
+from PyQt5.QtWidgets import QApplication, QMainWindow, QShortcut
 
 
 class MainWindow(QMainWindow):
     load_button_clicked_signal = pyqtSignal()
     table_selection_changed_signal = pyqtSignal(int)
+    table_selection_double_clicked_signal = pyqtSignal(int)
 
     def __init__(self):
         super(MainWindow, self).__init__()
@@ -18,6 +19,9 @@ class MainWindow(QMainWindow):
 
         self.__create_connections()
         self.__init_controls()
+
+        self.__copy_shortcut = QShortcut(QKeySequence(Qt.CTRL + Qt.Key_C), self.table_widget)
+        self.__copy_shortcut.activated.connect(self.__copy_to_clipboard)
 
     def get_max_results(self):
         try:
@@ -101,6 +105,7 @@ class MainWindow(QMainWindow):
         self.image_source_combo_box.currentIndexChanged.connect(self.image_source_combo_box_changed_handler)
         self.load_button.clicked.connect(self.load_button_clicked_handler)
         self.table_widget.selectionModel().selectionChanged.connect(self.table_selection_changed_handler)
+        self.table_widget.cellDoubleClicked.connect(self.table_selection_double_clicked_handler)
         self.include_dicom_check_box.stateChanged.connect(self.include_dicom_check_box_state_changed_handler)
 
     def __init_controls(self):
@@ -200,8 +205,25 @@ class MainWindow(QMainWindow):
         index = selected_indexes[0].row()
         self.table_selection_changed_signal.emit(index)
 
+    def table_selection_double_clicked_handler(self, row, column):
+        self.table_selection_double_clicked_signal.emit(row)
+
     def include_dicom_check_box_state_changed_handler(self, state):
         self.dicom_gcs_bucket_label.setVisible(self.include_dicom_check_box.isChecked())
         self.dicom_gcs_bucket_edit.setVisible(self.include_dicom_check_box.isChecked())
         self.dicom_gcs_images_dir_label.setVisible(self.include_dicom_check_box.isChecked())
         self.dicom_gcs_images_dir_edit.setVisible(self.include_dicom_check_box.isChecked())
+
+    def __copy_to_clipboard(self):
+        selected_indexes = self.table_widget.selectedIndexes()
+        if not selected_indexes:
+            return
+
+        row = selected_indexes[0].row()
+        column = selected_indexes[0].column()
+        item = self.table_widget.item(row, column)
+
+        if item:
+            clipboard = QApplication.clipboard()
+            clipboard.setText(item.text())
+            print(f"Copied to clipboard: {item.text()}")
