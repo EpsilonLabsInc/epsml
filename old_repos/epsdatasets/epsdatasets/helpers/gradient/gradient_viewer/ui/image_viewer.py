@@ -2,18 +2,37 @@ import os
 
 import numpy as np
 from PyQt5 import uic
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QObject, QEvent, pyqtSignal
 from PyQt5.QtGui import QPixmap, QImage
 from PyQt5.QtWidgets import QWidget
 
 
+class SliderEventFilter(QObject):
+    def __init__(self, widget):
+        super().__init__()
+        self.widget = widget
+
+    def eventFilter(self, obj, event):
+        if event.type() == QEvent.KeyPress or event.type() == QEvent.KeyRelease:
+            if event.key() == Qt.Key_Control:
+                self.widget.ctrl_pressed = (event.type() == QEvent.KeyPress)
+
+        return super().eventFilter(obj, event)
+
+
 class ImageViewer(QWidget):
+    sync_mode_sliding_signal = pyqtSignal(int)
+
     def __init__(self, parent=None):
         super().__init__(parent)
 
         ui_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "image_viewer.ui")
         uic.loadUi(ui_file_path, self)
 
+        self.__event_filter = SliderEventFilter(self)
+        self.installEventFilter(self.__event_filter)
+
+        self.ctrl_pressed = False
         self.__numpy_image_array = None
 
         self.__create_connections()
@@ -37,6 +56,9 @@ class ImageViewer(QWidget):
         self.slider.setValue(0)
         self.on_slider_position_changed(0)
 
+    def change_position(self, position):
+        self.slider.setValue(position)
+
     def get_num_slices(self):
         return self.__numpy_image_array.shape[0] if self.__numpy_image_array is not None else 0
 
@@ -46,6 +68,9 @@ class ImageViewer(QWidget):
 
         self.__show_slice(position)
         self.current_slice_label.setText(f"{position + 1}/{self.get_num_slices()}")
+
+        if self.ctrl_pressed:
+            self.sync_mode_sliding_signal.emit(position)
 
     def __show_slice(self, slice_index):
         if self.__numpy_image_array is None:

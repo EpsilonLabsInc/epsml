@@ -16,6 +16,7 @@ class MainWindow(QMainWindow):
 
         ui_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "main_window.ui")
         uic.loadUi(ui_file_path, self)
+        self.resize(2500, 1500)
 
         self.__create_connections()
         self.__init_controls()

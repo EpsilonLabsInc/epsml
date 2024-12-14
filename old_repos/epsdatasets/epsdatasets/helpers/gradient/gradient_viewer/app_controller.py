@@ -9,7 +9,6 @@ import pandas as pd
 import pydicom
 import SimpleITK as sitk
 from PyQt5.QtCore import QObject, pyqtSignal
-from PyQt5.QtGui import QPixmap, QImage
 from PyQt5.QtWidgets import QTableWidgetItem, QApplication
 
 from epsutils.dicom import dicom_utils
@@ -42,6 +41,8 @@ class AppController(QObject):
         self.__main_window.load_button_clicked_signal.connect(self.on_load_button_clicked)
         self.__main_window.table_selection_changed_signal.connect(self.on_table_selection_changed)
         self.__main_window.table_selection_double_clicked_signal.connect(self.on_table_selection_changed)
+        self.__main_window.nifti_image_viewer.sync_mode_sliding_signal.connect(self.__main_window.dicom_image_viewer.change_position)
+        self.__main_window.dicom_image_viewer.sync_mode_sliding_signal.connect(self.__main_window.nifti_image_viewer.change_position)
 
         self.show_status_signal.connect(self.__main_window.show_status)
         self.show_error_signal.connect(self.__main_window.show_error)
@@ -148,6 +149,10 @@ class AppController(QObject):
                 future.result()
 
     def __download_nifti(self, remote_nifti_file_name, local_nifti_file_name):
+        if os.path.exists(local_nifti_file_name):
+            # NIfTI file already in cache.
+            return
+
         t1 = time.time()
 
         nifti_gcs_bucket_name = self.__main_window.get_nifti_gcs_bucket()
@@ -164,6 +169,10 @@ class AppController(QObject):
         print(f"NIfTI download time: {t2 - t1} sec")
 
     def __download_txt(self, remote_txt_file_name, local_txt_file_name):
+        if os.path.exists(local_txt_file_name):
+            # TXT file already in cache.
+            return
+
         t1 = time.time()
 
         nifti_gcs_bucket_name = self.__main_window.get_nifti_gcs_bucket()
@@ -181,6 +190,10 @@ class AppController(QObject):
 
     def __download_dicom(self, remote_dicom_dir, local_dicom_dir):
         if not self.__main_window.get_include_dicom_files():
+            return
+
+        if self.__find_first_dicom_file(local_dicom_dir) is not None:
+            # DICOM files already in cache.
             return
 
         t1 = time.time()
@@ -263,3 +276,11 @@ class AppController(QObject):
         numpy_image_array = np.stack(dicom_images, axis=0)
 
         return numpy_image_array
+
+    def __find_first_dicom_file(self, dicom_dir):
+        entries = os.listdir(dicom_dir)
+        for entry in entries:
+            if entry.endswith(".dcm"):
+                return os.path.abspath(os.path.join(dicom_dir, entry))
+
+        return None
