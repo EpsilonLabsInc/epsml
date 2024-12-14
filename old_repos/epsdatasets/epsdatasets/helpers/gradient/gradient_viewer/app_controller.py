@@ -6,6 +6,7 @@ import time
 
 import numpy as np
 import pandas as pd
+import pydicom
 import SimpleITK as sitk
 from PyQt5.QtCore import QObject, pyqtSignal
 from PyQt5.QtGui import QPixmap, QImage
@@ -188,16 +189,16 @@ class AppController(QObject):
         file_names = gcs_utils.list_files(gcs_bucket_name=dicom_gcs_bucket_name, gcs_dir=remote_dicom_dir)
         dicom_files = [file_name for file_name in file_names if file_name.endswith(".dcm")]
 
-        # TODO: Optimize downloading of multiple DICOM files. For now we download just one.
-        dicom_files = dicom_files[:1]
+        with concurrent.futures.ProcessPoolExecutor() as dicoms_download_executor:
+            futures = [dicoms_download_executor.submit(gcs_utils.download_file,
+                                                       dicom_gcs_bucket_name,
+                                                       dicom_file,
+                                                       os.path.join(local_dicom_dir, os.path.basename(dicom_file)),
+                                                       None,
+                                                       True) for dicom_file in dicom_files]
 
-        for dicom_file in dicom_files:
-            local_dicom_file = os.path.join(local_dicom_dir, os.path.basename(dicom_file))
-            gcs_utils.download_file(gcs_bucket_name=dicom_gcs_bucket_name,
-                                    gcs_file_name=dicom_file,
-                                    local_file_name=local_dicom_file,
-                                    num_retries=None,  # Retry indefinitely.
-                                    show_warning_on_retry=True)
+            for future in concurrent.futures.as_completed(futures):
+                future.result()
 
         t2 = time.time()
         print(f"DICOM download time: {t2 - t1} sec")
@@ -206,8 +207,8 @@ class AppController(QObject):
         file_names = self.__generate_file_names(file_name)
 
         # Show NIfTI file.
-        image = sitk.ReadImage(file_names["local_nifti_file_name"])
-        numpy_image_array = sitk.GetArrayFromImage(image)
+        sitk_image = sitk.ReadImage(file_names["local_nifti_file_name"])
+        numpy_image_array = sitk.GetArrayFromImage(sitk_image)
         self.show_nifti_signal.emit(numpy_image_array)
 
         # Show image info.
@@ -215,12 +216,10 @@ class AppController(QObject):
             image_info = file.read()
         self.show_image_info_signal.emit(image_info)
 
-        # Show DICOM file.
-        dicom_file = self.__find_first_dicom_file(file_names["local_dicom_dir"])
-        if dicom_file is not None:
-            image = dicom_utils.get_dicom_image(dicom_file_name=dicom_file, custom_windowing_parameters={"window_center": 0, "window_width": 0})
-            pixmap = self.__numpy_image_to_pixmap(np.array(image))
-            self.show_dicom_signal.emit(pixmap)
+        # Show DICOM files.
+        if self.__main_window.get_include_dicom_files():
+            numpy_image_array = self.__load_dicom_files(file_names["local_dicom_dir"])
+            self.show_dicom_signal.emit(numpy_image_array)
 
     def __generate_file_names(self, file_name):
         base_file_name = os.path.basename(file_name)
@@ -244,10 +243,23 @@ class AppController(QObject):
 
         return file_names
 
-    def __find_first_dicom_file(self, dicom_dir):
+    def __load_dicom_files(self, dicom_dir):
+        dicom_datasets = []
+
         entries = os.listdir(dicom_dir)
         for entry in entries:
             if entry.endswith(".dcm"):
-                return os.path.abspath(os.path.join(dicom_dir, entry))
+                dicom_file = os.path.join(dicom_dir, entry)
+                dicom_dataset = pydicom.dcmread(dicom_file)
+                dicom_datasets.append(dicom_dataset)
 
-        return None
+        # Sort DICOM files by the InstanceNumber.
+        dicom_datasets = sorted(dicom_datasets, key=lambda dicom_dataset: dicom_dataset.InstanceNumber)
+
+        # Get DICOM images.
+        win = {"window_center": 0, "window_width": 0}
+        dicom_images = [dicom_utils.get_dicom_image_from_dataset(dicom_dataset, win) for dicom_dataset in dicom_datasets]
+
+        numpy_image_array = np.stack(dicom_images, axis=0)
+
+        return numpy_image_array

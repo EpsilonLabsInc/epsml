@@ -3,7 +3,7 @@ import os
 from PyQt5 import uic
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QIntValidator, QKeySequence
-from PyQt5.QtWidgets import QApplication, QMainWindow, QShortcut
+from PyQt5.QtWidgets import QApplication, QMainWindow, QShortcut, QMessageBox
 
 
 class MainWindow(QMainWindow):
@@ -79,7 +79,7 @@ class MainWindow(QMainWindow):
         self.statusbar.showMessage(message, timeout)
 
     def show_error(self, message, timeout):
-        self.statusbar.showMessage(f"ERROR: {message}", timeout)
+        QMessageBox.critical(self, "Error", f"{message}")
 
     def clear_status(self):
         self.statusbar.clearMessage()
