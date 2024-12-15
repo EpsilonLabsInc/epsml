@@ -1,6 +1,7 @@
 import re
 from dateutil.parser import parse
-from typing import Tuple
+from enum import Enum
+from typing import Tuple, List
 
 import numpy as np
 import pydicom
@@ -179,3 +180,36 @@ def check_dicom_volume_images_quality(volume):
         return False, f"Std dev of window widths {std_dev} != 0.0"
 
     return True, ""
+
+
+class AnatomicalPlane(Enum):
+    UNKNOWN = -1
+    AXIAL = 0
+    CORONAL = 1
+    SAGITTAL = 2
+
+
+def get_anatomical_plane(image_orientation: List[float]) -> AnatomicalPlane:
+    if len(image_orientation) != 6:
+        raise ValueErrur("Image orientation should be vector of length 6")
+
+    row = image_orientation[:3]
+    max_index = np.argmax(np.abs(row))
+    result = [0, 0, 0]
+    result[max_index] = 1 if row[max_index] >= 0 else -1
+    row = result
+
+    col = image_orientation[3:]
+    max_index = np.argmax(np.abs(col))
+    result = [0, 0, 0]
+    result[max_index] = 1 if col[max_index] >= 0 else -1
+    col = result
+
+    if row == [1, 0, 0] and col == [0, 1, 0]:
+        return AnatomicalPlane.AXIAL
+    elif row == [1, 0, 0] and col == [0, 0, -1]:
+        return AnatomicalPlane.CORONAL
+    elif row == [0, 1, 0] and col == [0, 0, -1]:
+        return AnatomicalPlane.SAGITTAL
+    else:
+        return AnatomicalPlane.UNKNOWN
