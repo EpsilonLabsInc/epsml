@@ -5,6 +5,7 @@ CONVERT_TO_EPSILON_BODY_PARTS_OUTPUT_FILE = "/home/andrej/data/bodypart/body-par
 VALIDATION_OUTPUT_FILE = "/home/andrej/data/bodypart/csv-body-part-validation-ct-16AGO2024.csv"
 SKIP_ALREADY_PROCESSED_IMAGES = True
 USE_CPU_FOR_FAIL_SAFE = False
+REJECT_NON_AXIAL = True
 
 # GCS config.
 GCS_BUCKET_NAME = "gradient-cts-fixed-nifti"
@@ -25,6 +26,7 @@ Convert to Epsilon body parts output file: {CONVERT_TO_EPSILON_BODY_PARTS_OUTPUT
 Validation output file: {VALIDATION_OUTPUT_FILE}
 Skip already processed images: {SKIP_ALREADY_PROCESSED_IMAGES}
 Use CPU for fail-safe: {USE_CPU_FOR_FAIL_SAFE}
+Reject non-axial: {REJECT_NON_AXIAL}
 GCS bucket name: {GCS_BUCKET_NAME}
 GCS images dir: {GCS_IMAGES_DIR}
 Num preprocessing workers: {NUM_PREPROCESSING_WORKERS}
