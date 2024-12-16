@@ -158,6 +158,9 @@ class AppController(QObject):
                 future.result()
 
     def __download_nifti(self, remote_nifti_file_name, local_nifti_file_name):
+        if not self.__main_window.get_include_nifti_files():
+            return
+
         if os.path.exists(local_nifti_file_name):
             # NIfTI file already in cache.
             return
@@ -229,9 +232,10 @@ class AppController(QObject):
         file_names = self.__generate_file_names(file_name)
 
         # Show NIfTI file.
-        sitk_image = sitk.ReadImage(file_names["local_nifti_file_name"])
-        numpy_image_array = sitk.GetArrayFromImage(sitk_image)
-        self.show_nifti_signal.emit(numpy_image_array)
+        if self.__main_window.get_include_nifti_files():
+            sitk_image = sitk.ReadImage(file_names["local_nifti_file_name"])
+            numpy_image_array = sitk.GetArrayFromImage(sitk_image)
+            self.show_nifti_signal.emit(numpy_image_array)
 
         # Show image info.
         with open(file_names["local_txt_file_name"], "r") as file:
@@ -245,7 +249,8 @@ class AppController(QObject):
 
     def __generate_file_names(self, file_name):
         base_file_name = os.path.basename(file_name)
-        data_dir = os.path.join(self.__cache_dir, base_file_name.replace(".nii.gz", ""))
+        gcs_bucket_name = self.__main_window.get_nifti_gcs_bucket()
+        data_dir = os.path.join(self.__cache_dir, gcs_bucket_name, base_file_name.replace(".nii.gz", ""))
         remote_nifti_file_name = file_name
         remote_txt_file_name = file_name.replace(".nii.gz", ".txt")
         local_nifti_file_name = os.path.join(data_dir, base_file_name)

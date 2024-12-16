@@ -89,7 +89,11 @@
         </widget>
        </item>
        <item row="1" column="1">
-        <widget class="ImageViewer" name="dicom_image_viewer" native="true"/>
+        <widget class="ImageViewer" name="dicom_image_viewer" native="true">
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
+        </widget>
        </item>
        <item row="0" column="0">
         <widget class="QLabel" name="nifti_preview_title_label">
@@ -112,7 +116,11 @@
         </widget>
        </item>
        <item row="1" column="0">
-        <widget class="ImageViewer" name="nifti_image_viewer" native="true"/>
+        <widget class="ImageViewer" name="nifti_image_viewer" native="true">
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
+        </widget>
        </item>
       </layout>
      </widget>
@@ -129,45 +137,6 @@
        <property name="spacing">
         <number>18</number>
        </property>
-       <item row="14" column="1">
-        <widget class="QLineEdit" name="dicom_gcs_bucket_edit">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>0</width>
-           <height>0</height>
-          </size>
-         </property>
-         <property name="text">
-          <string>epsilon-data-us-central1</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="1">
-        <widget class="QLineEdit" name="max_results_edit">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="text">
-          <string>500</string>
-         </property>
-        </widget>
-       </item>
-       <item row="13" column="0">
-        <widget class="QCheckBox" name="include_dicom_check_box">
-         <property name="text">
-          <string>Include DICOM files</string>
-         </property>
-        </widget>
-       </item>
        <item row="8" column="1">
         <widget class="QLineEdit" name="nifti_gcs_images_dir_edit">
          <property name="sizePolicy">
@@ -187,124 +156,6 @@
          </property>
         </widget>
        </item>
-       <item row="14" column="0">
-        <widget class="QLabel" name="dicom_gcs_bucket_label">
-         <property name="text">
-          <string>DICOM GCS bucket:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0" colspan="2">
-        <widget class="QFrame" name="separator_1">
-         <property name="frameShape">
-          <enum>QFrame::HLine</enum>
-         </property>
-         <property name="frameShadow">
-          <enum>QFrame::Raised</enum>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="1">
-        <widget class="QLineEdit" name="csv_file_edit">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-        </widget>
-       </item>
-       <item row="8" column="0">
-        <widget class="QLabel" name="nifti_gcs_images_dir_label">
-         <property name="text">
-          <string>NIfTI GCS images dir:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="0">
-        <widget class="QLabel" name="max_results_label">
-         <property name="text">
-          <string>Max results:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="0">
-        <widget class="QLabel" name="csv_file_label">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="text">
-          <string>CSV file:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="12" column="0" colspan="2">
-        <widget class="QFrame" name="separator_2">
-         <property name="frameShape">
-          <enum>QFrame::HLine</enum>
-         </property>
-         <property name="frameShadow">
-          <enum>QFrame::Raised</enum>
-         </property>
-        </widget>
-       </item>
-       <item row="7" column="0">
-        <widget class="QLabel" name="nifti_gcs_bucket_label">
-         <property name="text">
-          <string>NIfTI GCS bucket name:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="1">
-        <widget class="QLineEdit" name="csv_column_edit">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-        </widget>
-       </item>
-       <item row="17" column="0">
-        <spacer name="vertical_spacer_1">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="6" column="0">
-        <widget class="QLabel" name="single_file_label">
-         <property name="text">
-          <string>Single file:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="0">
-        <widget class="QLabel" name="csv_column_label">
-         <property name="text">
-          <string>CSV column:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="1">
-        <widget class="QLineEdit" name="single_file_edit">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-        </widget>
-       </item>
        <item row="7" column="1">
         <widget class="QLineEdit" name="nifti_gcs_bucket_edit">
          <property name="sizePolicy">
@@ -321,6 +172,136 @@
          </property>
          <property name="text">
           <string>gradient-cts-nifti</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="max_results_label">
+         <property name="text">
+          <string>Max results:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="0">
+        <widget class="QLabel" name="nifti_gcs_bucket_label">
+         <property name="text">
+          <string>NIfTI GCS bucket name:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="12" column="0" colspan="2">
+        <widget class="QFrame" name="separator_2">
+         <property name="frameShape">
+          <enum>QFrame::HLine</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Raised</enum>
+         </property>
+        </widget>
+       </item>
+       <item row="16" column="1">
+        <widget class="QLineEdit" name="dicom_gcs_images_dir_edit">
+         <property name="text">
+          <string>GRADIENT-DATABASE/CT</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="QLineEdit" name="max_results_edit">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>500</string>
+         </property>
+        </widget>
+       </item>
+       <item row="8" column="0">
+        <widget class="QLabel" name="nifti_gcs_images_dir_label">
+         <property name="text">
+          <string>NIfTI GCS images dir:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="15" column="1">
+        <widget class="QLineEdit" name="dicom_gcs_bucket_edit">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>epsilon-data-us-central1</string>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="1">
+        <widget class="QLineEdit" name="single_file_edit">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0" colspan="2">
+        <widget class="QFrame" name="separator_1">
+         <property name="frameShape">
+          <enum>QFrame::HLine</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Raised</enum>
+         </property>
+        </widget>
+       </item>
+       <item row="19" column="0" colspan="2">
+        <widget class="QPushButton" name="load_button">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>Load</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="0">
+        <widget class="QLabel" name="csv_column_label">
+         <property name="text">
+          <string>CSV column:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="1">
+        <widget class="QLineEdit" name="csv_column_edit">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="1">
+        <widget class="QLineEdit" name="csv_file_edit">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
          </property>
         </widget>
        </item>
@@ -379,30 +360,64 @@
          </layout>
         </widget>
        </item>
-       <item row="18" column="0" colspan="2">
-        <widget class="QPushButton" name="load_button">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
+       <item row="18" column="0">
+        <spacer name="vertical_spacer_1">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
          </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="15" column="0">
+        <widget class="QLabel" name="dicom_gcs_bucket_label">
          <property name="text">
-          <string>Load</string>
+          <string>DICOM GCS bucket:</string>
          </property>
         </widget>
        </item>
-       <item row="15" column="0">
+       <item row="16" column="0">
         <widget class="QLabel" name="dicom_gcs_images_dir_label">
          <property name="text">
           <string>DICOM GCS images dir:</string>
          </property>
         </widget>
        </item>
-       <item row="15" column="1">
-        <widget class="QLineEdit" name="dicom_gcs_images_dir_edit">
+       <item row="6" column="0">
+        <widget class="QLabel" name="single_file_label">
          <property name="text">
-          <string>GRADIENT-DATABASE/CT</string>
+          <string>Single file:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="14" column="0">
+        <widget class="QCheckBox" name="include_dicom_check_box">
+         <property name="text">
+          <string>Include DICOM files</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLabel" name="csv_file_label">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>CSV file:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="13" column="0">
+        <widget class="QCheckBox" name="include_nifti_check_box">
+         <property name="text">
+          <string>Include NIfTI file</string>
          </property>
         </widget>
        </item>
@@ -438,6 +453,25 @@
    <container>1</container>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>image_source_combo_box</tabstop>
+  <tabstop>max_results_edit</tabstop>
+  <tabstop>csv_file_edit</tabstop>
+  <tabstop>csv_column_edit</tabstop>
+  <tabstop>single_file_edit</tabstop>
+  <tabstop>nifti_gcs_bucket_edit</tabstop>
+  <tabstop>nifti_gcs_images_dir_edit</tabstop>
+  <tabstop>include_nifti_check_box</tabstop>
+  <tabstop>include_dicom_check_box</tabstop>
+  <tabstop>dicom_gcs_bucket_edit</tabstop>
+  <tabstop>dicom_gcs_images_dir_edit</tabstop>
+  <tabstop>load_button</tabstop>
+  <tabstop>table_widget</tabstop>
+  <tabstop>search_edit</tabstop>
+  <tabstop>nifti_image_viewer</tabstop>
+  <tabstop>dicom_image_viewer</tabstop>
+  <tabstop>image_info_edit</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

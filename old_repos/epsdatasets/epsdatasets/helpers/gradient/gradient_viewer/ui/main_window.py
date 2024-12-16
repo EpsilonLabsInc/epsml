@@ -62,6 +62,9 @@ class MainWindow(QMainWindow):
             raise ValueError("NIfTI GCS images dir is empty")
         return images_dir
 
+    def get_include_nifti_files(self):
+        return self.include_nifti_check_box.isChecked()
+
     def get_include_dicom_files(self):
         return self.include_dicom_check_box.isChecked()
 
@@ -108,6 +111,7 @@ class MainWindow(QMainWindow):
         self.load_button.clicked.connect(self.load_button_clicked_handler)
         self.table_widget.selectionModel().selectionChanged.connect(self.table_selection_changed_handler)
         self.table_widget.cellDoubleClicked.connect(self.table_selection_double_clicked_handler)
+        self.include_nifti_check_box.stateChanged.connect(self.include_nifti_check_box_state_changed_handler)
         self.include_dicom_check_box.stateChanged.connect(self.include_dicom_check_box_state_changed_handler)
         self.search_edit.textChanged.connect(self.search_edit_text_changed_handler)
 
@@ -115,6 +119,7 @@ class MainWindow(QMainWindow):
         self.image_source_combo_box.setCurrentIndex(0)
         self.image_source_combo_box_changed_handler(0)
         self.max_results_edit.setValidator(QIntValidator(bottom=1))
+        self.include_nifti_check_box.setChecked(True)
         self.include_dicom_check_box.setChecked(False)
 
     def image_source_combo_box_changed_handler(self, index):
@@ -132,6 +137,7 @@ class MainWindow(QMainWindow):
             self.nifti_gcs_bucket_edit.setVisible(True)
             self.nifti_gcs_images_dir_label.setVisible(True)
             self.nifti_gcs_images_dir_edit.setVisible(True)
+            self.include_nifti_check_box.setVisible(True)
             self.include_dicom_check_box.setVisible(True)
             self.dicom_gcs_bucket_label.setVisible(self.include_dicom_check_box.isChecked())
             self.dicom_gcs_bucket_edit.setVisible(self.include_dicom_check_box.isChecked())
@@ -151,6 +157,7 @@ class MainWindow(QMainWindow):
             self.nifti_gcs_bucket_edit.setVisible(True)
             self.nifti_gcs_images_dir_label.setVisible(True)
             self.nifti_gcs_images_dir_edit.setVisible(True)
+            self.include_nifti_check_box.setVisible(True)
             self.include_dicom_check_box.setVisible(True)
             self.dicom_gcs_bucket_label.setVisible(self.include_dicom_check_box.isChecked())
             self.dicom_gcs_bucket_edit.setVisible(self.include_dicom_check_box.isChecked())
@@ -170,6 +177,7 @@ class MainWindow(QMainWindow):
             self.nifti_gcs_bucket_edit.setVisible(False)
             self.nifti_gcs_images_dir_label.setVisible(False)
             self.nifti_gcs_images_dir_edit.setVisible(False)
+            self.include_nifti_check_box.setVisible(False)
             self.include_dicom_check_box.setVisible(False)
             self.dicom_gcs_bucket_label.setVisible(False)
             self.dicom_gcs_bucket_edit.setVisible(False)
@@ -189,6 +197,7 @@ class MainWindow(QMainWindow):
             self.nifti_gcs_bucket_edit.setVisible(True)
             self.nifti_gcs_images_dir_label.setVisible(True)
             self.nifti_gcs_images_dir_edit.setVisible(True)
+            self.include_nifti_check_box.setVisible(True)
             self.include_dicom_check_box.setVisible(True)
             self.dicom_gcs_bucket_label.setVisible(self.include_dicom_check_box.isChecked())
             self.dicom_gcs_bucket_edit.setVisible(self.include_dicom_check_box.isChecked())
@@ -210,6 +219,10 @@ class MainWindow(QMainWindow):
 
     def table_selection_double_clicked_handler(self, row, column):
         self.table_selection_double_clicked_signal.emit(row)
+
+    def include_nifti_check_box_state_changed_handler(self, state):
+        if not self.include_nifti_check_box.isChecked():
+            self.include_dicom_check_box.setChecked(False)
 
     def include_dicom_check_box_state_changed_handler(self, state):
         self.dicom_gcs_bucket_label.setVisible(self.include_dicom_check_box.isChecked())
