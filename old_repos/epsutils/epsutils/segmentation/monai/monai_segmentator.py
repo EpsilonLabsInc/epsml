@@ -7,7 +7,7 @@ from monai.bundle import ConfigParser
 
 
 class MonaiSegmentator:
-    def __init__(self):
+    def __init__(self, include_labels_distribution=False):
         # Get config.
         print("Reading Monai configuration")
         self.__config = ConfigParser()
@@ -22,6 +22,8 @@ class MonaiSegmentator:
         self.__model.load_state_dict(torch.load(self.get_model_path()))
         self.__model.cuda()
         self.__model.eval()
+
+        self.__include_labels_distribution = include_labels_distribution
 
     @staticmethod
     def get_config_path():
@@ -94,7 +96,7 @@ class MonaiSegmentator:
             "all_labels": [],
             "label_counts": [],
             "top_label": None,
-            "labels_distribution": {}
+            "labels_distribution": None
         }
 
         labels, counts = np.unique(segmentation, return_counts=True)
@@ -111,16 +113,17 @@ class MonaiSegmentator:
         info["label_counts"] = counts.tolist()
         info["top_label"] = top_label
 
-        labels_distribution = {}
-        num_slices = segmentation.shape[2]
-        for slice_index in range(num_slices):
-            labels, counts = np.unique(segmentation[:, :, slice_index], return_counts=True)
-            labels = labels.astype(int)
-            non_zero_labels = labels != 0  # Exclude background.
-            labels = labels[non_zero_labels]
-            counts = counts[non_zero_labels]
-            labels_distribution[slice_index] = {label: count for label, count in zip(labels, counts)}
+        if self.__include_labels_distribution:
+            labels_distribution = {}
+            num_slices = segmentation.shape[2]
+            for slice_index in range(num_slices):
+                labels, counts = np.unique(segmentation[:, :, slice_index], return_counts=True)
+                labels = labels.astype(int)
+                non_zero_labels = labels != 0  # Exclude background.
+                labels = labels[non_zero_labels]
+                counts = counts[non_zero_labels]
+                labels_distribution[slice_index] = {label: count for label, count in zip(labels, counts)}
 
-        info["labels_distribution"] = labels_distribution
+            info["labels_distribution"] = labels_distribution
 
         return info
