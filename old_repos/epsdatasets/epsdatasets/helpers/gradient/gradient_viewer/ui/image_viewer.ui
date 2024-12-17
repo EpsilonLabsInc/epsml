@@ -24,7 +24,7 @@
    <item row="1" column="2">
     <widget class="QSlider" name="slider">
      <property name="focusPolicy">
-      <enum>Qt::NoFocus</enum>
+      <enum>Qt::StrongFocus</enum>
      </property>
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
