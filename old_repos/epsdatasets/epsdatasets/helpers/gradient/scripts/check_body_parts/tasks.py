@@ -91,7 +91,7 @@ def inference_task(progress_bar):
                 torch.cuda.empty_cache()
                 res = segmentator.segmentation(data=org_data, run_postprocessing_on_gpu=False)
 
-            logging.info(f"{res['info']},{gcs_nifti_file}")
+            logging.info(f"{res['info']};{gcs_nifti_file}")
         except queue.Empty:
             # Stop task when GPU queue empty.
             break

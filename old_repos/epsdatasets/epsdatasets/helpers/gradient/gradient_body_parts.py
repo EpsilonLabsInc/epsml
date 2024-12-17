@@ -1,3 +1,8 @@
+from enum import Enum
+from typing import List, Dict
+
+import numpy as np
+
 EPSILON_BODY_PARTS = [
     "Head/Brain",
     "Neck",
@@ -196,3 +201,44 @@ MONAI_TO_EPSILON_BODY_PARTS_MAPPING = {
     103: "Pelvis",  # iliopsoas_right
     104: "Abdomen"  # urinary_bladder
 }
+
+
+def monai_segmentation_info_to_epsilon_body_parts_distribution(monai_segmentation_info):
+    monai_labels = monai_segmentation_info["all_labels"]
+    monai_label_counts = np.array(monai_segmentation_info["label_counts"])
+    monai_labels_distribution = monai_label_counts / np.sum(monai_label_counts)
+
+    epsilon_body_parts_distribution = {}
+
+    for i in range(len(monai_labels)):
+        body_part = MONAI_TO_EPSILON_BODY_PARTS_MAPPING[monai_labels[i]]
+
+        if body_part in epsilon_body_parts_distribution:
+            epsilon_body_parts_distribution[body_part] += monai_labels_distribution[i]
+        else:
+            epsilon_body_parts_distribution[body_part] = monai_labels_distribution[i]
+
+    return epsilon_body_parts_distribution
+
+
+class MatchBodyPartsResult(Enum):
+    NO_MATCH = 0
+    PARTIAL_MATCH = 1
+    FULL_MATCH = 2
+
+
+def match_body_parts(body_parts, epsilon_body_parts_distributions: List[Dict]):
+    matches = [False for body_part in body_parts]
+
+    for index, body_part in enumerate(body_parts):
+        for dist in epsilon_body_parts_distributions:
+            if body_part in dist and dist[body_part] >= 0.4:
+                matches[index] = True
+                break
+
+    if all(matches):
+        return MatchBodyPartsResult.FULL_MATCH
+    elif any(matches):
+        return MatchBodyPartsResult.PARTIAL_MATCH
+    else:
+        return MatchBodyPartsResult.NO_MATCH

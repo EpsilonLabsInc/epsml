@@ -44,7 +44,7 @@ def process_nifti_file(nifti_file):
         dicom_content = "\n".join(dicom_utils.read_all_dicom_tags_from_dataset(dicom_datasets[0]))
         volume_info = (
             f"NIfTI generator: {nifti_generator}\n"
-            f"Number of slices: {len(dicom_datasets)}\n"
+            f"Number of slices: {len(dicom_datasets)}\n"  # TODO: Get actual number of slices from NIfTI file and compare with number of DICOM files.
             f"DICOM content:\n"
             f"{dicom_content}"
         )
