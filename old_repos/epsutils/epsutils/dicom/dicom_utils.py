@@ -95,9 +95,6 @@ def read_all_dicom_tags(dicom_file_name, include_pixel_data=False):
 def get_dicom_image_from_dataset(dataset: pydicom.dataset.FileDataset, custom_windowing_parameters=None):
     pixel_array = dataset.pixel_array
 
-    if pixel_array.dtype not in [np.uint16, np.int16]:
-        raise ValueError(f"{pixel_array.dtype} not supported, the image type should be either int16 or uint16")
-
     # Handle PhotometricInterpretation.
     if dataset.PhotometricInterpretation == "MONOCHROME1":
         pixel_array = np.max(pixel_array) - pixel_array
@@ -107,10 +104,6 @@ def get_dicom_image_from_dataset(dataset: pydicom.dataset.FileDataset, custom_wi
         raise ValueError(f"Unsupported PhotometricInterpretation '{dataset.PhotometricInterpretation}'")
 
     # Handle rescaling.
-    if "RescaleIntercept" not in dataset:
-        raise ValueError("The DICOM file is missing RescaleIntercept tag")
-    if "RescaleSlope" not in dataset:
-        raise ValueError("The DICOM file is missing RescaleSlope tag")
     pixel_array = pydicom.pixels.apply_modality_lut(pixel_array, dataset)
 
     # Apply windowing operation.
@@ -128,10 +121,7 @@ def get_dicom_image_from_dataset(dataset: pydicom.dataset.FileDataset, custom_wi
             max_val = custom_windowing_parameters["window_center"] + (custom_windowing_parameters["window_width"] / 2)
             pixel_array = np.clip(pixel_array, min_val, max_val)
 
-    # Cast to int16.
-    image_int16 = pixel_array.astype(np.int16)
-
-    return image_int16
+    return pixel_array
 
 
 def get_dicom_image(dicom_file_name, custom_windowing_parameters=None):

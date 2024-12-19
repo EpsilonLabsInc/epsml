@@ -42,6 +42,14 @@ def download_file_as_string(gcs_bucket_name, gcs_file_name):
     return content
 
 
+def download_file_as_bytes(gcs_bucket_name, gcs_file_name):
+    client = storage.Client()
+    bucket = client.bucket(gcs_bucket_name)
+    blob = bucket.blob(gcs_file_name)
+    content = blob.download_as_bytes()
+    return content
+
+
 def upload_file(local_file_name, gcs_bucket_name, gcs_file_name):
     try:
         client = storage.Client()
