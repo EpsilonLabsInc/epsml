@@ -232,7 +232,7 @@ def match_body_parts(body_parts, epsilon_body_parts_distributions: List[Dict]):
 
     for index, body_part in enumerate(body_parts):
         for dist in epsilon_body_parts_distributions:
-            if body_part in dist and dist[body_part] >= 0.4:
+            if body_part in dist and dist[body_part] >= 0.2:
                 matches[index] = True
                 break
 

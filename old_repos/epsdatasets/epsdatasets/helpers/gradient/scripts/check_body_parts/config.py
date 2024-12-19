@@ -1,5 +1,5 @@
 # General config.
-REPORTS_FILE = "/home/andrej/data/bodypart/ct-16ago2024-batch-1-with_extra_columns_by_andrej.csv"
+REPORTS_FILE = "/home/andrej/data/gradient_ct_batch_1_chest_only.csv"
 CHECK_BODY_PARTS_OUTPUT_FILE = "/home/andrej/data/bodypart/body-part-ct-16AGO2024-log.txt"
 CONVERT_TO_EPSILON_BODY_PARTS_OUTPUT_FILE = "/home/andrej/data/bodypart/body-part-ct-16AGO2024.csv"
 VALIDATION_OUTPUT_FILE = "/home/andrej/data/bodypart/csv-body-part-validation-ct-16AGO2024.csv"

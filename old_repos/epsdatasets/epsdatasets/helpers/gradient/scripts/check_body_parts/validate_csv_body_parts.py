@@ -6,7 +6,7 @@ import pandas as pd
 from tqdm import tqdm
 
 from epsdatasets.helpers.gradient import gradient_body_parts
-from epsdatasets.helpers.gradient.gradient_body_parts import CSV_TO_EPSILON_BODY_PARTS_MAPPING
+from epsdatasets.helpers.gradient.gradient_body_parts import GPT_TO_EPSILON_BODY_PARTS_MAPPING
 
 import config
 
@@ -39,16 +39,17 @@ def main():
     validation_data = []
     for index, row in tqdm(reports.iterrows(), total=len(reports), desc="Processing"):
         # Get study data.
-        gcs_images_dir = row["GcsImagesDir"]
-        primary_volumes = ast.literal_eval(row["PrimaryVolumes"])
-        body_parts = ast.literal_eval(row["BodyPartExamined"])
+        gcs_images_dir = row["gcs_images_dir"]
+        primary_volumes = ast.literal_eval(row["primary_volumes"])
+        body_parts = ast.literal_eval(row["body_part"])
+        institution = row["institution_name"]
 
         # Format claimed body parts as a flat list.
         claimed_body_parts = []
         for body_part in body_parts:
             claimed_body_parts.extend([p.strip() for p in body_part.split("/")])
         claimed_body_parts = list(set(claimed_body_parts))
-        claimed_body_parts = [CSV_TO_EPSILON_BODY_PARTS_MAPPING[p] for p in claimed_body_parts if p in CSV_TO_EPSILON_BODY_PARTS_MAPPING]
+        claimed_body_parts = [GPT_TO_EPSILON_BODY_PARTS_MAPPING[p] for p in claimed_body_parts if p in GPT_TO_EPSILON_BODY_PARTS_MAPPING]
 
         # Iterate volumes and gather found body parts.
         all_volumes_found = True
@@ -64,12 +65,12 @@ def main():
         # Consider only studies with all corresponding volumes found.
         if all_volumes_found and len(primary_volumes) > 0:
             match = gradient_body_parts.match_body_parts(claimed_body_parts, epsilon_body_part_distributions)
-            validation_data.append([match, claimed_body_parts, index + 1, primary_volumes])
+            validation_data.append([match, institution, claimed_body_parts, index + 1, primary_volumes])
 
     print(f"Writing to output file {config.VALIDATION_OUTPUT_FILE}")
     with open(config.VALIDATION_OUTPUT_FILE, "w", newline="") as file:
         writer = csv.writer(file)
-        writer.writerow(["Match", "ClaimedBodyParts", "RowNumber", "PrimeryVolumes"])
+        writer.writerow(["Match", "InstitutionName", "ClaimedBodyParts", "RowNumber", "PrimeryVolumes"])
         writer.writerows(validation_data)
 
 
