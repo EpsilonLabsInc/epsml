@@ -22,6 +22,7 @@ class GradientMimicDatasetHelper(BaseDatasetHelper):
                  gradient_images_gcs_dir,
                  mimic_gcs_bucket_name,
                  mimic_gcs_dir,
+                 exclude_file_name=None,
                  seed=None):
         super().__init__(gradient_data_gcs_bucket_name=gradient_data_gcs_bucket_name,
                          gradient_data_gcs_dir=gradient_data_gcs_dir,
@@ -29,6 +30,7 @@ class GradientMimicDatasetHelper(BaseDatasetHelper):
                          gradient_images_gcs_dir=gradient_images_gcs_dir,
                          mimic_gcs_bucket_name=mimic_gcs_bucket_name,
                          mimic_gcs_dir=mimic_gcs_dir,
+                         exclude_file_name=exclude_file_name,
                          seed=seed)
 
     def _load_dataset(self, *args, **kwargs):
@@ -39,6 +41,7 @@ class GradientMimicDatasetHelper(BaseDatasetHelper):
         self.__gradient_images_gcs_dir = kwargs["gradient_images_gcs_dir"] if "gradient_images_gcs_dir" in kwargs else next((arg for arg in args if arg == "gradient_images_gcs_dir"), None)
         self.__mimic_gcs_bucket_name = kwargs["mimic_gcs_bucket_name"] if "mimic_gcs_bucket_name" in kwargs else next((arg for arg in args if arg == "mimic_gcs_bucket_name"), None)
         self.__mimic_gcs_dir = kwargs["mimic_gcs_dir"] if "mimic_gcs_dir" in kwargs else next((arg for arg in args if arg == "mimic_gcs_dir"), None)
+        self.__exclude_file_name = kwargs["exclude_file_name"] if "exclude_file_name" in kwargs else next((arg for arg in args if arg == "exclude_file_name"), None)
         self.__seed = kwargs["seed"] if "seed" in kwargs else next((arg for arg in args if arg == "seed"), None)
 
         # Download a list of Mimic files.
@@ -47,7 +50,7 @@ class GradientMimicDatasetHelper(BaseDatasetHelper):
         content = gcs_utils.download_file_as_string(gcs_bucket_name=self.__mimic_gcs_bucket_name, gcs_file_name=image_file_names_file)
         mimic_file_names = content.split("\n")
         mimic_file_names = [os.path.join(self.__mimic_gcs_dir, file_name) for file_name in mimic_file_names]
-        mimic_file_names = mimic_file_names[:5000]  # TODO: Remove.
+        mimic_file_names = mimic_file_names[:50000]  # TODO: Remove.
 
         # Read a list of Mimic files.
         print("Reading a list of Mimic files")
@@ -57,9 +60,21 @@ class GradientMimicDatasetHelper(BaseDatasetHelper):
 
         # Get a list of Gradient files.
         print("Getting a list of Gradient files in the bucket")
-        num_files_to_get = len(rows)  # Download the same number of Gradient files as in the Mimic dataset so that we have a balanced dataset.
-        gradient_file_names = gcs_utils.list_files(gcs_bucket_name=self.__gradient_data_gcs_bucket_name, gcs_dir=self.__gradient_data_gcs_dir, max_results = num_files_to_get)
-        gradient_file_names = [os.path.basename(file_name) for file_name in gradient_file_names if file_name.endswith(".txt")]
+        gradient_file_names = gcs_utils.list_files(gcs_bucket_name=self.__gradient_data_gcs_bucket_name, gcs_dir=self.__gradient_data_gcs_dir)
+        gradient_file_names = [file_name for file_name in gradient_file_names if file_name.endswith(".txt")]
+
+        if self.__exclude_file_name is not None:
+            df = pd.read_csv(self.__exclude_file_name, delimiter=";", header=None)
+            files_to_exclude = df.iloc[:, 1].tolist()
+            files_to_exclude = set(files_to_exclude)
+            print(f"Num Gradient files that will be excluded: {len(files_to_exclude)}")
+            print(f"All Gradient files before removal: {len(gradient_file_names)}")
+            gradient_file_names = [file_name for file_name in gradient_file_names if file_name not in files_to_exclude]
+            print(f"All Gradient files after removal: {len(gradient_file_names)}")
+
+        # Download the same number of Gradient files as in the Mimic dataset so that we have a balanced dataset.
+        num_files_to_get = len(rows)
+        gradient_file_names = [os.path.basename(file_name) for file_name in gradient_file_names[:num_files_to_get]]
 
         # Read a list of Gradient files.
         print("Reading a list of Gradient files")
@@ -161,28 +176,33 @@ class GradientMimicTorchDataset(Dataset):
         ])
 
     def __getitem__(self, idx):
-        item = self.__pandas_dataframe.iloc[idx]
+        try:
+            item = self.__pandas_dataframe.iloc[idx]
 
-        # Download file.
-        content = gcs_utils.download_file_as_bytes(gcs_bucket_name=item["gcs_bucket_name"], gcs_file_name=item["file_path"])
+            # Download file.
+            content = gcs_utils.download_file_as_bytes(gcs_bucket_name=item["gcs_bucket_name"], gcs_file_name=item["file_path"])
 
-        # Convert to PIL image.
-        if item["dataset"] == "gradient":
-            image = dicom_utils.get_dicom_image(BytesIO(content), custom_windowing_parameters={"window_center": 0, "window_width": 0})
-            image = image.astype(np.float32)
-            image = ((image - image.min()) / (image.max() - image.min()) * 255).astype(np.uint8)
-            image = Image.fromarray(image)
-        else:
-            image = Image.open(BytesIO(content))
+            # Convert to PIL image.
+            if item["dataset"] == "gradient":
+                image = dicom_utils.get_dicom_image(BytesIO(content), custom_windowing_parameters={"window_center": 0, "window_width": 0})
+                image = image.astype(np.float32)
+                image = ((image - image.min()) / (image.max() - image.min()) * 255).astype(np.uint8)
+                image = Image.fromarray(image)
+            else:
+                image = Image.open(BytesIO(content))
 
-        # Transform image and conver to tensor.
-        image = self.__transform(image)
+            # Transform image and conver to tensor.
+            image = self.__transform(image)
 
-        # Get label.
-        label = 1 if item["label"] == "chest" else 0
-        label = torch.tensor([label]).float()
+            # Get label.
+            label = 1 if item["label"] == "chest" else 0
+            label = torch.tensor([label]).float()
 
-        return image, label
+            return image, label
+
+        except Exception as e:
+            print(f"Error: {str(e)}   File: {item['file_path']}   Item: {item}")
+            raise
 
     def __len__(self):
         return len(self.__pandas_dataframe)
