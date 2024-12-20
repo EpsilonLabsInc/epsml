@@ -265,6 +265,7 @@ def main():
                                         gradient_images_gcs_dir="GRADIENT-DATABASE/CR/16AG02924",
                                         mimic_gcs_bucket_name="epsilonlabs-filestore",
                                         mimic_gcs_dir="mimic2-dicom/mimic-cxr-jpg-2.1.0.physionet.org",
+                                        exclude_file_name="/home/andrej/work/epsclassifiers/epsclassifiers/cr_body_part_classifier/chest_scan_results.txt",
                                         seed=42)
     train_loader = helper.get_torch_train_data_loader(batch_size=16, num_workers=4)
     val_loader = helper.get_torch_validation_data_loader(batch_size=16, num_workers=4)
