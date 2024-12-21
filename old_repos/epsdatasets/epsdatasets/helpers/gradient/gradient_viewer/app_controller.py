@@ -1,5 +1,6 @@
 import ast
 import concurrent.futures
+import hashlib
 import os
 import shutil
 import time
@@ -111,7 +112,7 @@ class AppController(QObject):
         max_results = self.__main_window.get_max_results()
 
         file_names = gcs_utils.list_files(gcs_bucket_name=gcs_bucket_name, gcs_dir=gcs_images_dir, max_results=max_results)
-        file_names = [file_name for file_name in file_names if file_name.endswith(".nii.gz")]
+        file_names = [file_name for file_name in file_names if file_name.endswith(".txt")]
 
         row_count = self.__main_window.table_widget.rowCount()
         for file_name in file_names:
@@ -153,7 +154,7 @@ class AppController(QObject):
         with concurrent.futures.ThreadPoolExecutor() as executor:
             futures = [executor.submit(self.__download_nifti, file_names["remote_nifti_file_name"], file_names["local_nifti_file_name"]),
                        executor.submit(self.__download_txt, file_names["remote_txt_file_name"], file_names["local_txt_file_name"]),
-                       executor.submit(self.__download_dicom, file_names["remote_dicom_dir"], file_names["local_dicom_dir"])]
+                       executor.submit(self.__download_dicom, file_names["remote_dicom_file_or_dir"], file_names["local_dicom_dir"])]
             for future in concurrent.futures.as_completed(futures):
                 future.result()
 
@@ -200,7 +201,7 @@ class AppController(QObject):
         t2 = time.time()
         print(f"TXT download time: {t2 - t1} sec")
 
-    def __download_dicom(self, remote_dicom_dir, local_dicom_dir):
+    def __download_dicom(self, remote_dicom_file_or_dir, local_dicom_dir):
         if not self.__main_window.get_include_dicom_files():
             return
 
@@ -211,8 +212,12 @@ class AppController(QObject):
         t1 = time.time()
 
         dicom_gcs_bucket_name = self.__main_window.get_dicom_gcs_bucket()
-        file_names = gcs_utils.list_files(gcs_bucket_name=dicom_gcs_bucket_name, gcs_dir=remote_dicom_dir)
-        dicom_files = [file_name for file_name in file_names if file_name.endswith(".dcm")]
+
+        if remote_dicom_file_or_dir.endswith(".dcm"):
+            dicom_files = [remote_dicom_file_or_dir]
+        else:
+            file_names = gcs_utils.list_files(gcs_bucket_name=dicom_gcs_bucket_name, gcs_dir=remote_dicom_file_or_dir)
+            dicom_files = [file_name for file_name in file_names if file_name.endswith(".dcm")]
 
         with concurrent.futures.ProcessPoolExecutor() as dicoms_download_executor:
             futures = [dicoms_download_executor.submit(gcs_utils.download_file,
@@ -248,14 +253,23 @@ class AppController(QObject):
             self.show_dicom_signal.emit(numpy_image_array)
 
     def __generate_file_names(self, file_name):
-        base_file_name = os.path.basename(file_name)
+        file_path_no_ext = file_name.replace(".nii.gz", "").replace(".txt", "")
+        unique_name = self.shorten_name(file_path_no_ext)
+
         gcs_bucket_name = self.__main_window.get_nifti_gcs_bucket()
-        data_dir = os.path.join(self.__cache_dir, gcs_bucket_name, base_file_name.replace(".nii.gz", ""))
-        remote_nifti_file_name = file_name
-        remote_txt_file_name = file_name.replace(".nii.gz", ".txt")
-        local_nifti_file_name = os.path.join(data_dir, base_file_name)
-        local_txt_file_name = os.path.join(data_dir, base_file_name.replace(".nii.gz", ".txt"))
-        remote_dicom_dir = self.__main_window.get_dicom_gcs_images_dir() + "/" + file_name.replace("_", "/").replace(".nii.gz", "")
+        data_dir = os.path.join(self.__cache_dir, gcs_bucket_name, unique_name)
+
+        remote_nifti_file_name = file_path_no_ext + ".nii.gz"
+        local_nifti_file_name = os.path.join(data_dir, unique_name + ".nii.gz")
+
+        remote_txt_file_name = file_path_no_ext + ".txt"
+        local_txt_file_name = os.path.join(data_dir, unique_name + ".txt")
+
+        is_dicom_dir = "instances." in file_name
+        if is_dicom_dir:
+            remote_dicom_file_or_dir = self.__main_window.get_dicom_gcs_images_dir() + "/" + file_path_no_ext.replace("_", "/")
+        else:
+            remote_dicom_file_or_dir = self.__main_window.get_dicom_gcs_images_dir() + "/" + file_path_no_ext.replace("_", "/") + ".dcm"
         local_dicom_dir = data_dir
 
         file_names = {
@@ -264,7 +278,7 @@ class AppController(QObject):
             "remote_txt_file_name": remote_txt_file_name,
             "local_nifti_file_name": local_nifti_file_name,
             "local_txt_file_name": local_txt_file_name,
-            "remote_dicom_dir": remote_dicom_dir,
+            "remote_dicom_file_or_dir": remote_dicom_file_or_dir,
             "local_dicom_dir": local_dicom_dir
         }
 
@@ -298,3 +312,8 @@ class AppController(QObject):
                 return os.path.abspath(os.path.join(dicom_dir, entry))
 
         return None
+
+    def shorten_name(self, name):
+        hash_object = hashlib.md5(name.encode())
+        short_base = hash_object.hexdigest()[:32]
+        return short_base

@@ -84,6 +84,7 @@ class MainWindow(QMainWindow):
         self.statusbar.showMessage(message, timeout)
 
     def show_error(self, message, timeout):
+        print(f"Error: {message}")
         QMessageBox.critical(self, "Error", f"{message}")
 
     def clear_status(self):
@@ -221,8 +222,7 @@ class MainWindow(QMainWindow):
         self.table_selection_double_clicked_signal.emit(row)
 
     def include_nifti_check_box_state_changed_handler(self, state):
-        if not self.include_nifti_check_box.isChecked():
-            self.include_dicom_check_box.setChecked(False)
+        pass
 
     def include_dicom_check_box_state_changed_handler(self, state):
         self.dicom_gcs_bucket_label.setVisible(self.include_dicom_check_box.isChecked())
