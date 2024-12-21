@@ -12,6 +12,7 @@ from google.cloud import storage
 from epsdatasets.helpers.gradient import gradient_utils
 from epsutils.dicom import dicom_utils
 from epsutils.gcs import gcs_utils
+from epsutils.image import image_utils
 from epsutils.nifti import nifti_utils
 
 import config
@@ -174,9 +175,22 @@ def process_row_cr_impl(row):
                 logging.warning(f"DICOM Study Date differs from the report value, DICOM file in series {series_instance_uid} rejected (row ID: {row_data['row_id']})")
                 continue
 
+            # Ignore multi-frame images.
+            if hasattr(dicom_file, "NumberOfFrames") and dicom_file.NumberOfFrames != 1:
+                logging.warning(f"Multi-frame DICOM file with {dicom_file.NumberOfFrames} frames in series {series_instance_uid} rejected (row ID: {row_data['row_id']})")
+                continue
+
             # Ignore non-grayscale images.
             if dicom_file.SamplesPerPixel != 1:
                 logging.warning(f"Incorrect number of samples per pixel, should be 1 but got {dicom_file.SamplesPerPixel} instead, DICOM file in series {series_instance_uid} rejected (row ID: {row_data['row_id']})")
+                continue
+
+            # Validate histogram.
+            numpy_array = dicom_utils.get_dicom_image_from_dataset(dicom_file, {"window_width": 0, "window_center": 0})
+            image = Image.fromarray(numpy_array)
+            res, err = image_utils.validate_image_histogram(image)
+            if not res:
+                logging.warning(f"Histogram validation failed: {err}, DICOM file in series {series_instance_uid} rejected (row ID: {row_data['row_id']})")
                 continue
 
             # Create DICOM content.
