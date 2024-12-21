@@ -50,7 +50,6 @@ class GradientMimicDatasetHelper(BaseDatasetHelper):
         content = gcs_utils.download_file_as_string(gcs_bucket_name=self.__mimic_gcs_bucket_name, gcs_file_name=image_file_names_file)
         mimic_file_names = content.split("\n")
         mimic_file_names = [os.path.join(self.__mimic_gcs_dir, file_name) for file_name in mimic_file_names]
-        mimic_file_names = mimic_file_names[:50000]  # TODO: Remove.
 
         # Read a list of Mimic files.
         print("Reading a list of Mimic files")
@@ -140,24 +139,27 @@ class GradientMimicDatasetHelper(BaseDatasetHelper):
     def get_torch_test_dataset(self):
         return self.__torch_test_dataset
 
-    def get_torch_train_data_loader(self, batch_size, num_workers):
+    def get_torch_train_data_loader(self, collate_function, batch_size, num_workers):
         data_loader = DataLoader(self.__torch_train_dataset,
+                                 collate_fn=collate_function,
                                  batch_size=batch_size,
                                  shuffle=True,
                                  num_workers=num_workers,
                                  persistent_workers=True)
         return data_loader
 
-    def get_torch_validation_data_loader(self, batch_size, num_workers):
+    def get_torch_validation_data_loader(self, collate_function, batch_size, num_workers):
         data_loader = DataLoader(self.__torch_validation_dataset,
+                                 collate_fn=collate_function,
                                  batch_size=batch_size,
                                  shuffle=False,
                                  num_workers=num_workers,
                                  persistent_workers=True)
         return data_loader
 
-    def get_torch_test_data_loader(self, batch_size, num_workers):
-        data_loader = D(self.__torch_test_dataset,
+    def get_torch_test_data_loader(self, collate_function, batch_size, num_workers):
+        data_loader = DataLoader(self.__torch_test_dataset,
+                                 collate_fn=collate_function,
                                  batch_size=batch_size,
                                  shuffle=False,
                                  num_workers=num_workers,
