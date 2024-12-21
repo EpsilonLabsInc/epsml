@@ -109,7 +109,7 @@ class TorchTrainingHelper:
         # Create checkpoint dir.
         os.makedirs(self.__training_parameters.checkpoint_dir, exist_ok=True)
 
-    def start_training(self, collate_function_for_training, collate_function_for_validation=None):
+    def start_training(self, collate_function_for_training=None, collate_function_for_validation=None):
         torch.cuda.empty_cache()
 
         # Create train data loader.
