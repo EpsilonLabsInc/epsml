@@ -8,6 +8,7 @@ from io import BytesIO
 import pydicom
 import SimpleITK as sitk
 from google.cloud import storage
+from PIL import Image
 
 from epsdatasets.helpers.gradient import gradient_utils
 from epsutils.dicom import dicom_utils
