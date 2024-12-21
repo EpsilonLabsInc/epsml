@@ -5,10 +5,10 @@ from tqdm import tqdm
 
 from epsutils.gcs import gcs_utils
 
-INPUT_FILE = r"C:\Users\Andrej\Desktop\scan_results_num_frames.txt"
+INPUT_FILE = "/home/andrej/work/epsdatasets/epsdatasets/helpers/gradient/scripts/gradient_mrs_01OCT2024_tachyeres.txt"
 DELIMITER = ";"
 FILE_NAME_COLUMN_INDEX = 0
-EPSILON_GCS_BUCKET_NAME = "gradient-crs"
+EPSILON_GCS_BUCKET_NAME = "gradient-mrs-nifti"
 EPSILON_GCS_DIR = ""
 
 
@@ -20,6 +20,8 @@ def main():
     # Get a list of files to delete.
     df = pd.read_csv(INPUT_FILE, delimiter=DELIMITER, header=None)
     files_to_delete = df.iloc[:, FILE_NAME_COLUMN_INDEX]
+    print("Files to delete:")
+    print(files_to_delete)
     print(f"Total files to delete: {len(files_to_delete)}")
 
     # Delete files in parallel.
