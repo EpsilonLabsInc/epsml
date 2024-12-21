@@ -1,7 +1,7 @@
 from typing import Optional
 
 
-def validate_image_histogram(image, lateral_entropy_min=5.5, lateral_entropy_max=8.0, ap_entropy_min=5.25, ap_entropy_max=7.75)
+def validate_image_histogram(image, lateral_entropy_min=5.5, lateral_entropy_max=8.0, ap_entropy_min=5.25, ap_entropy_max=7.75):
     try:
         pixrange = image.getextrema()[1] - image.getextrema()[0]
 
