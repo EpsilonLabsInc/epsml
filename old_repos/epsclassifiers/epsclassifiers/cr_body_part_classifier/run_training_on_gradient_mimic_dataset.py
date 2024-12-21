@@ -23,7 +23,7 @@ if __name__ == "__main__":
 
     # Training settings.
     perform_intra_epoch_validation = True
-    send_wandb_notification = False
+    send_wandb_notification = True
     device = "cuda"
     device_ids = None  # Use one (the default) GPU.
     # device_ids = [0, 1, 2, 3]  # Use 4 GPUs.
@@ -31,7 +31,7 @@ if __name__ == "__main__":
     num_validation_workers_per_gpu = 8
     half_model_precision = False
     learning_rate = 1e-3
-    warmup_ratio = 1 / 8
+    warmup_ratio = 1 / 10
     num_epochs = 30
     training_batch_size = 16
     validation_batch_size = 16
@@ -81,7 +81,7 @@ if __name__ == "__main__":
 
     mlops_parameters = MlopsParameters(mlops_type=MlopsType.WANDB,
                                        experiment_name=mlops_experiment_name,
-                                       notes="N/A",
+                                       notes="600K samples",
                                        send_notification=send_wandb_notification)
 
     training_helper = TorchTrainingHelper(model=model,
