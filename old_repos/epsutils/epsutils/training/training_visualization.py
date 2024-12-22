@@ -4,10 +4,10 @@ import matplotlib.pyplot as plt
 from IPython.display import clear_output
 
 
-def show_training_data(training_data, num_view_grid_columns, label_to_string_mapping):
-    inputs = training_data["inputs"]
-    labels = [label_to_string_mapping[label.item()] for label in training_data["labels"]]
-    probabilities = [probability.item() for probability in training_data["probabilities"]] if "probabilities" in training_data else None
+def show_visualization_data(visualization_data, num_view_grid_columns, label_to_string_mapping):
+    inputs = visualization_data["inputs"]
+    labels = [label_to_string_mapping[label.item()] for label in visualization_data["labels"]]
+    probabilities = [probability.item() for probability in visualization_data["probabilities"]] if "probabilities" in visualization_data else None
 
     NUM_IMAGES = inputs.size(0)
     NUM_ROWS = math.ceil(NUM_IMAGES / num_view_grid_columns)

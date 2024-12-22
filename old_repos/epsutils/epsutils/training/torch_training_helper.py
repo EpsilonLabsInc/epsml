@@ -33,7 +33,8 @@ class TrainingParameters:
             num_steps_per_checkpoint=None,
             num_training_workers_per_gpu=4,
             num_validation_workers_per_gpu=4,
-            save_current_training_data=False):
+            save_visualizaton_data_during_training=False,
+            save_visualizaton_data_during_validation=False):
         self.learning_rate = learning_rate
         self.warmup_ratio = warmup_ratio
         self.num_epochs = num_epochs
@@ -49,7 +50,8 @@ class TrainingParameters:
         self.num_steps_per_checkpoint = num_steps_per_checkpoint
         self.num_training_workers_per_gpu = num_training_workers_per_gpu
         self.num_validation_workers_per_gpu = num_validation_workers_per_gpu
-        self.save_current_training_data = save_current_training_data
+        self.save_visualizaton_data_during_training = save_visualizaton_data_during_training
+        self.save_visualizaton_data_during_validation = save_visualizaton_data_during_validation
 
 
 class MlopsType(Enum):
@@ -207,8 +209,9 @@ class TorchTrainingHelper:
             # Get the inputs.
             data, target = batch
 
-            if self.__training_parameters.save_current_training_data:
-                torch.save({"inputs": data, "labels": target}, "current_training_data.pt")
+            # Save visualization data.
+            if self.__training_parameters.save_visualizaton_data_during_training:
+                torch.save({"inputs": data, "labels": target}, "visualization_data.pt")
 
             # Forward pass.
             if self.__is_multi_parameter_model:
@@ -301,6 +304,10 @@ class TorchTrainingHelper:
 
                 # Get the inputs.
                 data, target = batch
+
+                # Save visualization data.
+                if self.__training_parameters.save_visualizaton_data_during_validation:
+                    torch.save({"inputs": data, "labels": target}, "visualization_data.pt")
 
                 # Predict.
                 if self.__is_multi_parameter_model:
