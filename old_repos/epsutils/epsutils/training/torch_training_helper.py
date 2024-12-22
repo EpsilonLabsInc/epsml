@@ -325,7 +325,7 @@ class TorchTrainingHelper:
 
                     if self.__training_parameters.pause_on_validation_visualization and pause:
                         key = input("Press 'q' to skip pause or any other key to continue")
-                        if key == "q"
+                        if key == "q":
                             pause = False
 
                 # Stack all targets and outputs.
@@ -359,20 +359,20 @@ class TorchTrainingHelper:
             }
             self.__log_metric(values, step)
 
-        if validation_type == "Validation":
-            all_targets = all_targets.tolist()
-            all_outputs = (all_outputs > 0.5).int().tolist()
+            if validation_type == "Validation":
+                all_targets = all_targets.tolist()
+                all_outputs = (all_outputs > 0.5).int().tolist()
 
-            # Log confusion matrix.
-            calc = ConfusionMatrixCalculator()
-            cm = calc.compute_confusion_matrix(y_true=all_targets, y_pred=all_outputs)
-            plot = calc.create_plot(confusion_matrices=[cm], titles=["All labels"], grid_shape=(1, 1))
-            self.__log_confusion_matrix(plot, "Validation CM")
+                # Log confusion matrix.
+                calc = ConfusionMatrixCalculator()
+                cm = calc.compute_confusion_matrix(y_true=all_targets, y_pred=all_outputs)
+                plot = calc.create_plot(confusion_matrices=[cm], titles=["All labels"], grid_shape=(1, 1))
+                self.__log_confusion_matrix(plot, "Validation CM")
 
-            # Log confusion matrices.
-            cms = calc.compute_per_class_confusion_matrices(y_true=all_targets, y_pred=all_outputs)
-            plot = calc.create_plot(confusion_matrices=cms, titles=self.__mlops_parameters.label_names)
-            self.__log_confusion_matrix(plot, "Validation Per-Label CMs")
+                # Log confusion matrices.
+                cms = calc.compute_per_class_confusion_matrices(y_true=all_targets, y_pred=all_outputs)
+                plot = calc.create_plot(confusion_matrices=cms, titles=self.__mlops_parameters.label_names)
+                self.__log_confusion_matrix(plot, "Validation Per-Label CMs")
 
     def __save_checkpoint(self, epoch, step=None):
         checkpoint = {
@@ -422,7 +422,12 @@ class TorchTrainingHelper:
             raise ValueError(f"Unsupported MLOps type {self.__mlops_parameters.mlops_type}")
 
     def __log_confusion_matrix(self, confusion_matrix_plot, title):
-        wandb.log({title: wandb.Image(confusion_matrix_plot)})
+        if self.__mlops_parameters.mlops_type == MlopsType.MLFLOW:
+            print("Logging confusion matrix is not supported for MLflow")
+        elif self.__mlops_parameters.mlops_type == MlopsType.WANDB:
+            wandb.log({title: wandb.Image(confusion_matrix_plot)})
+        else:
+            raise ValueError(f"Unsupported MLOps type {self.__mlops_parameters.mlops_type}")
 
     def __log_metric(self, values, step):
         if self.__mlops_parameters.mlops_type == MlopsType.MLFLOW:
