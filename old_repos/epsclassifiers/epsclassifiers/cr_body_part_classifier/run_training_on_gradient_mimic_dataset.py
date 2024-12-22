@@ -1,6 +1,6 @@
 import torch
-import torchxrayvision as xrv
 
+from epsclassifiers.cr_body_part_classifier import CrBodyPartClassifier
 from epsdatasets.helpers.gradient_mimic.gradient_mimic_dataset_helper import GradientMimicDatasetHelper
 from epsutils.training.torch_training_helper import TorchTrainingHelper, TrainingParameters, MlopsType, MlopsParameters
 
@@ -57,7 +57,8 @@ if __name__ == "__main__":
                                                 seed=42)
 
     # Create the model.
-    model = xrv.models.DenseNet(num_classes=1)
+    classifier = CrBodyPartClassifier()
+    model = classifier.model()
 
     for param in model.parameters():
         param.requires_grad = True
