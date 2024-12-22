@@ -1,6 +1,6 @@
 import torch
 
-from epsclassifiers.cr_body_part_classifier import CrBodyPartClassifier
+from epsclassifiers.cr_chest_classifier import CrChestClassifier
 from epsdatasets.helpers.gradient_mimic.gradient_mimic_dataset_helper import GradientMimicDatasetHelper
 from epsutils.training.torch_training_helper import TorchTrainingHelper, TrainingParameters, MlopsType, MlopsParameters
 
@@ -57,7 +57,7 @@ if __name__ == "__main__":
                                                 seed=42)
 
     # Create the model.
-    classifier = CrBodyPartClassifier()
+    classifier = CrChestClassifier()
     model = classifier.model()
 
     for param in model.parameters():
