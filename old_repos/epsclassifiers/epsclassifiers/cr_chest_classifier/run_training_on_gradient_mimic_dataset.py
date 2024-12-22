@@ -1,6 +1,6 @@
 import torch
 
-from epsclassifiers.cr_chest_classifier import CrChestClassifier
+from epsclassifiers.cr_chest_classifier.cr_chest_classifier import CrChestClassifier
 from epsdatasets.helpers.gradient_mimic.gradient_mimic_dataset_helper import GradientMimicDatasetHelper
 from epsutils.training.torch_training_helper import TorchTrainingHelper, TrainingParameters, MlopsType, MlopsParameters
 
@@ -18,7 +18,7 @@ if __name__ == "__main__":
     gradient_images_gcs_dir="GRADIENT-DATABASE/CR/16AG02924"
     mimic_gcs_bucket_name="epsilonlabs-filestore"
     mimic_gcs_dir="mimic2-dicom/mimic-cxr-jpg-2.1.0.physionet.org"
-    exclude_file_name="/home/andrej/work/epsclassifiers/epsclassifiers/cr_body_part_classifier/chest_scan_results.txt"
+    exclude_file_name="/home/andrej/work/epsclassifiers/epsclassifiers/cr_chest_classifier/chest_scan_results.txt"
     seed=42
 
     # Training settings.
@@ -58,7 +58,7 @@ if __name__ == "__main__":
 
     # Create the model.
     classifier = CrChestClassifier()
-    model = classifier.model()
+    model = classifier.get_model()
 
     for param in model.parameters():
         param.requires_grad = True
@@ -78,7 +78,10 @@ if __name__ == "__main__":
                                              checkpoint_dir=checkpoint_dir,
                                              perform_intra_epoch_validation=perform_intra_epoch_validation,
                                              num_training_workers_per_gpu=num_training_workers_per_gpu,
-                                             num_validation_workers_per_gpu=num_validation_workers_per_gpu)
+                                             num_validation_workers_per_gpu=num_validation_workers_per_gpu,
+                                             save_visualizaton_data_during_training=True,
+                                             save_visualizaton_data_during_validation=True,
+                                             pause_on_validation_visualization=True)
 
     mlops_parameters = MlopsParameters(mlops_type=MlopsType.WANDB,
                                        experiment_name=mlops_experiment_name,
