@@ -34,7 +34,8 @@ class TrainingParameters:
             num_training_workers_per_gpu=4,
             num_validation_workers_per_gpu=4,
             save_visualizaton_data_during_training=False,
-            save_visualizaton_data_during_validation=False):
+            save_visualizaton_data_during_validation=False,
+            pause_on_validation_visualization=False):
         self.learning_rate = learning_rate
         self.warmup_ratio = warmup_ratio
         self.num_epochs = num_epochs
@@ -52,6 +53,7 @@ class TrainingParameters:
         self.num_validation_workers_per_gpu = num_validation_workers_per_gpu
         self.save_visualizaton_data_during_training = save_visualizaton_data_during_training
         self.save_visualizaton_data_during_validation = save_visualizaton_data_during_validation
+        self.pause_on_validation_visualization = pause_on_validation_visualization
 
 
 class MlopsType(Enum):
@@ -297,6 +299,8 @@ class TorchTrainingHelper:
         all_targets = torch.empty(0)
         all_outputs = torch.empty(0)
 
+        pause = True
+
         with torch.no_grad():
             for idx, batch in enumerate(tqdm_loader):
                 if num_batches is not None and idx >= num_batches:
@@ -305,10 +309,6 @@ class TorchTrainingHelper:
                 # Get the inputs.
                 data, target = batch
 
-                # Save visualization data.
-                if self.__training_parameters.save_visualizaton_data_during_validation:
-                    torch.save({"inputs": data, "labels": target}, "visualization_data.pt")
-
                 # Predict.
                 if self.__is_multi_parameter_model:
                     outputs = self.__parallel_model(data.to(self.__device), target.to(self.__device))
@@ -316,6 +316,17 @@ class TorchTrainingHelper:
                 else:
                     outputs = self.__parallel_model(data.to(self.__device))
                     loss = self.__training_parameters.criterion(outputs, target.to(self.__device))
+
+                # Save visualization data.
+                if self.__training_parameters.save_visualizaton_data_during_validation:
+                    probabilities = torch.sigmoid(outputs)
+                    predictions = (probabilities > 0.5).float()
+                    torch.save({"inputs": data, "labels": predictions, "probabilities": probabilities}, "visualization_data.pt")
+
+                    if self.__training_parameters.pause_on_validation_visualization and pause:
+                        key = input("Press 'q' to skip pause or any other key to continue")
+                        if key == "q"
+                            pause = False
 
                 # Stack all targets and outputs.
                 all_targets = target if all_targets.numel() == 0 else torch.cat((all_targets, target), dim=0)
