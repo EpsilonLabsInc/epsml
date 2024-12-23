@@ -6,6 +6,7 @@ import pydicom
 import torch
 import torchxrayvision as xrv
 from PIL import Image
+import torchvision.transforms as transforms
 
 from epsutils.dicom import dicom_utils
 
