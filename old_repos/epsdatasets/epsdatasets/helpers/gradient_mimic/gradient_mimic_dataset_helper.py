@@ -48,7 +48,7 @@ class GradientMimicDatasetHelper(BaseDatasetHelper):
         print("Downloading a list of Mimic files")
         image_file_names_file = os.path.join(self.__mimic_gcs_dir, "IMAGE_FILENAMES")
         content = gcs_utils.download_file_as_string(gcs_bucket_name=self.__mimic_gcs_bucket_name, gcs_file_name=image_file_names_file)
-        mimic_file_names = content.split("\n")
+        mimic_file_names = content.strip().split("\n")
         mimic_file_names = [os.path.join(self.__mimic_gcs_dir, file_name) for file_name in mimic_file_names]
 
         # Read a list of Mimic files.
