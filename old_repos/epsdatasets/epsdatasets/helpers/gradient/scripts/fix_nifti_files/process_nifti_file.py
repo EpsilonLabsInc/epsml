@@ -3,6 +3,7 @@ import os
 from io import BytesIO
 
 import pydicom
+import SimpleITK as sitk
 from google.cloud import storage
 
 from epsutils.dicom import dicom_utils
@@ -40,11 +41,17 @@ def process_nifti_file(nifti_file):
             logging.warning(f"Fail-safe conversion due to: {str(e)} ({dicoms_dir})")
             nifti_utils.dicom_datasets_to_nifti_file_basic(dicom_datasets=dicom_datasets, output_nifti_file_name=nifti_file)
 
+        # Get the actual number of slices from NIfTI file and compare with number of DICOM files.
+        image = sitk.ReadImage(nifti_file)
+        num_slices = image.GetSize()[2]
+        if num_slices != len(dicom_datasets):
+            raise RuntimeError(f"Number of slices of generated NIfTI file ({num_slices}) differs from the number of DICOM files ({len(dicom_datasets)})")
+
         # Create volume info file.
         dicom_content = "\n".join(dicom_utils.read_all_dicom_tags_from_dataset(dicom_datasets[0]))
         volume_info = (
             f"NIfTI generator: {nifti_generator}\n"
-            f"Number of slices: {len(dicom_datasets)}\n"  # TODO: Get actual number of slices from NIfTI file and compare with number of DICOM files.
+            f"Number of slices: {len(dicom_datasets)}\n"
             f"DICOM content:\n"
             f"{dicom_content}"
         )

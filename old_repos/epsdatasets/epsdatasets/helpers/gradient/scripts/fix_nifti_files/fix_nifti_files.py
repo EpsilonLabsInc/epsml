@@ -13,8 +13,6 @@ from process_nifti_file import process_nifti_file
 
 
 def main():
-    raise NotImplementedError("TODO: Get actual number of slices from NIfTI file and compare with number of DICOM files.")
-
     # Configure logger.
     logging_utils.configure_logger(logger_file_name=os.path.join(config.OUTPUT_DIR, config.DISPLAY_NAME + "-log.txt"),
                                    logging_level=logging.WARNING)
