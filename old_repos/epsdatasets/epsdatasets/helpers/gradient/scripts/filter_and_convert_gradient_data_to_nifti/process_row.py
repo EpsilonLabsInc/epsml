@@ -204,7 +204,6 @@ def process_row_cr_impl(row):
             # Upload DICOM content file.
             dicom_content_file_name = instances_dir.replace("/", "_") + "_" + dicom_file.SOPInstanceUID + ".txt"
             dicom_content_file_name = os.path.join(config.DESTINATION_GCS_IMAGES_DIR, dicom_content_file_name)
-
             upload_data = [
                 {"is_file": False, "local_file_or_string": dicom_content, "gcs_file_name": dicom_content_file_name},
             ]
@@ -234,12 +233,6 @@ def get_row_data(row):
         return None
 
 
-# def gradient_file_to_eps_file(gradient_file):
-#     eps_file = os.path.relpath(gradient_file, config.SOURCE_GCS_IMAGES_DIR).replace("/", "_").replace(".dcm", ".txt")
-#     eps_file = os.path.join(config.DESTINATION_GCS_IMAGES_DIR, eps_file)
-#     return eps_file
-
-
 def get_dicom_files_from_gcs(gcs_bucket_name, gcs_dir):
     client = None
 
@@ -251,9 +244,6 @@ def get_dicom_files_from_gcs(gcs_bucket_name, gcs_dir):
 
         if len(blobs) == 0:
             return None, "No DICOM files"
-
-        # blobs = [blob for blob in blobs if not gcs_utils.check_if_file_exists(gcs_bucket_name=config.DESTINATION_GCS_BUCKET_NAME,
-        #                                                                       gcs_file_name=gradient_file_to_eps_file(blob.name))]
 
         if config.MIN_VOLUME_DEPTH is not None and len(blobs) < config.MIN_VOLUME_DEPTH:
             return None, f"Number of DICOM files {len(blobs)} below min volume depth {config.MIN_VOLUME_DEPTH}"
