@@ -131,59 +131,59 @@ def process_row_cr_impl(row):
         # Get DICOM files from GCS bucket.
         dicom_files, err_msg = get_dicom_files_from_gcs(gcs_bucket_name=config.SOURCE_GCS_BUCKET_NAME, gcs_dir=os.path.join(config.SOURCE_GCS_IMAGES_DIR, instances_dir))
         if dicom_files is None:
-            logging.warning(f"{err_msg}, series rejected (row ID: {row_data['row_id']})")
+            logging.warning(f"{err_msg}, series {series_instance_uid} rejected (row ID: {row_data['row_id']})")
             continue
 
         # Validate DICOM files.
         for dicom_file in dicom_files:
             if pydicom.tag.Tag("ImageType") not in dicom_file:
-                logging.warning(f"ImageType tag not present in the DICOM file, DICOM file in series {series_instance_uid} rejected (row ID: {row_data['row_id']})")
+                logging.warning(f"ImageType tag not present in the DICOM file, DICOM file with SOP instance UID {dicom_file.SOPInstanceUID} in series {series_instance_uid} rejected (row ID: {row_data['row_id']})")
                 continue
 
             if "PRIMARY" not in dicom_file.ImageType and "ORIGINAL" not in dicom_file.ImageType:
-                logging.warning(f"Ignoring non-primary/non-original image type {dicom_file.ImageType}, DICOM file in series {series_instance_uid} rejected (row ID: {row_data['row_id']})")
+                logging.warning(f"Ignoring non-primary/non-original image type {dicom_file.ImageType}, DICOM file with SOP instance UID {dicom_file.SOPInstanceUID} in series {series_instance_uid} rejected (row ID: {row_data['row_id']})")
                 continue
 
             if "LOCALIZER" in dicom_file.ImageType:
-                logging.warning(f"Ignoring localizer image type {dicom_file.ImageType}, DICOM file in series {series_instance_uid} rejected (row ID: {row_data['row_id']})")
+                logging.warning(f"Ignoring localizer image type {dicom_file.ImageType}, DICOM file with SOP instance UID {dicom_file.SOPInstanceUID} in series {series_instance_uid} rejected (row ID: {row_data['row_id']})")
                 continue
 
             if dicom_file.SOPClassUID not in config.DICOM_MODALITIES_MAPPING:
-                logging.warning(f"Unsupported SOP Class UID {pydicom.uid.UID(dicom_file.SOPClassUID).name}, DICOM file in series {series_instance_uid} rejected (row ID: {row_data['row_id']})")
+                logging.warning(f"Unsupported SOP Class UID {pydicom.uid.UID(dicom_file.SOPClassUID).name}, DICOM file with SOP instance UID {dicom_file.SOPInstanceUID} in series {series_instance_uid} rejected (row ID: {row_data['row_id']})")
                 continue
 
             if config.DICOM_MODALITIES_MAPPING[dicom_file.SOPClassUID] not in config.MODALITIES:
-                logging.warning(f"Incorrect SOP Class UID {pydicom.uid.UID(dicom_file.SOPClassUID).name}, DICOM file in series {series_instance_uid} rejected (row ID: {row_data['row_id']})")
+                logging.warning(f"Incorrect SOP Class UID {pydicom.uid.UID(dicom_file.SOPClassUID).name}, DICOM file with SOP instance UID {dicom_file.SOPInstanceUID} in series {series_instance_uid} rejected (row ID: {row_data['row_id']})")
                 continue
 
             if dicom_file.Modality not in config.MODALITIES:
-                logging.warning(f"Incorrect modality {dicom_file.Modality}, DICOM file in series {series_instance_uid} rejected (row ID: {row_data['row_id']})")
+                logging.warning(f"Incorrect modality {dicom_file.Modality}, DICOM file with SOP instance UID {dicom_file.SOPInstanceUID} in series {series_instance_uid} rejected (row ID: {row_data['row_id']})")
                 continue
 
             if dicom_file.StudyInstanceUID != row_data["study_instance_uid"]:
-                logging.warning(f"DICOM Study Instance UID differs from the report value, DICOM file in series {series_instance_uid} rejected (row ID: {row_data['row_id']})")
+                logging.warning(f"DICOM Study Instance UID differs from the report value, DICOM file with SOP instance UID {dicom_file.SOPInstanceUID} in series {series_instance_uid} rejected (row ID: {row_data['row_id']})")
                 continue
 
             if dicom_file.PatientID != row_data["patient_id"]:
-                logging.warning(f"DICOM Patient ID differs from the report value, DICOM file in series {series_instance_uid} rejected (row ID: {row_data['row_id']})")
+                logging.warning(f"DICOM Patient ID differs from the report value, DICOM file with SOP instance UID {dicom_file.SOPInstanceUID} in series {series_instance_uid} rejected (row ID: {row_data['row_id']})")
                 continue
 
             if dicom_file.PatientBirthDate != row_data["patient_birth_date"]:
-                logging.warning(f"DICOM Patient Birth Date differs from the report value, DICOM file in series {series_instance_uid} rejected (row ID: {row_data['row_id']})")
+                logging.warning(f"DICOM Patient Birth Date differs from the report value, DICOM file with SOP instance UID {dicom_file.SOPInstanceUID} in series {series_instance_uid} rejected (row ID: {row_data['row_id']})")
                 continue
 
             if dicom_file.StudyDate != row_data["study_date"]:
-                logging.warning(f"DICOM Study Date differs from the report value, DICOM file in series {series_instance_uid} rejected (row ID: {row_data['row_id']})")
+                logging.warning(f"DICOM Study Date differs from the report value, DICOM file with SOP instance UID {dicom_file.SOPInstanceUID} in series {series_instance_uid} rejected (row ID: {row_data['row_id']})")
                 continue
 
             # Ignore multi-frame images.
             if hasattr(dicom_file, "NumberOfFrames") and dicom_file.NumberOfFrames != 1:
-                logging.warning(f"Multi-frame DICOM file with {dicom_file.NumberOfFrames} frames in series {series_instance_uid} rejected (row ID: {row_data['row_id']})")
+                logging.warning(f"Multi-frame DICOM file with {dicom_file.NumberOfFrames} frames and SOP instance UID {dicom_file.SOPInstanceUID} in series {series_instance_uid} rejected (row ID: {row_data['row_id']})")
                 continue
 
             # Ignore non-grayscale images.
             if dicom_file.SamplesPerPixel != 1:
-                logging.warning(f"Incorrect number of samples per pixel, should be 1 but got {dicom_file.SamplesPerPixel} instead, DICOM file in series {series_instance_uid} rejected (row ID: {row_data['row_id']})")
+                logging.warning(f"Incorrect number of samples per pixel, should be 1 but got {dicom_file.SamplesPerPixel} instead, DICOM file with SOP instance UID {dicom_file.SOPInstanceUID} in series {series_instance_uid} rejected (row ID: {row_data['row_id']})")
                 continue
 
             # Validate histogram.
@@ -191,7 +191,7 @@ def process_row_cr_impl(row):
             image = Image.fromarray(numpy_array)
             res, err = image_utils.validate_image_histogram(image)
             if not res:
-                logging.warning(f"Histogram validation failed: {err}, DICOM file in series {series_instance_uid} rejected (row ID: {row_data['row_id']})")
+                logging.warning(f"Histogram validation failed: {err}, DICOM file with SOP instance UID {dicom_file.SOPInstanceUID} in series {series_instance_uid} rejected (row ID: {row_data['row_id']})")
                 continue
 
             # Create DICOM content.
@@ -204,12 +204,13 @@ def process_row_cr_impl(row):
             # Upload DICOM content file.
             dicom_content_file_name = instances_dir.replace("/", "_") + "_" + dicom_file.SOPInstanceUID + ".txt"
             dicom_content_file_name = os.path.join(config.DESTINATION_GCS_IMAGES_DIR, dicom_content_file_name)
+
             upload_data = [
                 {"is_file": False, "local_file_or_string": dicom_content, "gcs_file_name": dicom_content_file_name},
             ]
             res, err_msg = gcs_utils.upload_files(upload_data=upload_data, gcs_bucket_name=config.DESTINATION_GCS_BUCKET_NAME)
             if not res:
-                logging.warning(f"Error uploading, DICOM file in series {series_instance_uid} rejected (row ID: {row_data['row_id']})")
+                logging.warning(f"Error uploading, DICOM file with SOP instance UID {dicom_file.SOPInstanceUID} in series {series_instance_uid} rejected (row ID: {row_data['row_id']})")
                 continue
 
 
@@ -233,6 +234,12 @@ def get_row_data(row):
         return None
 
 
+# def gradient_file_to_eps_file(gradient_file):
+#     eps_file = os.path.relpath(gradient_file, config.SOURCE_GCS_IMAGES_DIR).replace("/", "_").replace(".dcm", ".txt")
+#     eps_file = os.path.join(config.DESTINATION_GCS_IMAGES_DIR, eps_file)
+#     return eps_file
+
+
 def get_dicom_files_from_gcs(gcs_bucket_name, gcs_dir):
     client = None
 
@@ -244,6 +251,9 @@ def get_dicom_files_from_gcs(gcs_bucket_name, gcs_dir):
 
         if len(blobs) == 0:
             return None, "No DICOM files"
+
+        # blobs = [blob for blob in blobs if not gcs_utils.check_if_file_exists(gcs_bucket_name=config.DESTINATION_GCS_BUCKET_NAME,
+        #                                                                       gcs_file_name=gradient_file_to_eps_file(blob.name))]
 
         if config.MIN_VOLUME_DEPTH is not None and len(blobs) < config.MIN_VOLUME_DEPTH:
             return None, f"Number of DICOM files {len(blobs)} below min volume depth {config.MIN_VOLUME_DEPTH}"
