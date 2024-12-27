@@ -25,6 +25,8 @@ def check_dicom_file(txt_file_name):
         content = gcs_utils.download_file_as_bytes(gcs_bucket_name=GRADIENT_GCS_BUCKET_NAME, gcs_file_name=dicom_file_name)
         dataset = pydicom.dcmread(BytesIO(content))
         res = dicom_utils.check_dicom_image_in_dataset(dataset)
+        if not res:
+            raise ValueError("No pixel data")
     except Exception as e:
         logging.error(f"{str(e)};{os.path.join(EPSILON_GCS_DIR, txt_file_name)}")
 
