@@ -3,3 +3,6 @@
 
 # Wandb.
 wandb/
+
+# Output files.
+output/
