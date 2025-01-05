@@ -1,7 +1,7 @@
 import torch
 
 from epsclassifiers.cr_chest_classifier.cr_chest_classifier import CrChestClassifier
-from epsdatasets.helpers.gradient_mimic.gradient_mimic_dataset_helper import GradientMimicDatasetHelper
+from epsdatasets.helpers.gradient_chest_non_chest.gradient_chest_non_chest_dataset_helper import GradientChestNonChestDatasetHelper
 from epsutils.training.torch_training_helper import TorchTrainingHelper, TrainingParameters, MlopsType, MlopsParameters
 
 
@@ -11,12 +11,17 @@ if __name__ == "__main__":
     dataset_name = "gradient_chest_non_chest"
     output_dir = "./output"
 
-    # Gradient-Mimic dataset helper.
-    gradient_data_gcs_bucket_name="gradient-crs"
-    gradient_data_gcs_dir="16AG02924"
-    gradient_images_gcs_bucket_name="epsilon-data-us-central1"
-    gradient_images_gcs_dir="GRADIENT-DATABASE/CR/16AG02924"
-    exclude_file_name="/home/andrej/work/epsclassifiers/epsclassifiers/cr_chest_classifier/chest_scan_results.txt"
+    # Gradient chest/non-chest dataset helper.
+    chest_data_gcs_bucket_name = "gradient-crs"
+    chest_data_gcs_dir = "22JUL2024"
+    chest_images_gcs_bucket_name = "epsilon-data-us-central1"
+    chest_images_gcs_dir = "GRADIENT-DATABASE/CR/22JUL2024"
+    non_chest_data_gcs_bucket_name = "gradient-crs"
+    non_chest_data_gcs_dir = "16AG02924"
+    non_chest_images_gcs_bucket_name = "epsilon-data-us-central1"
+    non_chest_images_gcs_dir = "GRADIENT-DATABASE/CR/16AG02924"
+    chest_exclude_file_name = "./data/gradient_crs_22JUL2024_non_chest.csv"
+    non_chest_exclude_file_name = "./data/gradient_crs_16AG02924_chest.csv"
     seed=42
 
     # Training settings.
@@ -33,8 +38,6 @@ if __name__ == "__main__":
     num_epochs = 30
     training_batch_size = 16
     validation_batch_size = 16
-    images_mean = 0.5
-    images_std = 0.5
 
     experiment_name = f"{model_name}-finetuning-on-{dataset_name}"
     mlops_experiment_name = f"{experiment_name}"
@@ -45,12 +48,17 @@ if __name__ == "__main__":
 
     # Load the dataset.
     print("Loading the dataset")
-    dataset_helper = GradientMimicDatasetHelper(gradient_data_gcs_bucket_name=gradient_data_gcs_bucket_name,
-                                                gradient_data_gcs_dir=gradient_data_gcs_dir,
-                                                gradient_images_gcs_bucket_name=gradient_images_gcs_bucket_name,
-                                                gradient_images_gcs_dir=gradient_images_gcs_dir,
-                                                exclude_file_name=exclude_file_name,
-                                                seed=42)
+    dataset_helper = GradientChestNonChestDatasetHelper(chest_data_gcs_bucket_name=chest_data_gcs_bucket_name,
+                                                        chest_data_gcs_dir=chest_data_gcs_dir,
+                                                        chest_images_gcs_bucket_name=chest_images_gcs_bucket_name,
+                                                        chest_images_gcs_dir=chest_images_gcs_dir,
+                                                        non_chest_data_gcs_bucket_name=non_chest_data_gcs_bucket_name,
+                                                        non_chest_data_gcs_dir=non_chest_data_gcs_dir,
+                                                        non_chest_images_gcs_bucket_name=non_chest_images_gcs_bucket_name,
+                                                        non_chest_images_gcs_dir=non_chest_images_gcs_dir,
+                                                        chest_exclude_file_name=chest_exclude_file_name,
+                                                        non_chest_exclude_file_name=non_chest_exclude_file_name,
+                                                        seed=seed)
 
     # Create the model.
     classifier = CrChestClassifier()
