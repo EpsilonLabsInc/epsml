@@ -1,15 +1,15 @@
 # General config.
-REPORTS_FILE = "/home/andrej/data/gradient_ct_batch_1_chest_only.csv"
-CHECK_BODY_PARTS_OUTPUT_FILE = "/home/andrej/data/bodypart/body-part-ct-16AGO2024-log.txt"
-CONVERT_TO_EPSILON_BODY_PARTS_OUTPUT_FILE = "/home/andrej/data/bodypart/body-part-ct-16AGO2024.csv"
-VALIDATION_OUTPUT_FILE = "/home/andrej/data/bodypart/csv-body-part-validation-ct-16AGO2024.csv"
-SKIP_ALREADY_PROCESSED_IMAGES = True
+REPORTS_FILE = None
+CHECK_BODY_PARTS_OUTPUT_FILE = "./output/gradient-cts-fixed-18SET2024-body_parts.csv"
+CONVERT_TO_EPSILON_BODY_PARTS_OUTPUT_FILE = None
+VALIDATION_OUTPUT_FILE = None
+SKIP_ALREADY_PROCESSED_IMAGES = False
 USE_CPU_FOR_FAIL_SAFE = False
 REJECT_NON_AXIAL = True
 
 # GCS config.
 GCS_BUCKET_NAME = "gradient-cts-fixed-nifti"
-GCS_IMAGES_DIR = "16AGO2024"
+GCS_IMAGES_DIR = "18SET2024"
 
 # Processing.
 NUM_PREPROCESSING_WORKERS = 12
