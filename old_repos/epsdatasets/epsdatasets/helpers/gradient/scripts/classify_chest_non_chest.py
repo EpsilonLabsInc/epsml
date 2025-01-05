@@ -2,6 +2,7 @@ import inspect
 import logging
 import multiprocessing
 import os
+import queue
 import threading
 from concurrent.futures import ProcessPoolExecutor
 from io import BytesIO
@@ -11,6 +12,7 @@ import torch
 from tqdm import tqdm
 
 from epsclassifiers.cr_chest_classifier.cr_chest_classifier import CrChestClassifier
+from epsutils.dicom import dicom_utils
 from epsutils.gcs import gcs_utils
 from epsutils.logging import logging_utils
 
@@ -36,7 +38,8 @@ def download_dicom_file(txt_file):
         dicom_file = os.path.join(GRADIENT_GCS_IMAGES_DIR, dicom_file)
         content = gcs_utils.download_file_as_bytes(gcs_bucket_name=GRADIENT_GCS_BUCKET_NAME, gcs_file_name=dicom_file)
         dataset = pydicom.dcmread(BytesIO(content))
-        dicom_queue.put({"dicom_file": dicom_file, "dicom_dataset": dataset})
+        image = dicom_utils.get_dicom_image_from_dataset(dataset, custom_windowing_parameters={"window_center": 0, "window_width": 0})
+        dicom_queue.put({"dicom_file": dicom_file, "image": image})
     except Exception as e:
         print(f"Error downloading DICOM file: {str(e)} ({dicom_file})")
 
@@ -48,14 +51,14 @@ def classification_task(progress_bar):
         try:
             # Get MAX_BATCH_SIZE DICOM files from the queue.
             dicom_files = []
-            dicom_datasets = []
+            images = []
             for _ in range(MAX_BATCH_SIZE):
                 item = dicom_queue.get(block=True, timeout=EMPTY_QUEUE_WAIT_TIMEOUT_SEC)
                 dicom_files.append(item["dicom_file"])
-                dicom_datasets.append(item["dicom_dataset"])
+                images.append(item["image"])
 
             # Predict.
-            labels = classifier.predict(images=dicom_datasets, device="cuda")
+            labels = classifier.predict(images=images, device="cuda")
 
             if len(dicom_files) != len(labels):
                 raise ValueError(f"Number of DICOM files ({len(dicom_files)}) differs from number of labels ({len(labels)})")
@@ -64,10 +67,10 @@ def classification_task(progress_bar):
             for dicom_file, label in zip(dicom_files, labels):
                 logging.info(f"{dicom_file};{label}")
 
-        except dicom_queue.Empty:
+        except queue.Empty:
             # DICOM queue is empty. Classify the remaining DICOM files in the queue and exit the classification loop.
             if len(dicom_files) > 0:
-                labels = classifier.predict(images=dicom_datasets, device="cuda")
+                labels = classifier.predict(images=images, device="cuda")
                 for dicom_file, label in zip(dicom_files, labels):
                     logging.info(f"{dicom_file};{label}")
 
