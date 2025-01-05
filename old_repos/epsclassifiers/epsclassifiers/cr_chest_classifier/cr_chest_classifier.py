@@ -54,6 +54,8 @@ class CrChestClassifier:
                 image = dicom_utils.get_dicom_image_from_dataset(image, custom_windowing_parameters={"window_center": 0, "window_width": 0})
             elif isinstance(image, Image.Image):
                 image = np.array(image)
+            elif isinstance(image, np.ndarray):
+                pass
             else:
                 raise ValueError("Unsupported image type")
 
