@@ -1,3 +1,4 @@
+import inspect
 import logging
 import multiprocessing
 import os
@@ -6,6 +7,7 @@ from concurrent.futures import ProcessPoolExecutor
 from io import BytesIO
 
 import pydicom
+import torch
 from tqdm import tqdm
 
 from epsclassifiers.cr_chest_classifier.cr_chest_classifier import CrChestClassifier
@@ -20,10 +22,12 @@ OUTPUT_FILE = "gradient-crs-22JUL2024-chest_non_chest.csv"
 MAX_BATCH_SIZE = 16
 EMPTY_QUEUE_WAIT_TIMEOUT_SEC = 60
 
+MODEL_PATH = os.path.join(os.path.dirname(inspect.getmodule(CrChestClassifier).__file__), "models/cr_chest_classifier_trained_on_600k_gradient_samples.pt")
+
 manager = multiprocessing.Manager()
 dicom_queue = manager.Queue()
 classifier = CrChestClassifier()
-classifier.load_state_dict(torch.load("./models/cr_chest_classifier_trained_on_600k_gradient_samples.pt"))
+classifier.load_state_dict(torch.load(MODEL_PATH))
 
 
 def download_dicom_file(txt_file):
@@ -93,7 +97,7 @@ def main():
     # Start classification task.
     progress_bar = tqdm(total=len(txt_files_in_bucket), leave=False, desc="Processing")
     classification_thread = threading.Thread(target=classification_task, args=(progress_bar,))
-    classification_task.start()
+    classification_thread.start()
 
     # Start DICOM downloaders.
     with ProcessPoolExecutor() as executor:  # Use default number of workers.
@@ -101,7 +105,7 @@ def main():
 
     print("All DICOM files downloaded")
 
-    classification_task.join()
+    classification_thread.join()
     progress_bar.close()
 
 
