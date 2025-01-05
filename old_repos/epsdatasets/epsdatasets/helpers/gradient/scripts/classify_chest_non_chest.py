@@ -11,7 +11,7 @@ import pydicom
 import torch
 from tqdm import tqdm
 
-from epsclassifiers.cr_chest_classifier.cr_chest_classifier import CrChestClassifier
+from epsclassifiers.cr_chest_classifier.cr_chest_classifier import CrChestClassifier, Label
 from epsutils.dicom import dicom_utils
 from epsutils.gcs import gcs_utils
 from epsutils.logging import logging_utils
@@ -65,14 +65,16 @@ def classification_task(progress_bar):
 
             # Write results.
             for dicom_file, label in zip(dicom_files, labels):
-                logging.info(f"{dicom_file};{label}")
+                slabel = "CHEST" if label == Label.CHEST else "NON-CHEST"
+                logging.info(f"{dicom_file};{slabel}")
 
         except queue.Empty:
             # DICOM queue is empty. Classify the remaining DICOM files in the queue and exit the classification loop.
             if len(dicom_files) > 0:
                 labels = classifier.predict(images=images, device="cuda")
                 for dicom_file, label in zip(dicom_files, labels):
-                    logging.info(f"{dicom_file};{label}")
+                    slabel = "CHEST" if label == Label.CHEST else "NON-CHEST"
+                    logging.info(f"{dicom_file};{slabel}")
 
             break
 
