@@ -11,7 +11,7 @@ import pydicom
 import torch
 from tqdm import tqdm
 
-from epsclassifiers.cr_chest_classifier.cr_chest_classifier import CrChestClassifier, Label
+from epsclassifiers.cr_chest_classifier import CrChestClassifier, Label
 from epsutils.dicom import dicom_utils
 from epsutils.gcs import gcs_utils
 from epsutils.logging import logging_utils
