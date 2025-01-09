@@ -17,8 +17,19 @@ def main():
             else:
                 distribution[body_part] = 1
 
+    distribution = {k: v for k, v in sorted(distribution.items(), key=lambda item: item[1], reverse=True)}
+
+    count = 0
+    for key, value in distribution.items():
+        count += value
+
     print(f"Body parts distribution:")
-    print(distribution)
+    print("------------------------")
+    for key, value in distribution.items():
+        print(f"{key}: {value} ({(value / count * 100):.2f}%)")
+
+    print("------------------------")
+    print(f"Total: {count}")
 
 
 if __name__ == "__main__":
