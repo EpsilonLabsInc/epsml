@@ -105,7 +105,7 @@ def main():
     classification_thread.start()
 
     # Start DICOM downloaders.
-    with ProcessPoolExecutor(max_workers=16) as executor:  # Use default number of workers.
+    with ProcessPoolExecutor(max_workers=16) as executor:
         results = list(executor.map(download_dicom_file, [txt_file for txt_file in txt_files_in_bucket]))
 
     print("All DICOM files downloaded")
