@@ -17,10 +17,10 @@ from epsutils.gcs import gcs_utils
 from epsutils.logging import logging_utils
 
 EPSILON_GCS_BUCKET_NAME = "gradient-crs"
-EPSILON_GCS_IMAGES_DIR = "22JUL2024"
+EPSILON_GCS_IMAGES_DIR = "09JAN2025"
 GRADIENT_GCS_BUCKET_NAME = "epsilon-data-us-central1"
-GRADIENT_GCS_IMAGES_DIR = "GRADIENT-DATABASE/CR/22JUL2024"
-OUTPUT_FILE = "output/gradient-crs-22JUL2024-chest_non_chest.csv"
+GRADIENT_GCS_IMAGES_DIR = "GRADIENT-DATABASE/CR/09JAN2025/deid"
+OUTPUT_FILE = "output/gradient-crs-09JAN2025-chest_non_chest.csv"
 MAX_BATCH_SIZE = 16
 EMPTY_QUEUE_WAIT_TIMEOUT_SEC = 60
 
@@ -105,7 +105,7 @@ def main():
     classification_thread.start()
 
     # Start DICOM downloaders.
-    with ProcessPoolExecutor() as executor:  # Use default number of workers.
+    with ProcessPoolExecutor(max_workers=16) as executor:  # Use default number of workers.
         results = list(executor.map(download_dicom_file, [txt_file for txt_file in txt_files_in_bucket]))
 
     print("All DICOM files downloaded")
