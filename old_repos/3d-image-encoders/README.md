@@ -1,6 +1,2 @@
-# 3d-image-encoders
-Implementation of the following 3D image encoders:
-- Inflated ResNet (I3D)
-
-## Inflated ResNet (I3D)
-Implementation taken from https://github.com/hassony2/inflated_convnets_pytorch/tree/master)
+# 3D Image Encoders
+Welcome to the 3d-image-encoders repository! This repository contains a collection of 3D image encoders.
