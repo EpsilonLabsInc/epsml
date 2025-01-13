@@ -17,10 +17,10 @@ from epsutils.gcs import gcs_utils
 from epsutils.logging import logging_utils
 
 EPSILON_GCS_BUCKET_NAME = "gradient-crs"
-EPSILON_GCS_IMAGES_DIR = "09JAN2025"
+EPSILON_GCS_IMAGES_DIR = "20DEC2024"
 GRADIENT_GCS_BUCKET_NAME = "epsilon-data-us-central1"
-GRADIENT_GCS_IMAGES_DIR = "GRADIENT-DATABASE/CR/09JAN2025/deid"
-OUTPUT_FILE = "output/gradient-crs-09JAN2025-chest_non_chest.csv"
+GRADIENT_GCS_IMAGES_DIR = "GRADIENT-DATABASE/CR/20DEC2024/deid"
+OUTPUT_FILE = "output/gradient-crs-20DEC2024-chest_non_chest.csv"
 MAX_BATCH_SIZE = 16
 EMPTY_QUEUE_WAIT_TIMEOUT_SEC = 60
 
