@@ -5,8 +5,9 @@ import pandas as pd
 
 CHEST_FILES_DIR = "c:/users/andrej/desktop/chest"
 CHEST_FILE_PAIRS = [
-    {"chest_non_chest_file": "gradient-crs-09JAN2025-chest_non_chest.csv", "dicom_tag_is_chest_file": "gradient-crs-09JAN2025-dicom_tag_is_chest.csv"},
-    {"chest_non_chest_file": "gradient-crs-22JUL2024-chest_non_chest.csv", "dicom_tag_is_chest_file": "gradient-crs-22JUL2024-dicom_tag_is_chest.csv"}
+    {"chest_non_chest_file": "gradient-crs-22JUL2024-chest_non_chest.csv", "dicom_tag_is_chest_file": "gradient-crs-22JUL2024-dicom_tag_is_chest.csv"},
+    {"chest_non_chest_file": "gradient-crs-20DEC2024-chest_non_chest.csv", "dicom_tag_is_chest_file": "gradient-crs-20DEC2024-dicom_tag_is_chest.csv"},
+    {"chest_non_chest_file": "gradient-crs-09JAN2025-chest_non_chest.csv", "dicom_tag_is_chest_file": "gradient-crs-09JAN2025-dicom_tag_is_chest.csv"}
 ]
 OUTPUT_FILE = "chest_files_gradient_all_3_batches.csv"
 
@@ -16,6 +17,9 @@ def main():
 
     for index, pair in enumerate(CHEST_FILE_PAIRS):
         print(f"Processing {index + 1}/{len(CHEST_FILE_PAIRS)}")
+
+        print_sample = True
+        num_added = 0
 
         df = pd.read_csv(os.path.join(CHEST_FILES_DIR, pair["dicom_tag_is_chest_file"]), sep=";", header=None, low_memory=False)
         valid_dicom_files = set(df.iloc[:, 0])
@@ -30,11 +34,19 @@ def main():
         for dicom_file in dicom_files_to_add:
             if dicom_file in valid_dicom_files:
                 chest_files.append(dicom_file)
+                num_added += 1
+            else:
+                if print_sample:
+                    print(f"  Example of chest file not added because of incorrect DICOM BodyPartExamined tag: {dicom_file}")
+                    print_sample = False
 
-        print(f"  Output file has {len(chest_files)} rows")
+        print(f"  {num_added} chest files added")
 
-    print(f"Writing to output file {OUTPUT_FILE}")
-    with open(OUTPUT_FILE, mode="w", newline="") as file:
+    print(f"Num rows in output file: {len(chest_files)}")
+
+    output_file = os.path.join(CHEST_FILES_DIR, OUTPUT_FILE)
+    print(f"Writing to output file {output_file}")
+    with open(output_file, mode="w", newline="") as file:
         writer = csv.writer(file)
         for chest_file in chest_files:
             writer.writerow([chest_file])
