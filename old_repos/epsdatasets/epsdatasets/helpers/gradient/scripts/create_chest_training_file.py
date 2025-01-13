@@ -23,7 +23,7 @@ def main():
 
         df = pd.read_csv(os.path.join(CHEST_FILES_DIR, pair["dicom_tag_is_chest_file"]), sep=";", header=None, low_memory=False)
         valid_dicom_files = set(df.iloc[:, 0])
-        print(f"  Num DICOM files with BodyPartExamined == 'Chest': {len(df)}")
+        print(f"  Num DICOM files with BodyPartExamined == 'Chest': {len(valid_dicom_files)}")
 
         df = pd.read_csv(os.path.join(CHEST_FILES_DIR, pair["chest_non_chest_file"]), sep=";", header=None, low_memory=False)
         df.columns = range(df.shape[1])
