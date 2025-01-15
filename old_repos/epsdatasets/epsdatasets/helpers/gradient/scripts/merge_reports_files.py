@@ -6,18 +6,44 @@ import pandas as pd
 from epsutils.gcs import gcs_utils
 
 GRADIENT_GCS_BUCKET_NAME = "epsilon-data-us-central1"
-GRADIENT_GCS_REPORTS_DIR = "GRADIENT-DATABASE/CR/09JAN2025/original_unmerged_reports"
+GRADIENT_GCS_REPORTS_DIR = "GRADIENT-DATABASE/CR/13JAN2025-C1"
 REPORTS_FILES = [
-    "reports_20250108153205.csv-00000-of-00008.csv",
-    "reports_20250108153205.csv-00001-of-00008.csv",
-    "reports_20250108153205.csv-00002-of-00008.csv",
-    "reports_20250108153205.csv-00003-of-00008.csv",
-    "reports_20250108153205.csv-00004-of-00008.csv",
-    "reports_20250108153205.csv-00005-of-00008.csv",
-    "reports_20250108153205.csv-00006-of-00008.csv",
-    "reports_20250108153205.csv-00007-of-00008.csv"
+    "reports_20250104170630.csv-00000-of-00034.csv",
+    "reports_20250104170630.csv-00001-of-00034.csv",
+    "reports_20250104170630.csv-00002-of-00034.csv",
+    "reports_20250104170630.csv-00003-of-00034.csv",
+    "reports_20250104170630.csv-00004-of-00034.csv",
+    "reports_20250104170630.csv-00005-of-00034.csv",
+    "reports_20250104170630.csv-00006-of-00034.csv",
+    "reports_20250104170630.csv-00007-of-00034.csv",
+    "reports_20250104170630.csv-00008-of-00034.csv",
+    "reports_20250104170630.csv-00009-of-00034.csv",
+    "reports_20250104170630.csv-00010-of-00034.csv",
+    "reports_20250104170630.csv-00011-of-00034.csv",
+    "reports_20250104170630.csv-00012-of-00034.csv",
+    "reports_20250104170630.csv-00013-of-00034.csv",
+    "reports_20250104170630.csv-00014-of-00034.csv",
+    "reports_20250104170630.csv-00015-of-00034.csv",
+    "reports_20250104170630.csv-00016-of-00034.csv",
+    "reports_20250104170630.csv-00017-of-00034.csv",
+    "reports_20250104170630.csv-00018-of-00034.csv",
+    "reports_20250104170630.csv-00019-of-00034.csv",
+    "reports_20250104170630.csv-00020-of-00034.csv",
+    "reports_20250104170630.csv-00021-of-00034.csv",
+    "reports_20250104170630.csv-00022-of-00034.csv",
+    "reports_20250104170630.csv-00023-of-00034.csv",
+    "reports_20250104170630.csv-00024-of-00034.csv",
+    "reports_20250104170630.csv-00025-of-00034.csv",
+    "reports_20250104170630.csv-00026-of-00034.csv",
+    "reports_20250104170630.csv-00027-of-00034.csv",
+    "reports_20250104170630.csv-00028-of-00034.csv",
+    "reports_20250104170630.csv-00029-of-00034.csv",
+    "reports_20250104170630.csv-00030-of-00034.csv",
+    "reports_20250104170630.csv-00031-of-00034.csv",
+    "reports_20250104170630.csv-00032-of-00034.csv",
+    "reports_20250104170630.csv-00033-of-00034.csv"
 ]
-OUTPUT_FILE = "reports_20250108153205.csv"
+OUTPUT_FILE = "reports_20250104170630.csv"
 
 
 def main():
