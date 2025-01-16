@@ -4,6 +4,24 @@ import time
 from google.cloud import storage
 
 
+def split_gcs_uri(gcs_uri):
+    scheme = "gs://"
+
+    if not gcs_uri.startswith(scheme):
+        raise ValueError(f"GCS URI {gcs_uri} is missing {scheme} prefix")
+
+    parts = gcs_uri.replace(scheme, "").split("/", 1)
+    return {"scheme:": scheme, "gcs_bucket_name": parts[0], "gcs_path": parts[1]}
+
+
+def is_gcs_uri(gcs_uri):
+    try:
+        gcs_data = split_gcs_uri(gcs_uri)
+        return True
+    except:
+        return False
+
+
 def list_files(gcs_bucket_name, gcs_dir, max_results=None):
     # Dir must end with a slash in order for the code below to work correctly (i.e., not to look for files recursively)!
     if not gcs_dir.endswith("/"):
