@@ -34,6 +34,10 @@ def main():
     print(f"Output type: {type(output)}")
     print(f"Output size: {output.pooler_output.shape}")
 
+    print(f"First element: {output.pooler_output[0, 0]}")
+    print(f"Type of first element: {type(output.pooler_output[0, 0])}")
+    print(f"Data type of first element: {output.pooler_output[0, 0].dtype}")
+
 
 if __name__ == "__main__":
     main()
