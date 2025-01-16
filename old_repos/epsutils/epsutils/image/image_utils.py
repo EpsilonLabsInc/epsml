@@ -11,9 +11,9 @@ VALIDATE_IMAGE_HISTOGRAM_CONFIGURATIONS = {
         "ap_entropy_max": 7.75
     },
     "NON_CHEST_CR_SCAN": {
-        "lateral_entropy_min": 5.25,
+        "lateral_entropy_min": 0.0,  # Don't filter out non-chest images that are too dark.
         "lateral_entropy_max": 8.0,
-        "ap_entropy_min": 5.25,
+        "ap_entropy_min": 0.0,  # Don't filter out non-chest images that are too dark.
         "ap_entropy_max": 8.0
     }
 }
