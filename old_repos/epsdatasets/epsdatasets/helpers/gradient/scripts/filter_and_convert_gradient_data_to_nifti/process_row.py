@@ -189,7 +189,7 @@ def process_row_cr_impl(row):
             # Validate histogram.
             numpy_array = dicom_utils.get_dicom_image_from_dataset(dicom_file, {"window_width": 0, "window_center": 0})
             image = Image.fromarray(numpy_array)
-            res, err = image_utils.validate_image_histogram(image=image, config=VALIDATE_IMAGE_HISTOGRAM_CONFIGURATIONS["NON_CHEST_CR_SCAN"])
+            res, err = image_utils.validate_image_histogram(image=image, config=image_utils.VALIDATE_IMAGE_HISTOGRAM_CONFIGURATIONS["NON_CHEST_CR_SCAN"])
             if not res:
                 logging.warning(f"Histogram validation failed: {err}, DICOM file with SOP instance UID {dicom_file.SOPInstanceUID} in series {series_instance_uid} rejected (row ID: {row_data['row_id']})")
                 continue
