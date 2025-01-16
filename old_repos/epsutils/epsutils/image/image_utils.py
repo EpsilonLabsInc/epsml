@@ -39,11 +39,15 @@ def validate_image_histogram(image, config=VALIDATE_IMAGE_HISTOGRAM_CONFIGURATIO
 
         width, height = image.size
         if height > 1.1 * width:  # Lateral view.
-            if entropy < lateral_entropy_min or entropy > lateral_entropy_max:
-                return False, f"Entropy {entropy:.2f} invalid for lateral view"
+            if entropy < lateral_entropy_min:
+                return False, f"Entropy {entropy:.2f} too small for lateral view"
+            if entropy > lateral_entropy_max:
+                return False, f"Entropy {entropy:.2f} too big for lateral view"
         else:  # AP view.
-            if entropy < ap_entropy_min or entropy > ap_entropy_max:
-                return False, f"Entropy {entropy:.2f} invalid for AP view"
+            if entropy < ap_entropy_min:
+                return False, f"Entropy {entropy:.2f} too small for AP view"
+            if entropy > ap_entropy_max:
+                return False, f"Entropy {entropy:.2f} too big for AP view"
 
         return True, ""
 
