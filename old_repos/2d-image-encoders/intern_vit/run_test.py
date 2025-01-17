@@ -11,6 +11,7 @@ IMAGE_PATH = "./samples/sample.dcm"
 def main():
     # Create model.
     model = InternVit(intern_vl_checkpoint_dir=CHECKPOINT_DIR)
+    model = model.to("cuda")
 
     # Get image processor.
     image_processor = model.get_image_processor()

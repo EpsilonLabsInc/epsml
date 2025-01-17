@@ -13,7 +13,7 @@ class InternVit(nn.Module):
             intern_vl_checkpoint_dir,
             low_cpu_mem_usage=True,
             torch_dtype=torch.bfloat16,
-            device_map="auto",
+            device_map=None,
             trust_remote_code=True
         )
 
