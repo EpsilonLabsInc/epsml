@@ -1,0 +1,1 @@
+from .intern_vit_classifier import InternVitClassifier
