@@ -10,7 +10,7 @@ IMAGE_PATH = "./samples/sample.dcm"
 
 def main():
     # Get ViT model and image processor.
-    intern_vit = InternVit(checkpoint_dir=CHECKPOINT_DIR)
+    intern_vit = InternVit(intern_vlm_checkpoint_dir=CHECKPOINT_DIR)
     model = intern_vit.get_model()
     image_processor = intern_vit.get_image_processor()
 
