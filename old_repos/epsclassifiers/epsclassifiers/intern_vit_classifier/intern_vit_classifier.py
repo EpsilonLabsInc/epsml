@@ -8,10 +8,10 @@ class InternVitClassifier(nn.Module):
         super().__init__()
 
         # InternViT model.
-        self.__intern_vit = InternVit(intern_vl_checkpoint_dir=intern_vl_checkpoint_dir)
+        self.intern_vit = InternVit(intern_vl_checkpoint_dir=intern_vl_checkpoint_dir)
 
         # Classifier head.
-        self.__classifier = nn.Sequential(
+        self.classifier = nn.Sequential(
             nn.Linear(intern_vit_output_dim, hidden_dim),
             nn.BatchNorm1d(hidden_dim),
             nn.GELU(),
@@ -24,12 +24,12 @@ class InternVitClassifier(nn.Module):
         )
 
         # Set the dtype of the classifier to match the dtype of the InternViT.
-        dtype = next(self.__intern_vit.parameters()).dtype
-        self.__classifier = self.__classifier.to(dtype)
+        dtype = next(self.intern_vit.parameters()).dtype
+        self.classifier = self.classifier.to(dtype)
 
     def forward(self, x):
-        output = self.__intern_vit(x)
-        return self.__classifier(output.pooler_output)
+        output = self.intern_vit(x)
+        return self.classifier(output.pooler_output)
 
     def get_image_processor(self):
-        return self.__intern_vit.get_image_processor()
+        return self.intern_vit.get_image_processor()
