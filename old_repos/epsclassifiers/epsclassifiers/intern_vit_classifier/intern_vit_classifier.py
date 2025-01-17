@@ -2,6 +2,7 @@ import torch.nn as nn
 
 from intern_vit import InternVit
 
+
 class InternVitClassifier(nn.Module):
     def __init__(self, num_classes, intern_vl_checkpoint_dir, intern_vit_output_dim=1024, hidden_dim=1024, dropout_rate=0.2):
         super().__init__()
