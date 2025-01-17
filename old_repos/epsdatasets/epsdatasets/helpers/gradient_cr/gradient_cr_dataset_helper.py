@@ -3,9 +3,12 @@ import os
 
 import datasets
 import pandas as pd
+import torch
+from PIL import Image
 from torch.utils.data import Dataset, DataLoader
 
 from epsdatasets.helpers.base.base_dataset_helper import BaseDatasetHelper
+from epsutils.dicom import dicom_utils
 from epsutils.gcs import gcs_utils
 from epsutils.labels import labels_utils
 from epsutils.labels.cr_chest_labels import CR_CHEST_LABELS
@@ -131,7 +134,17 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
         self.__torch_test_dataset = GradientCrTorchDataset(pandas_dataframe=self.__pandas_test_dataset) if self.__pandas_test_dataset else None
 
     def get_pil_image(self, item):
-        raise NotImplementedError("Not implemented")
+        # TODO: Support GCS download if necessary.
+
+        try:
+            image_path = item["image_path"]
+            image = dicom_utils.get_dicom_image(image_path, custom_windowing_parameters={"window_center": 0, "window_width": 0})
+            image = Image.fromarray(image).convert("RGB")
+            return image
+
+        except Exception as e:
+            print(f"Error loading {image_path}: {str(e)}")
+            raise
 
     def get_torch_image(self, item, processor):
         raise NotImplementedError("Not implemented")
@@ -146,7 +159,7 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
         raise NotImplementedError("Not implemented")
 
     def get_torch_label(self, item):
-        raise NotImplementedError("Not implemented")
+        return torch.tensor(labels_utils.to_multi_hot_encoding(item["labels"], CR_CHEST_LABELS))
 
     def get_pandas_full_dataset(self):
         raise NotImplementedError("Not implemented")
@@ -203,6 +216,7 @@ class GradientCrTorchDataset(Dataset):
 
     def __getitem__(self, idx):
         item = self.__pandas_dataframe.iloc[idx]
+        return item
 
     def __len__(self):
         return len(self.__pandas_dataframe)
