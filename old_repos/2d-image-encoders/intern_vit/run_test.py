@@ -2,7 +2,7 @@ import torch
 from PIL import Image
 
 from epsutils.dicom import dicom_utils
-from internvit import InternVit
+from intern_vit import InternVit
 
 CHECKPOINT_DIR = "/mnt/training/internvl2.5_8b_finetune_lora_20241226_205132_1e-5_2.5_gradient_full_rm_sole_no_findings_rm_bad_dcm_tiles_6_no_labels/checkpoint-58670"
 IMAGE_PATH = "./samples/sample.dcm"
