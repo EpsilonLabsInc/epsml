@@ -9,10 +9,11 @@ IMAGE_PATH = "./samples/sample.dcm"
 
 
 def main():
-    # Get ViT model and image processor.
-    intern_vit = InternVit(intern_vl_checkpoint_dir=CHECKPOINT_DIR)
-    model = intern_vit.get_model()
-    image_processor = intern_vit.get_image_processor()
+    # Create model.
+    model = InternVit(intern_vl_checkpoint_dir=CHECKPOINT_DIR)
+
+    # Get image processor.
+    image_processor = model.get_image_processor()
 
     # Preprocess image.
     image = dicom_utils.get_dicom_image(IMAGE_PATH, custom_windowing_parameters={"window_center": 0, "window_width": 0})

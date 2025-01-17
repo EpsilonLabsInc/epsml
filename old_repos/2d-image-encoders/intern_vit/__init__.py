@@ -1,1 +1,1 @@
-from .internvit import InternVit
+from .intern_vit import InternVit
