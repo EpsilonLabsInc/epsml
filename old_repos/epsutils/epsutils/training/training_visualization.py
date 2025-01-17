@@ -4,9 +4,9 @@ import matplotlib.pyplot as plt
 from IPython.display import clear_output
 
 
-def show_visualization_data(visualization_data, num_view_grid_columns, label_to_string_mapping):
+def show_visualization_data(visualization_data, num_view_grid_columns, label_to_string_mapping=None):
     inputs = visualization_data["inputs"]
-    labels = [label_to_string_mapping[label.item()] for label in visualization_data["labels"]]
+    labels = [label_to_string_mapping[label.item()] for label in visualization_data["labels"]] if label_to_string_mapping else "n/a"
     probabilities = [probability.item() for probability in visualization_data["probabilities"]] if "probabilities" in visualization_data else None
 
     NUM_IMAGES = inputs.size(0)
