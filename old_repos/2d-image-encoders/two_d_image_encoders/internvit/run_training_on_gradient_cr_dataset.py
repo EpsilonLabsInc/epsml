@@ -1,3 +1,5 @@
+import torch
+
 from epsdatasets.helpers.gradient_cr.gradient_cr_dataset_helper import GradientCrDatasetHelper
 
 def main():
@@ -12,6 +14,7 @@ def main():
     )
 
     print(dataset_helper.get_labels())
+
 
 if __name__ == "__main__":
     main()

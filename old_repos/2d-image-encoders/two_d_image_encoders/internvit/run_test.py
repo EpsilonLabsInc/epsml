@@ -1,23 +1,18 @@
 import torch
 from PIL import Image
-from transformers import AutoModel, CLIPImageProcessor
 
 from epsutils.dicom import dicom_utils
+from two_d_image_encoders.internvit import InternVit
 
-MODEL_PATH = "OpenGVLab/InternViT-300M-448px-V2_5"
-IMAGE_PATH = "./sample.dcm"
+CHECKPOINT_DIR = "/mnt/training/internvl2.5_8b_finetune_lora_20241226_205132_1e-5_2.5_gradient_full_rm_sole_no_findings_rm_bad_dcm_tiles_6_no_labels/checkpoint-58670"
+IMAGE_PATH = "./samples/sample.dcm"
 
 
 def main():
-    # Create the model.
-    model = AutoModel.from_pretrained(
-        MODEL_PATH,
-        torch_dtype=torch.bfloat16,
-        low_cpu_mem_usage=True,
-        trust_remote_code=True).cuda().eval()
-
-    # Create image preprocessor.
-    image_processor = CLIPImageProcessor.from_pretrained(MODEL_PATH)
+    # Get ViT model and image processor.
+    intern_vit = InternVit(checkpoint_dir=CHECKPOINT_DIR)
+    model = intern_vit.get_model()
+    image_processor = intern_vit.get_image_processor()
 
     # Preprocess image.
     image = dicom_utils.get_dicom_image(IMAGE_PATH, custom_windowing_parameters={"window_center": 0, "window_width": 0})
