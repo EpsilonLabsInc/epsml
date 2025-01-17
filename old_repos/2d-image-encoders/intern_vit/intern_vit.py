@@ -5,9 +5,9 @@ from internvl.model.internvl_chat import InternVLChatModel
 
 
 class InternVit:
-    def __init__(self, intern_vlm_checkpoint_dir):
+    def __init__(self, intern_vl_checkpoint_dir):
         vlm_model = InternVLChatModel.from_pretrained(
-            intern_vlm_checkpoint_dir,
+            intern_vl_checkpoint_dir,
             low_cpu_mem_usage=True,
             torch_dtype=torch.bfloat16,
             device_map="auto",
