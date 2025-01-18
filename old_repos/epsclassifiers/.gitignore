@@ -6,3 +6,6 @@ wandb/
 
 # Output files.
 output/
+
+# Torch.
+*.pt*
