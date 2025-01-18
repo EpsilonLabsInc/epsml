@@ -17,17 +17,15 @@ def main():
     gcs_validation_file = "gs://epsilonlabs-filestore/cleaned_CRs/11192024_test.jsonl"
     images_dir = "/mnt/gradient/gradient-cxr/22JUL2024"
 
-    gcs_train_file = gcs_validation_file
-
     # Training settings.
     perform_intra_epoch_validation = True
-    send_wandb_notification = False
+    send_wandb_notification = True
     device = "cuda"
     # device_ids = None  # Use one (the default) GPU.
     device_ids = [0, 1, 2, 3, 4, 5, 6, 7]  # Use 8 GPUs.
     num_training_workers_per_gpu = 4
     num_validation_workers_per_gpu = 4
-    learning_rate = 1e-3
+    learning_rate = 2e-4
     warmup_ratio = 1 / 10
     num_epochs = 4
     training_batch_size = 16
@@ -53,13 +51,12 @@ def main():
     model = model.to("cuda")
     image_processor = model.get_image_processor()
 
+    for param in model.parameters():
+        param.requires_grad = True
+
     # Freeze the InternViT.
     for param in model.intern_vit.parameters():
         param.requires_grad = False
-
-    # Unfreeze the classfier.
-    for param in model.classifier.parameters():
-        param.requires_grad = True
 
     # Prepare the training data.
     print("Preparing the training data")
@@ -80,7 +77,7 @@ def main():
 
     mlops_parameters = MlopsParameters(mlops_type=MlopsType.WANDB,
                                        experiment_name=mlops_experiment_name,
-                                       notes="InternVL weights: internvl2.5_8b_finetune_lora_20241226_205132_1e-5_2.5_gradient_full_rm_sole_no_findings_rm_bad_dcm_tiles_6_no_labels/checkpoint-58670",
+                                       notes="InternVL model: 8B with no labels",
                                        send_notification=send_wandb_notification)
 
     training_helper = TorchTrainingHelper(model=model,
@@ -97,7 +94,7 @@ def main():
         return pixel_values
 
     def get_torch_labels(samples):
-        labels = torch.stack([dataset_helper.get_torch_label(item) for item in samples])
+        labels = torch.stack([dataset_helper.get_torch_label(item).to(torch.bfloat16) for item in samples])
         return labels
 
     def collate_function(samples):
