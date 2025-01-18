@@ -7,17 +7,29 @@ from IPython.display import clear_output
 
 
 def show_visualization_data(visualization_data, num_view_grid_columns, label_to_string_mapping=None):
+    # Extract visualization data.
     inputs = visualization_data["inputs"]
+    assert(len(inputs) > 0)
+    labels = visualization_data["labels"]
+    assert(len(labels) > 0)
+    probabilities = visualization_data["probabilities"] if "probabilities" in visualization_data else None
+    assert not probabilities or len(probabilities) > 0
 
+    # Numpy cannot handle bfloat16 format, so convert it to float32.
     if inputs.dtype == torch.bfloat16:
         inputs = inputs.to(torch.float32)
 
+    # Apply label to string mapping.
     if label_to_string_mapping:
-        labels = [label_to_string_mapping[label.item()] for label in visualization_data["labels"]]
+        labels = [label_to_string_mapping[label.item()] for label in labels]
     else:
-        labels = ["/" for label in visualization_data["labels"]]
+        labels = ["/" for label in labels]
 
-    probabilities = [probability.item() for probability in visualization_data["probabilities"]] if "probabilities" in visualization_data else None
+    # Display probabilities if they are available and only if they are scalars.
+    if probabilities and probabilities[0].numel() > 1:
+        probabilities = [probability.item() for probability in probabilities]
+    else:
+        probabilities = ["/" for probability in probabilities]
 
     NUM_IMAGES = inputs.size(0)
     NUM_ROWS = math.ceil(NUM_IMAGES / num_view_grid_columns)
