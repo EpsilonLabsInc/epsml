@@ -15,7 +15,7 @@ def show_visualization_data(visualization_data, num_view_grid_columns, label_to_
     probabilities = visualization_data["probabilities"] if "probabilities" in visualization_data else None
     assert not probabilities or len(probabilities) > 0
 
-    # Numpy cannot handle bfloat16 format, so convert it to float32.
+    # Numpy cannot handle bfloat16 type, so convert it to float32.
     if inputs.dtype == torch.bfloat16:
         inputs = inputs.to(torch.float32)
 
@@ -29,7 +29,7 @@ def show_visualization_data(visualization_data, num_view_grid_columns, label_to_
     if probabilities and probabilities[0].numel() > 1:
         probabilities = [probability.item() for probability in probabilities]
     else:
-        probabilities = ["/" for probability in probabilities]
+        probabilities = None
 
     NUM_IMAGES = inputs.size(0)
     NUM_ROWS = math.ceil(NUM_IMAGES / num_view_grid_columns)
