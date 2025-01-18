@@ -2,6 +2,7 @@ import ast
 import os
 
 import datasets
+import numpy as np
 import pandas as pd
 import torch
 from PIL import Image
@@ -15,7 +16,7 @@ from epsutils.labels.cr_chest_labels import CR_CHEST_LABELS
 
 
 class GradientCrDatasetHelper(BaseDatasetHelper):
-    def __init__(self, gcs_train_file, gcs_validation_file, gcs_test_file=None, images_dir=None):
+    def __init__(self, gcs_train_file, gcs_validation_file, gcs_test_file=None, images_dir=None, convert_images_to_rgb=True):
         """
         Initializes the GradientCrDatasetHelper with the specified parameters.
 
@@ -28,7 +29,8 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
         super().__init__(gcs_train_file=gcs_train_file,
                          gcs_validation_file=gcs_validation_file,
                          gcs_test_file=gcs_test_file,
-                         images_dir=images_dir)
+                         images_dir=images_dir,
+                         convert_images_to_rgb=convert_images_to_rgb)
 
     def _load_dataset(self, *args, **kwargs):
         # Store params.
@@ -36,6 +38,7 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
         self.__gcs_validation_file = kwargs["gcs_validation_file"] if "gcs_validation_file" in kwargs else next((arg for arg in args if arg == "gcs_validation_file"), None)
         self.__gcs_test_file = kwargs["gcs_test_file"] if "gcs_test_file" in kwargs else next((arg for arg in args if arg == "gcs_test_file"), None)
         self.__images_dir = kwargs["images_dir"] if "images_dir" in kwargs else next((arg for arg in args if arg == "images_dir"), None)
+        self.__convert_images_to_rgb = kwargs["convert_images_to_rgb"] if "convert_images_to_rgb" in kwargs else next((arg for arg in args if arg == "convert_images_to_rgb"), None)
 
         self.__pandas_full_dataset = None
         self.__pandas_train_dataset = None
@@ -139,7 +142,18 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
         try:
             image_path = item["image_path"]
             image = dicom_utils.get_dicom_image(image_path, custom_windowing_parameters={"window_center": 0, "window_width": 0})
-            image = Image.fromarray(image).convert("RGB")
+            image = image.astype(np.float32)
+            image = (image - image.min()) / (image.max() - image.min())
+
+            if self.__convert_images_to_rgb:
+                image = image * 255
+                image = image.astype(np.uint8)
+
+            image = Image.fromarray(image)
+
+            if self.__convert_images_to_rgb:
+                image = image.convert("RGB")
+
             return image
 
         except Exception as e:
