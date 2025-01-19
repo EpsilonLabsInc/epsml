@@ -33,7 +33,7 @@ def load_file(file_name):
     if gcs_utils.is_gcs_uri(file_name):
         gcs_data = gcs_utils.split_gcs_uri(file_name)
         content = gcs_utils.download_file_as_string(gcs_bucket_name=gcs_data["gcs_bucket_name"], gcs_file_name=gcs_data["gcs_path"])
-        content = BytesIO(content)
+        return content
     else:
         raise ValueError(f"Load option not implemented")
 
@@ -66,19 +66,23 @@ def check_image(image_path):
     if gcs_utils.is_gcs_uri(image_path):
         gcs_data = gcs_utils.split_gcs_uri(image_path)
         content = gcs_utils.download_file_as_bytes(gcs_bucket_name=gcs_data["gcs_bucket_name"], gcs_file_name=gcs_data["gcs_path"])
+        content = BytesIO(content)
     else:
         content = image_path
 
     try:
         image = dicom_utils.get_dicom_image(content, custom_windowing_parameters={"window_center": 0, "window_width": 0})
-        print(f"Ok image: {image_path}")
     except Exception as e:
         print(f"Corrupt image: {image_path}")
         logging.warning(image_path)
 
 
 def main():
-    logging_utils.configure_logger(logger_file_name=OUTPUT_FILE, show_logging_category=False)
+    output_dir = os.path.dirname(OUTPUT_FILE)
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir, exist_ok=True)
+
+    logging_utils.configure_logger(logger_file_name=OUTPUT_FILE, show_logging_level=False)
 
     file_type = get_file_type(IMAGES_FILE)
     if file_type == FileType.UNSUPPORTED:
