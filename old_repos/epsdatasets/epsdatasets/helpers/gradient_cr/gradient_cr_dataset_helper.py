@@ -143,7 +143,8 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
             image_path = item["image_path"]
             image = dicom_utils.get_dicom_image(image_path, custom_windowing_parameters={"window_center": 0, "window_width": 0})
             image = image.astype(np.float32)
-            image = (image - image.min()) / (image.max() - image.min())
+            eps = 1e-10
+            image = (image - image.min()) / (image.max() - image.min() + eps)
 
             if self.__convert_images_to_rgb:
                 image = image * 255
