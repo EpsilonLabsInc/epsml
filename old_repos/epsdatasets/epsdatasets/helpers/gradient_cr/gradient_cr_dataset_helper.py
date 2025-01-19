@@ -1,5 +1,6 @@
 import ast
 import os
+from io import BytesIO
 
 import datasets
 import numpy as np
@@ -137,10 +138,13 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
         self.__torch_test_dataset = GradientCrTorchDataset(pandas_dataframe=self.__pandas_test_dataset) if self.__pandas_test_dataset else None
 
     def get_pil_image(self, item):
-        # TODO: Support GCS download if necessary.
-
         try:
             image_path = item["image_path"]
+
+            if gcs_utils.is_gcs_uri(image_path):
+                gcs_data = gcs_utils.split_gcs_uri(image_path)
+                image_path = BytesIO(gcs_utils.download_file_as_bytes(gcs_bucket_name=gcs_data["gcs_bucket_name"], gcs_file_name=gcs_data["gcs_path"]))
+
             image = dicom_utils.get_dicom_image(image_path, custom_windowing_parameters={"window_center": 0, "window_width": 0})
             image = image.astype(np.float32)
             eps = 1e-10
