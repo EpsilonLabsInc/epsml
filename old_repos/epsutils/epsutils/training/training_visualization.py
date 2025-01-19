@@ -13,7 +13,6 @@ def show_visualization_data(visualization_data, num_view_grid_columns, label_to_
     labels = visualization_data["labels"]
     assert(len(labels) > 0)
     probabilities = visualization_data["probabilities"] if "probabilities" in visualization_data else None
-    assert not probabilities or len(probabilities) > 0
 
     # Numpy cannot handle bfloat16 type, so convert it to float32.
     if inputs.dtype == torch.bfloat16:
@@ -26,9 +25,9 @@ def show_visualization_data(visualization_data, num_view_grid_columns, label_to_
         labels = ["/" for label in labels]
 
     # Display probabilities if they are available and only if they are scalars.
-    if probabilities and probabilities[0].numel() > 1:
+    if probabilities and probabilities[0].numel() == 1:
         probabilities = [probability.item() for probability in probabilities]
-    else:
+    elif probabilities and probabilities[0].numel() > 1:
         probabilities = None
 
     NUM_IMAGES = inputs.size(0)
