@@ -19,17 +19,18 @@ def main():
 
     # Training settings.
     perform_intra_epoch_validation = True
-    send_wandb_notification = True
+    intra_epoch_validation_step = 3000
+    send_wandb_notification = False
     device = "cuda"
     # device_ids = None  # Use one (the default) GPU.
     device_ids = [0, 1, 2, 3, 4, 5, 6, 7]  # Use 8 GPUs.
-    num_training_workers_per_gpu = 4
-    num_validation_workers_per_gpu = 4
+    num_training_workers_per_gpu = 2
+    num_validation_workers_per_gpu = 2
     learning_rate = 2e-4
     warmup_ratio = 1 / 10
     num_epochs = 4
-    training_batch_size = 16
-    validation_batch_size = 16
+    training_batch_size = 64
+    validation_batch_size = 64
 
     experiment_name = f"{model_name}-finetuning-on-{dataset_name}"
     mlops_experiment_name = f"{experiment_name}"
@@ -69,6 +70,7 @@ def main():
                                              criterion=torch.nn.BCEWithLogitsLoss(),
                                              checkpoint_dir=checkpoint_dir,
                                              perform_intra_epoch_validation=perform_intra_epoch_validation,
+                                             intra_epoch_validation_step=intra_epoch_validation_step,
                                              num_training_workers_per_gpu=num_training_workers_per_gpu,
                                              num_validation_workers_per_gpu=num_validation_workers_per_gpu,
                                              save_visualizaton_data_during_training=True,
