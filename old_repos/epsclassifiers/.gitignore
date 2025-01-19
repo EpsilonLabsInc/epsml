@@ -4,8 +4,9 @@
 # Wandb.
 wandb/
 
-# Output files.
+# Data files.
 output/
+data/
 
 # Torch.
 *.pt*
