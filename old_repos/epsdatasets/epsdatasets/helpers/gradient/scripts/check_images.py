@@ -73,7 +73,7 @@ def check_image(image_path):
     try:
         image = dicom_utils.get_dicom_image(content, custom_windowing_parameters={"window_center": 0, "window_width": 0})
     except Exception as e:
-        print(f"Corrupt image: {image_path}")
+        print(f"Corrupt image {image_path}: {str(e)}")
         logging.warning(image_path)
 
 
