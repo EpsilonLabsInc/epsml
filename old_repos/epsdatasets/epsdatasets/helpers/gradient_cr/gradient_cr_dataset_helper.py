@@ -162,7 +162,7 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
             return image
 
         except Exception as e:
-            print(f"Error loading {item["image_path"]}: {str(e)}")
+            print(f"Error loading {item['image_path']}: {str(e)}")
             raise
 
     def get_torch_image(self, item, processor):
