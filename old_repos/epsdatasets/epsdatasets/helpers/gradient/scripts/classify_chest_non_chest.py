@@ -17,12 +17,12 @@ from epsutils.gcs import gcs_utils
 from epsutils.logging import logging_utils
 
 EPSILON_GCS_BUCKET_NAME = "gradient-crs"
-EPSILON_GCS_IMAGES_DIR = "20DEC2024"
+EPSILON_GCS_IMAGES_DIR = "13JAN2025"
 GRADIENT_GCS_BUCKET_NAME = "epsilon-data-us-central1"
-GRADIENT_GCS_IMAGES_DIR = "GRADIENT-DATABASE/CR/20DEC2024/deid"
+GRADIENT_GCS_IMAGES_DIR = "GRADIENT-DATABASE/CR/13JAN2025-C1/deid"
 CHECK_IF_BODY_PART_EXAMINED_IS_CHEST = True
 BODY_PART_EXAMINED_DICOM_TAG = "(0018,0015) Body Part Examined:"
-OUTPUT_FILE = "output/gradient-crs-20DEC2024-chest_non_chest.csv"
+OUTPUT_FILE = "output/gradient-crs-13JAN2025-chest_non_chest.csv"
 MAX_BATCH_SIZE = 16
 EMPTY_QUEUE_WAIT_TIMEOUT_SEC = 60
 
