@@ -12,19 +12,22 @@ from epsutils.gcs import gcs_utils
 from epsutils.logging import logging_utils
 
 
-IMAGES_FILE = "gs://epsilonlabs-filestore/cleaned_CRs/gradient_rm_bad_dcm_1211_nolabel.jsonl"
-DESTINATION_IMAGES_DIR = "/mnt/gradient/gradient-cxr/22JUL2024"
-OUTPUT_FILE = "./output/gradient_rm_bad_dcm_1211_nolabel-corrupt-images.csv"
+IMAGES_FILE = "/home/andrej/work/epsdatasets/epsdatasets/helpers/gradient/scripts/output/all-gradient-crs-09JAN2025-images.csv"
+DESTINATION_IMAGES_DIR = "gs://epsilon-data-us-central1/GRADIENT-DATABASE/CR/09JAN2025/deid"
+OUTPUT_FILE = "./output/gradient-crs-09JAN2025-corrupt-images.csv"
 
 
 class FileType(Enum):
     JSONL = 1
-    UNSUPPORTED = 2
+    CSV = 2
+    UNSUPPORTED = 3
 
 
 def get_file_type(file_name):
     if file_name.endswith(".jsonl"):
         return FileType.JSONL
+    elif file_name.endswith(".csv"):
+        return FileType.CSV
     else:
         return FileType.UNSUPPORTED
 
@@ -35,12 +38,16 @@ def load_file(file_name):
         content = gcs_utils.download_file_as_string(gcs_bucket_name=gcs_data["gcs_bucket_name"], gcs_file_name=gcs_data["gcs_path"])
         return content
     else:
-        raise ValueError(f"Load option not implemented")
+        with open(file_name, "r") as file:
+            content = file.read()
+            return content
 
 
 def parse_content(file_type, content):
     if file_type == FileType.JSONL:
         return parse_jsonl(content)
+    elif file_type == FileType.CSV:
+        return parse_csv(content)
     else:
         raise ValueError("Parse option not implemented")
 
@@ -58,6 +65,22 @@ def parse_jsonl(content):
                 image = image.replace("_", "/").replace(".txt", ".dcm")
             image_path = os.path.join(DESTINATION_IMAGES_DIR, image) if DESTINATION_IMAGES_DIR else image
             images.append(image_path)
+
+    return images
+
+
+def parse_csv(content):
+    images = []
+    rows = content.splitlines()
+
+    for row in rows:
+        image = row.strip()
+
+        if image.endswith(".txt"):
+            image = image.replace("_", "/").replace(".txt", ".dcm")
+
+        image_path = os.path.join(DESTINATION_IMAGES_DIR, image) if DESTINATION_IMAGES_DIR else image
+        images.append(image_path)
 
     return images
 
