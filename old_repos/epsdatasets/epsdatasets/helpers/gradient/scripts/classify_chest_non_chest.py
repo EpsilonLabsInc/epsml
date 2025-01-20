@@ -20,6 +20,8 @@ EPSILON_GCS_BUCKET_NAME = "gradient-crs"
 EPSILON_GCS_IMAGES_DIR = "20DEC2024"
 GRADIENT_GCS_BUCKET_NAME = "epsilon-data-us-central1"
 GRADIENT_GCS_IMAGES_DIR = "GRADIENT-DATABASE/CR/20DEC2024/deid"
+CHECK_IF_BODY_PART_EXAMINED_IS_CHEST = True
+BODY_PART_EXAMINED_DICOM_TAG = "(0018,0015) Body Part Examined:"
 OUTPUT_FILE = "output/gradient-crs-20DEC2024-chest_non_chest.csv"
 MAX_BATCH_SIZE = 16
 EMPTY_QUEUE_WAIT_TIMEOUT_SEC = 60
@@ -32,7 +34,28 @@ classifier = CrChestClassifier()
 classifier.load_state_dict(torch.load(MODEL_PATH))
 
 
+def is_body_part_examined_chest(txt_file):
+    try:
+        txt_file = os.path.join(EPSILON_GCS_IMAGES_DIR, txt_file)
+        content = gcs_utils.download_file_as_string(gcs_bucket_name=EPSILON_GCS_BUCKET_NAME, gcs_file_name=txt_file)
+
+        rows = content.splitlines()
+        for row in rows:
+            if row.startswith(BODY_PART_EXAMINED_DICOM_TAG)
+                body_part = row[len(BODY_PART_EXAMINED_DICOM_TAG):].strip()
+                return body_part in ["Chest", "Chest/Abdomen"]
+
+        raise ValueError("BodyPartExamined DICOM tag not found")
+
+    except Exception as e:
+        print(f"Error downloading/parsing TXT file: {str(e)} ({txt_file})")
+        raise
+
+
 def download_dicom_file(txt_file):
+    if CHECK_IF_BODY_PART_EXAMINED_IS_CHEST and not is_body_part_examined_chest(txt_file):
+        return
+
     try:
         dicom_file = txt_file.replace("_", "/").replace(".txt", ".dcm")
         dicom_file = os.path.join(GRADIENT_GCS_IMAGES_DIR, dicom_file)
