@@ -41,7 +41,7 @@ def is_body_part_examined_chest(txt_file):
 
         rows = content.splitlines()
         for row in rows:
-            if row.startswith(BODY_PART_EXAMINED_DICOM_TAG)
+            if row.startswith(BODY_PART_EXAMINED_DICOM_TAG):
                 body_part = row[len(BODY_PART_EXAMINED_DICOM_TAG):].strip()
                 return body_part in ["Chest", "Chest/Abdomen"]
 
