@@ -7,14 +7,18 @@ from tqdm import tqdm
 from epsutils.gcs import gcs_utils
 from epsutils.logging import logging_utils
 
-GCS_IMAGES_DIR = "gs://gradient-crs/09JAN2025"
+GCS_IMAGES_DIR = "gs://gradient-crs/13JAN2025"
 LIST_FILE_NAMES_ONLY = True
-OUTPUT_FILE = "./output/all-gradient-crs-09JAN2025-images.csv"
+CONVERT_TXT_TO_DICOM_PATHS = True
+OUTPUT_FILE = "./output/gradient-crs-13JAN2025.csv"
 
 
 def list_file(file):
     if LIST_FILE_NAMES_ONLY:
         file_to_list = os.path.basename(file)
+
+        if CONVERT_TXT_TO_DICOM_PATHS:
+            file_to_list = file_to_list.replace("_", "/").replace(".txt", ".dcm")
     else:
         file_to_list = file
 
