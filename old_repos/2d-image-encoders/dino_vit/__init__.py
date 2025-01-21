@@ -1,1 +1,1 @@
-from .dino_vit import DinoVit
+from .dino_vit import DinoVit, DinoVitType
