@@ -93,11 +93,11 @@ def main():
     def get_torch_images(samples):
         images = [dataset_helper.get_pil_image(item) for item in samples]
         pixel_values = image_processor(images=images, return_tensors="pt").pixel_values
-        pixel_values = pixel_values.to(torch.bfloat16)
+        pixel_values = pixel_values.to(torch.float32)
         return pixel_values
 
     def get_torch_labels(samples):
-        labels = torch.stack([dataset_helper.get_torch_label(item).to(torch.bfloat16) for item in samples])
+        labels = torch.stack([dataset_helper.get_torch_label(item).to(torch.float32) for item in samples])
         return labels
 
     def collate_function(samples):
