@@ -26,6 +26,7 @@ class TrainingParameters:
             validation_batch_size=4,
             criterion=torch.nn.CrossEntropyLoss(),
             checkpoint_dir="checkpoint",
+            last_checkpoint=None,
             moving_average_window_width=100,
             perform_intra_epoch_validation=False,
             intra_epoch_validation_step=1000,
@@ -44,6 +45,7 @@ class TrainingParameters:
         self.validation_batch_size = validation_batch_size
         self.criterion = criterion
         self.checkpoint_dir = checkpoint_dir
+        self.last_checkpoint = last_checkpoint
         self.moving_average_window_width = moving_average_window_width
         self.perform_intra_epoch_validation = perform_intra_epoch_validation
         self.intra_epoch_validation_step = intra_epoch_validation_step
@@ -156,6 +158,18 @@ class TorchTrainingHelper:
         print(f"Model's dtype: {self.__model_dtype}")
         print(f"Num model params: {self.__num_model_params}")
 
+        # Load checkpoint.
+        if self.__training_parameters.last_checkpoint:
+            print(f"Loading checkpoint {self.__training_parameters.last_checkpoint}")
+            checkpoint = torch.load(self.__training_parameters.last_checkpoint)
+            last_epoch = checkpoint["epoch"] - 1 # Convert epoch number from one-based to zero-based.
+            start_epoch = last_epoch + 1  # Continue with the next epoch.
+            self.__model.load_state_dict(checkpoint["model_state_dict"])
+            self.__parallel_model.load_state_dict(checkpoint["parallel_model_state_dict"])
+            self.__optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
+        else:
+            start_epoch = 0
+
         print("Training started")
 
         # Log training parameters.
@@ -163,7 +177,7 @@ class TorchTrainingHelper:
             self.__log_params()
 
         # Training loop.
-        for epoch in range(self.__training_parameters.num_epochs):
+        for epoch in range(start_epoch, self.__training_parameters.num_epochs):
             print("")
             print("--------------------")
             print(f"EPOCH {epoch + 1}/{self.__training_parameters.num_epochs}")
