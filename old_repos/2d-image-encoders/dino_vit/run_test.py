@@ -4,7 +4,7 @@ from PIL import Image
 from epsutils.dicom import dicom_utils
 from dino_vit import DinoVit, DinoVitType
 
-CHECKPOINT = None
+CHECKPOINT = "./data/model_0479999.pth"
 IMAGE_PATH = "./samples/sample.dcm"
 
 
@@ -29,11 +29,11 @@ def main():
     print("Output:")
     print(output)
     print(f"Output type: {type(output)}")
-    print(f"Output size: {output.pooler_output.shape}")
+    print(f"Output size: {output.shape}")
 
-    print(f"First element: {output.pooler_output[0, 0]}")
-    print(f"Type of first element: {type(output.pooler_output[0, 0])}")
-    print(f"Data type of first element: {output.pooler_output[0, 0].dtype}")
+    print(f"First element: {output[0, 0]}")
+    print(f"Type of first element: {type(output[0, 0])}")
+    print(f"Data type of first element: {output[0, 0].dtype}")
 
 
 if __name__ == "__main__":
