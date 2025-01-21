@@ -12,9 +12,9 @@ from epsutils.gcs import gcs_utils
 from epsutils.logging import logging_utils
 
 
-IMAGES_FILE = "/home/andrej/work/epsdatasets/epsdatasets/helpers/gradient/scripts/output/all-gradient-crs-09JAN2025-images.csv"
-DESTINATION_IMAGES_DIR = "gs://epsilon-data-us-central1/GRADIENT-DATABASE/CR/09JAN2025/deid"
-OUTPUT_FILE = "./output/gradient-crs-09JAN2025-corrupt-images.csv"
+IMAGES_FILE = "/home/andrej/work/epsdatasets/epsdatasets/helpers/gradient/scripts/output/all-gradient-crs-20DEC2024-images.csv"
+DESTINATION_IMAGES_DIR = "gs://epsilon-data-us-central1/GRADIENT-DATABASE/CR/20DEC2024/deid"
+OUTPUT_FILE = "./output/gradient-crs-20DEC2024-corrupt-images.csv"
 
 
 class FileType(Enum):
@@ -87,9 +87,14 @@ def parse_csv(content):
 
 def check_image(image_path):
     if gcs_utils.is_gcs_uri(image_path):
-        gcs_data = gcs_utils.split_gcs_uri(image_path)
-        content = gcs_utils.download_file_as_bytes(gcs_bucket_name=gcs_data["gcs_bucket_name"], gcs_file_name=gcs_data["gcs_path"])
-        content = BytesIO(content)
+        try:
+            gcs_data = gcs_utils.split_gcs_uri(image_path)
+            content = gcs_utils.download_file_as_bytes(gcs_bucket_name=gcs_data["gcs_bucket_name"], gcs_file_name=gcs_data["gcs_path"])
+            content = BytesIO(content)
+        except Exception as e:
+            print(f"Error downloading image {image_path}: {str(e)}")
+            logging.warning(image_path)
+            return
     else:
         content = image_path
 
