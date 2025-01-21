@@ -24,13 +24,13 @@ def main():
     device = "cuda"
     # device_ids = None  # Use one (the default) GPU.
     device_ids = [0, 1, 2, 3, 4, 5, 6, 7]  # Use 8 GPUs.
-    num_training_workers_per_gpu = 2
-    num_validation_workers_per_gpu = 2
+    num_training_workers_per_gpu = 8
+    num_validation_workers_per_gpu = 8
     learning_rate = 2e-4
     warmup_ratio = 1 / 10
     num_epochs = 4
-    training_batch_size = 64
-    validation_batch_size = 64
+    training_batch_size = 32
+    validation_batch_size = 32
 
     experiment_name = f"{model_name}-finetuning-on-{dataset_name}"
     mlops_experiment_name = f"{experiment_name}"
@@ -48,6 +48,7 @@ def main():
     )
 
     # Create the model.
+    print("Creating the model")
     model = InternVitClassifier(num_classes=14, intern_vl_checkpoint_dir=intern_vl_checkpoint_dir)
     model = model.to("cuda")
     image_processor = model.get_image_processor()
