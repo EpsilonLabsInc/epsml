@@ -13,7 +13,7 @@ from epsdatasets.helpers.base.base_dataset_helper import BaseDatasetHelper
 from epsutils.dicom import dicom_utils
 from epsutils.gcs import gcs_utils
 from epsutils.labels import labels_utils
-from epsutils.labels.cr_chest_labels import CR_CHEST_LABELS
+from epsutils.labels.cr_chest_labels import CR_CHEST_LABELS_FOR_CLASSIFICATION
 
 
 class GradientCrDatasetHelper(BaseDatasetHelper):
@@ -169,7 +169,7 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
         raise NotImplementedError("Not implemented")
 
     def get_labels(self):
-        return CR_CHEST_LABELS
+        return CR_CHEST_LABELS_FOR_CLASSIFICATION
 
     def get_ids_to_labels(self):
         raise NotImplementedError("Not implemented")
@@ -178,7 +178,7 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
         raise NotImplementedError("Not implemented")
 
     def get_torch_label(self, item):
-        return torch.tensor(labels_utils.to_multi_hot_encoding(item["labels"], CR_CHEST_LABELS))
+        return torch.tensor(labels_utils.to_multi_hot_encoding(item["labels"], CR_CHEST_LABELS_FOR_CLASSIFICATION))
 
     def get_pandas_full_dataset(self):
         raise NotImplementedError("Not implemented")
