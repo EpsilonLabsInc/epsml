@@ -1,3 +1,5 @@
+import time
+
 import re
 from dateutil.parser import parse
 from enum import Enum
@@ -5,6 +7,7 @@ from typing import Tuple, List
 
 import numpy as np
 import pydicom
+import SimpleITK as sitk
 
 
 def get_friendly_names(sop_class_uids: Tuple[pydicom.uid.UID, ...]):
@@ -127,6 +130,10 @@ def get_dicom_image_from_dataset(dataset: pydicom.dataset.FileDataset, custom_wi
 def get_dicom_image(dicom_file_name, custom_windowing_parameters=None):
     dataset = pydicom.dcmread(dicom_file_name)
     return get_dicom_image_from_dataset(dataset, custom_windowing_parameters)
+
+
+def get_dicom_image_fast(dicom_file_name):
+    return sitk.GetArrayFromImage(sitk.ReadImage(dicom_file_name))
 
 
 def check_dicom_image_in_dataset(dataset: pydicom.dataset.FileDataset):
