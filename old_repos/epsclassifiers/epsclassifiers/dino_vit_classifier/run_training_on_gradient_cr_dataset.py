@@ -49,7 +49,7 @@ def main():
 
     # Create the model.
     print("Creating the model")
-    model = DinoVitClassifier(num_classes=14, dino_vit_checkpoint=dino_vit_checkpoint)
+    model = DinoVitClassifier(num_classes=13, dino_vit_checkpoint=dino_vit_checkpoint)
     model = model.to("cuda")
     image_processor = model.get_image_processor()
 

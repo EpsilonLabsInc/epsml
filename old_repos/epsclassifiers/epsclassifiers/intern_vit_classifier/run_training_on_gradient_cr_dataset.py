@@ -2,6 +2,7 @@ import torch
 
 from epsclassifiers.intern_vit_classifier import InternVitClassifier
 from epsdatasets.helpers.gradient_cr.gradient_cr_dataset_helper import GradientCrDatasetHelper
+from epsutils.training.sample_balanced_bce_with_logits_loss import SampleBalancedBCEWithLogitsLoss
 from epsutils.training.torch_training_helper import TorchTrainingHelper, TrainingParameters, MlopsType, MlopsParameters
 
 
@@ -19,7 +20,7 @@ def main():
 
     # Training settings.
     perform_intra_epoch_validation = True
-    intra_epoch_validation_step = 3000
+    intra_epoch_validation_step = 5000
     send_wandb_notification = False
     device = "cuda"
     # device_ids = None  # Use one (the default) GPU.
@@ -49,7 +50,7 @@ def main():
 
     # Create the model.
     print("Creating the model")
-    model = InternVitClassifier(num_classes=14, intern_vl_checkpoint_dir=intern_vl_checkpoint_dir)
+    model = InternVitClassifier(num_classes=13, intern_vl_checkpoint_dir=intern_vl_checkpoint_dir)
     model = model.to("cuda")
     image_processor = model.get_image_processor()
 
@@ -68,7 +69,7 @@ def main():
                                              num_epochs=num_epochs,
                                              training_batch_size=training_batch_size,
                                              validation_batch_size=validation_batch_size,
-                                             criterion=torch.nn.BCEWithLogitsLoss(),
+                                             criterion=SampleBalancedBCEWithLogitsLoss(),
                                              checkpoint_dir=checkpoint_dir,
                                              perform_intra_epoch_validation=perform_intra_epoch_validation,
                                              intra_epoch_validation_step=intra_epoch_validation_step,
@@ -80,7 +81,7 @@ def main():
 
     mlops_parameters = MlopsParameters(mlops_type=MlopsType.WANDB,
                                        experiment_name=mlops_experiment_name,
-                                       notes="InternVL model: 8B with no labels",
+                                       notes="InternVL model: 8B with no labels, loss=SampleBalancedBCEWithLogitsLoss",
                                        send_notification=send_wandb_notification)
 
     training_helper = TorchTrainingHelper(model=model,
