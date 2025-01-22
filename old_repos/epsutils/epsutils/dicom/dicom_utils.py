@@ -1,5 +1,3 @@
-import time
-
 import re
 from dateutil.parser import parse
 from enum import Enum
