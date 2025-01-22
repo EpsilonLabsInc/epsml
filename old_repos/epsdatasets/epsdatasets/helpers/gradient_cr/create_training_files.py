@@ -13,8 +13,8 @@ GCS_INPUT_FILE = "gs://epsilonlabs-filestore/cleaned_CRs/gradient_rm_bad_dcm_121
 GCS_INPUT_IMAGES_DIR = "GRADIENT-DATABASE/CR/22JUL2024/"
 GCS_CHEST_IMAGES_FILE = "gs://gradient-crs/archive/training/chest_files_gradient_all_3_batches.csv"
 SEED = 42
-OUTPUT_TRAINING_FILE = "gradient-crs-22JUL2024-chest-images-with-labels-training.csv"
-OUTPUT_VALIDATION_FILE = "gradient-crs-22JUL2024-chest-images-with-labels-validation.csv"
+OUTPUT_TRAINING_FILE = "gradient-crs-22JUL2024-chest-images-with-labels-training.jsonl"
+OUTPUT_VALIDATION_FILE = "gradient-crs-22JUL2024-chest-images-with-labels-validation.jsonl"
 
 
 def get_labels_distribution(images):
