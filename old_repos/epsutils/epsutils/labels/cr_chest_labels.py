@@ -1,4 +1,4 @@
-ALL_CR_CHEST_LABELS = [
+CR_CHEST_LABELS = [
     "Enlarged Cardiomediastinum",
     "Cardiomegaly",
     "Lung Lesion",
@@ -15,9 +15,9 @@ ALL_CR_CHEST_LABELS = [
     "No Findings"
 ]
 
-assert len(ALL_CR_CHEST_LABELS) == 14
+assert len(CR_CHEST_LABELS) == 14
 
-CR_CHEST_LABELS_FOR_CLASSIFICATION = [
+EXTENDED_CR_CHEST_LABELS = [
     "Enlarged Cardiomediastinum",
     "Cardiomegaly",
     "Lung Lesion",
@@ -30,8 +30,9 @@ CR_CHEST_LABELS_FOR_CLASSIFICATION = [
     "Pleural Effusion",
     "Pleural Other",
     "Fracture",
-    "Support Devices"
-    # "No Findings" are not included.
+    "Support Devices",
+    "No Findings",
+    "Other"
 ]
 
-assert len(CR_CHEST_LABELS_FOR_CLASSIFICATION) == 13
+assert len(EXTENDED_CR_CHEST_LABELS) == 15
