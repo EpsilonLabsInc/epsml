@@ -131,7 +131,7 @@ def get_dicom_image(dicom_file_name, custom_windowing_parameters=None):
 
 
 def get_dicom_image_fast(dicom_file_name):
-    return sitk.GetArrayFromImage(sitk.ReadImage(dicom_file_name))
+    return sitk.GetArrayFromImage(sitk.ReadImage(dicom_file_name)).squeeze()  # Remove batch dimension using squeeze().
 
 
 def check_dicom_image_in_dataset(dataset: pydicom.dataset.FileDataset):
