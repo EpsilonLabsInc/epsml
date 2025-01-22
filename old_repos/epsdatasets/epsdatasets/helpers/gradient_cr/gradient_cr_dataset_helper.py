@@ -60,7 +60,7 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
         rows = content.splitlines()
         for row in rows:
             row = ast.literal_eval(row)
-            data.append({"image_path": row["image_path"], "labels": row["labels"]})
+            data.append({"image_path": os.path.join(self.__images_dir, os.path.basename(row["image_path"])), "labels": row["labels"]})
 
         # Create traning dataset.
         print("Creating the training dataset")
@@ -82,7 +82,7 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
         rows = content.splitlines()
         for row in rows:
             row = ast.literal_eval(row)
-            data.append({"image_path": row["image_path"], "labels": row["labels"]})
+            data.append({"image_path": os.path.join(self.__images_dir, os.path.basename(row["image_path"])), "labels": row["labels"]})
 
         # Create validation dataset.
         print("Creating the validation dataset")
@@ -105,7 +105,7 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
             rows = content.splitlines()
             for row in rows:
                 row = ast.literal_eval(row)
-                data.append({"image_path": row["image_path"], "labels": row["labels"]})
+                data.append({"image_path": os.path.join(self.__images_dir, os.path.basename(row["image_path"])), "labels": row["labels"]})
 
             # Create test dataset.
             print("Creating the test dataset")
