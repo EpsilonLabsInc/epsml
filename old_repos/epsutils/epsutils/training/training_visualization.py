@@ -25,9 +25,9 @@ def show_visualization_data(visualization_data, num_view_grid_columns, label_to_
         labels = ["/" for label in labels]
 
     # Display probabilities if they are available and only if they are scalars.
-    if probabilities and probabilities[0].numel() == 1:
+    if probabilities is not None and probabilities[0].numel() == 1:
         probabilities = [probability.item() for probability in probabilities]
-    elif probabilities and probabilities[0].numel() > 1:
+    elif probabilities is not None and probabilities[0].numel() > 1:
         probabilities = None
 
     NUM_IMAGES = inputs.size(0)
