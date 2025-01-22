@@ -13,7 +13,7 @@ from epsdatasets.helpers.base.base_dataset_helper import BaseDatasetHelper
 from epsutils.dicom import dicom_utils
 from epsutils.gcs import gcs_utils
 from epsutils.labels import labels_utils
-from epsutils.labels.cr_chest_labels import CR_CHEST_LABELS_FOR_CLASSIFICATION
+from epsutils.labels.cr_chest_labels import EXTENDED_CR_CHEST_LABELS
 
 
 class GradientCrDatasetHelper(BaseDatasetHelper):
@@ -60,12 +60,7 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
         rows = content.splitlines()
         for row in rows:
             row = ast.literal_eval(row)
-            labels = row["labels"]
-            images = row["image"]
-
-            for image in images:
-                image_path = os.path.join(self.__images_dir, image) if self.__images_dir else image
-                data.append({"image_path": image_path, "labels": labels})
+            data.append({"image_path": row["image_path"], "labels": row["labels"]})
 
         # Create traning dataset.
         print("Creating the training dataset")
@@ -87,12 +82,7 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
         rows = content.splitlines()
         for row in rows:
             row = ast.literal_eval(row)
-            labels = row["labels"]
-            images = row["image"]
-
-            for image in images:
-                image_path = os.path.join(self.__images_dir, image) if self.__images_dir else image
-                data.append({"image_path": image_path, "labels": labels})
+            data.append({"image_path": row["image_path"], "labels": row["labels"]})
 
         # Create validation dataset.
         print("Creating the validation dataset")
@@ -115,12 +105,7 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
             rows = content.splitlines()
             for row in rows:
                 row = ast.literal_eval(row)
-                labels = row["labels"]
-                images = row["image"]
-
-                for image in images:
-                    image_path = os.path.join(self.__images_dir, image) if self.__images_dir else image
-                    data.append({"image_path": image_path, "labels": labels})
+                data.append({"image_path": row["image_path"], "labels": row["labels"]})
 
             # Create test dataset.
             print("Creating the test dataset")
@@ -169,7 +154,7 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
         raise NotImplementedError("Not implemented")
 
     def get_labels(self):
-        return CR_CHEST_LABELS_FOR_CLASSIFICATION
+        return EXTENDED_CR_CHEST_LABELS
 
     def get_ids_to_labels(self):
         raise NotImplementedError("Not implemented")
@@ -178,7 +163,7 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
         raise NotImplementedError("Not implemented")
 
     def get_torch_label(self, item):
-        return torch.tensor(labels_utils.to_multi_hot_encoding(item["labels"], CR_CHEST_LABELS_FOR_CLASSIFICATION))
+        return torch.tensor(labels_utils.to_multi_hot_encoding(item["labels"], EXTENDED_CR_CHEST_LABELS))
 
     def get_pandas_full_dataset(self):
         raise NotImplementedError("Not implemented")
