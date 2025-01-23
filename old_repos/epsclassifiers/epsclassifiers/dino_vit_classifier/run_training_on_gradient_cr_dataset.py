@@ -17,14 +17,15 @@ def main():
     dino_vit_checkpoint = "/home/andrej/work/2d-image-encoders/dino_vit/data/model_0479999.pth"
     gcs_train_file = "gs://gradient-crs/archive/training/gradient-crs-22JUL2024-chest-images-with-labels-training.jsonl"
     gcs_validation_file = "gs://gradient-crs/archive/training/gradient-crs-22JUL2024-chest-images-with-labels-validation.jsonl"
+    images_dir = "gs://epsilon-data-us-central1"
 
     # Training settings.
     perform_intra_epoch_validation = True
     intra_epoch_validation_step = 7000
     send_wandb_notification = False
     device = "cuda"
-    # device_ids = None  # Use one (the default) GPU.
-    device_ids = [0, 1, 2, 3, 4, 5, 6, 7]  # Use 8 GPUs.
+    device_ids = None  # Use one (the default) GPU.
+    # device_ids = [0, 1, 2, 3, 4, 5, 6, 7]  # Use 8 GPUs.
     num_training_workers_per_gpu = 8
     num_validation_workers_per_gpu = 8
     learning_rate = 2e-4
@@ -45,7 +46,8 @@ def main():
     print("Loading the dataset")
     dataset_helper = GradientCrDatasetHelper(
         gcs_train_file=gcs_train_file,
-        gcs_validation_file=gcs_validation_file
+        gcs_validation_file=gcs_validation_file,
+        images_dir=images_dir
     )
 
     # Create the model.
