@@ -68,8 +68,8 @@ class AppController(QObject):
                 # Load from bucket.
                 self.__load_from_bucket()
             elif index == 1:
-                # Load from CSV.
-                self.__load_from_csv()
+                # Load from input file.
+                self.__load_from_input_file()
             elif index == 2:
                 # Load from Data Lake.
                 self.__load_from_data_lake()
@@ -121,15 +121,24 @@ class AppController(QObject):
             item = QTableWidgetItem(file_name)
             self.__main_window.table_widget.setItem(row_count, 0, item)
 
+    def __load_from_input_file(self):
+        input_file = self.__main_window.get_input_file()
+        if input_file.lower().endswith(".csv"):
+            self.__load_from_csv()
+        elif input_file.lower().endswith(".jsonl"):
+            self.__load_from_jsonl()
+        else:
+            raise ValueError(f"Unsupported input file format: {input_file}")
+
     def __load_from_csv(self):
-        columns = self.__main_window.get_csv_column().split(';')
+        columns = self.__main_window.get_input_column().split(';')
         if len(columns) > 2:
-            raise ValueError("CSV column can be either single name (e.g., 'volume') or composite of two names (e.g., 'volume;nifti_file')")
+            raise ValueError("Input column can be either single name (e.g., 'volume') or composite of two names (e.g., 'volume;nifti_file')")
 
         column = columns[0]
         key = columns[1] if len(columns) == 2 else None
 
-        df = pd.read_csv(self.__main_window.get_csv_file())
+        df = pd.read_csv(self.__main_window.get_input_file())
         items = df[column]
         row_count = self.__main_window.table_widget.rowCount()
 
@@ -137,6 +146,20 @@ class AppController(QObject):
             file_name = item if key is None else ast.literal_eval(item)[key]
             self.__main_window.table_widget.insertRow(row_count)
             self.__main_window.table_widget.setItem(row_count, 0, QTableWidgetItem(file_name))
+
+    def __load_from_jsonl(self):
+        input_file = self.__main_window.get_input_file()
+        column = self.__main_window.get_input_column()
+        row_count = self.__main_window.table_widget.rowCount()
+
+        with open(input_file, "r", encoding="utf-8") as f:
+            for line in f:
+                row = ast.literal_eval(line)
+                images = row[column]
+
+                for image in images:
+                    self.__main_window.table_widget.insertRow(row_count)
+                    self.__main_window.table_widget.setItem(row_count, 0, QTableWidgetItem(image))
 
     def __load_from_data_lake(self):
         raise RuntimeError(f"Not implemented yet")
@@ -254,6 +277,10 @@ class AppController(QObject):
             self.show_dicom_signal.emit(numpy_image_array)
 
     def __generate_file_names(self, file_name):
+        if file_name.endswith(".dcm"):
+            file_name = file_name.replace("/", "_").replace(".dcm", ".txt")
+            file_name = self.__main_window.get_gcs_dir() + "/" + file_name
+
         file_path_no_ext = file_name.replace(".nii.gz", "").replace(".txt", "")
         unique_name = self.shorten_name(file_path_no_ext)
 

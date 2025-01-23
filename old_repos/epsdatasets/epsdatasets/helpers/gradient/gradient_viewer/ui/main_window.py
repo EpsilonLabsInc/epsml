@@ -32,17 +32,17 @@ class MainWindow(QMainWindow):
             raise ValueError("Invalid max results")
         return max_results
 
-    def get_csv_file(self):
-        csv_file = self.csv_file_edit.text()
-        if not csv_file:
-            raise ValueError("CSV file is empty")
-        return csv_file
+    def get_input_file(self):
+        input_file = self.input_file_edit.text()
+        if not input_file:
+            raise ValueError("Input file is empty")
+        return input_file
 
-    def get_csv_column(self):
-        csv_column = self.csv_column_edit.text()
-        if not csv_column:
-            raise ValueError("CSV column is empty")
-        return csv_column
+    def get_input_column(self):
+        input_column = self.input_column_edit.text()
+        if not input_column:
+            raise ValueError("Input column is empty")
+        return input_column
 
     def get_single_file(self):
         single_file = self.single_file_edit.text()
@@ -128,10 +128,10 @@ class MainWindow(QMainWindow):
             # Load from bucket.
             self.max_results_label.setVisible(True)
             self.max_results_edit.setVisible(True)
-            self.csv_file_label.setVisible(False)
-            self.csv_file_edit.setVisible(False)
-            self.csv_column_label.setVisible(False)
-            self.csv_column_edit.setVisible(False)
+            self.input_file_label.setVisible(False)
+            self.input_file_edit.setVisible(False)
+            self.input_column_label.setVisible(False)
+            self.input_column_edit.setVisible(False)
             self.single_file_label.setVisible(False)
             self.single_file_edit.setVisible(False)
             self.gcs_bucket_label.setVisible(True)
@@ -145,13 +145,13 @@ class MainWindow(QMainWindow):
             self.dicom_gcs_images_dir_label.setVisible(self.include_dicom_check_box.isChecked())
             self.dicom_gcs_images_dir_edit.setVisible(self.include_dicom_check_box.isChecked())
         elif index == 1:
-            # Load from CSV.
+            # Load from input file.
             self.max_results_label.setVisible(False)
             self.max_results_edit.setVisible(False)
-            self.csv_file_label.setVisible(True)
-            self.csv_file_edit.setVisible(True)
-            self.csv_column_label.setVisible(True)
-            self.csv_column_edit.setVisible(True)
+            self.input_file_label.setVisible(True)
+            self.input_file_edit.setVisible(True)
+            self.input_column_label.setVisible(True)
+            self.input_column_edit.setVisible(True)
             self.single_file_label.setVisible(False)
             self.single_file_edit.setVisible(False)
             self.gcs_bucket_label.setVisible(True)
@@ -168,10 +168,10 @@ class MainWindow(QMainWindow):
             # Load from Data Lake.
             self.max_results_label.setVisible(False)
             self.max_results_edit.setVisible(False)
-            self.csv_file_label.setVisible(False)
-            self.csv_file_edit.setVisible(False)
-            self.csv_column_label.setVisible(False)
-            self.csv_column_edit.setVisible(False)
+            self.input_file_label.setVisible(False)
+            self.input_file_edit.setVisible(False)
+            self.input_column_label.setVisible(False)
+            self.input_column_edit.setVisible(False)
             self.single_file_label.setVisible(False)
             self.single_file_edit.setVisible(False)
             self.gcs_bucket_label.setVisible(False)
@@ -188,10 +188,10 @@ class MainWindow(QMainWindow):
             # Load from a single file.
             self.max_results_label.setVisible(False)
             self.max_results_edit.setVisible(False)
-            self.csv_file_label.setVisible(False)
-            self.csv_file_edit.setVisible(False)
-            self.csv_column_label.setVisible(False)
-            self.csv_column_edit.setVisible(False)
+            self.input_file_label.setVisible(False)
+            self.input_file_edit.setVisible(False)
+            self.input_column_label.setVisible(False)
+            self.input_column_edit.setVisible(False)
             self.single_file_label.setVisible(True)
             self.single_file_edit.setVisible(True)
             self.gcs_bucket_label.setVisible(True)

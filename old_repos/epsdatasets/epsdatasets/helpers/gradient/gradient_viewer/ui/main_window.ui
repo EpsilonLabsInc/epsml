@@ -279,14 +279,14 @@
         </widget>
        </item>
        <item row="5" column="0">
-        <widget class="QLabel" name="csv_column_label">
+        <widget class="QLabel" name="input_column_label">
          <property name="text">
-          <string>CSV column:</string>
+          <string>Column:</string>
          </property>
         </widget>
        </item>
        <item row="5" column="1">
-        <widget class="QLineEdit" name="csv_column_edit">
+        <widget class="QLineEdit" name="input_column_edit">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
            <horstretch>0</horstretch>
@@ -296,7 +296,7 @@
         </widget>
        </item>
        <item row="4" column="1">
-        <widget class="QLineEdit" name="csv_file_edit">
+        <widget class="QLineEdit" name="input_file_edit">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
            <horstretch>0</horstretch>
@@ -342,7 +342,7 @@
             </item>
             <item>
              <property name="text">
-              <string>CSV</string>
+              <string>Input file</string>
              </property>
             </item>
             <item>
@@ -402,7 +402,7 @@
         </widget>
        </item>
        <item row="4" column="0">
-        <widget class="QLabel" name="csv_file_label">
+        <widget class="QLabel" name="input_file_label">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
            <horstretch>0</horstretch>
@@ -410,7 +410,7 @@
           </sizepolicy>
          </property>
          <property name="text">
-          <string>CSV file:</string>
+          <string>Input file:</string>
          </property>
         </widget>
        </item>
@@ -456,8 +456,8 @@
  <tabstops>
   <tabstop>image_source_combo_box</tabstop>
   <tabstop>max_results_edit</tabstop>
-  <tabstop>csv_file_edit</tabstop>
-  <tabstop>csv_column_edit</tabstop>
+  <tabstop>input_file_edit</tabstop>
+  <tabstop>input_column_edit</tabstop>
   <tabstop>single_file_edit</tabstop>
   <tabstop>gcs_bucket_edit</tabstop>
   <tabstop>gcs_dir_edit</tabstop>
