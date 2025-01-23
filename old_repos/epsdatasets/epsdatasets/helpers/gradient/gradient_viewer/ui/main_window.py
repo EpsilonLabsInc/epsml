@@ -50,16 +50,16 @@ class MainWindow(QMainWindow):
             raise ValueError("Single file is empty")
         return single_file
 
-    def get_nifti_gcs_bucket(self):
-        bucket = self.nifti_gcs_bucket_edit.text()
+    def get_gcs_bucket(self):
+        bucket = self.gcs_bucket_edit.text()
         if not bucket:
-            raise ValueError("NIfTI GCS bucket is empty")
+            raise ValueError("GCS bucket is empty")
         return bucket
 
-    def get_nifti_gcs_images_dir(self):
-        images_dir = self.nifti_gcs_images_dir_edit.text()
+    def get_gcs_dir(self):
+        images_dir = self.gcs_dir_edit.text()
         if not images_dir:
-            raise ValueError("NIfTI GCS images dir is empty")
+            raise ValueError("GCS dir is empty")
         return images_dir
 
     def get_include_nifti_files(self):
@@ -134,10 +134,10 @@ class MainWindow(QMainWindow):
             self.csv_column_edit.setVisible(False)
             self.single_file_label.setVisible(False)
             self.single_file_edit.setVisible(False)
-            self.nifti_gcs_bucket_label.setVisible(True)
-            self.nifti_gcs_bucket_edit.setVisible(True)
-            self.nifti_gcs_images_dir_label.setVisible(True)
-            self.nifti_gcs_images_dir_edit.setVisible(True)
+            self.gcs_bucket_label.setVisible(True)
+            self.gcs_bucket_edit.setVisible(True)
+            self.gcs_dir_label.setVisible(True)
+            self.gcs_dir_edit.setVisible(True)
             self.include_nifti_check_box.setVisible(True)
             self.include_dicom_check_box.setVisible(True)
             self.dicom_gcs_bucket_label.setVisible(self.include_dicom_check_box.isChecked())
@@ -154,10 +154,10 @@ class MainWindow(QMainWindow):
             self.csv_column_edit.setVisible(True)
             self.single_file_label.setVisible(False)
             self.single_file_edit.setVisible(False)
-            self.nifti_gcs_bucket_label.setVisible(True)
-            self.nifti_gcs_bucket_edit.setVisible(True)
-            self.nifti_gcs_images_dir_label.setVisible(True)
-            self.nifti_gcs_images_dir_edit.setVisible(True)
+            self.gcs_bucket_label.setVisible(True)
+            self.gcs_bucket_edit.setVisible(True)
+            self.gcs_dir_label.setVisible(True)
+            self.gcs_dir_edit.setVisible(True)
             self.include_nifti_check_box.setVisible(True)
             self.include_dicom_check_box.setVisible(True)
             self.dicom_gcs_bucket_label.setVisible(self.include_dicom_check_box.isChecked())
@@ -174,10 +174,10 @@ class MainWindow(QMainWindow):
             self.csv_column_edit.setVisible(False)
             self.single_file_label.setVisible(False)
             self.single_file_edit.setVisible(False)
-            self.nifti_gcs_bucket_label.setVisible(False)
-            self.nifti_gcs_bucket_edit.setVisible(False)
-            self.nifti_gcs_images_dir_label.setVisible(False)
-            self.nifti_gcs_images_dir_edit.setVisible(False)
+            self.gcs_bucket_label.setVisible(False)
+            self.gcs_bucket_edit.setVisible(False)
+            self.gcs_dir_label.setVisible(False)
+            self.gcs_dir_edit.setVisible(False)
             self.include_nifti_check_box.setVisible(False)
             self.include_dicom_check_box.setVisible(False)
             self.dicom_gcs_bucket_label.setVisible(False)
@@ -194,10 +194,10 @@ class MainWindow(QMainWindow):
             self.csv_column_edit.setVisible(False)
             self.single_file_label.setVisible(True)
             self.single_file_edit.setVisible(True)
-            self.nifti_gcs_bucket_label.setVisible(True)
-            self.nifti_gcs_bucket_edit.setVisible(True)
-            self.nifti_gcs_images_dir_label.setVisible(True)
-            self.nifti_gcs_images_dir_edit.setVisible(True)
+            self.gcs_bucket_label.setVisible(True)
+            self.gcs_bucket_edit.setVisible(True)
+            self.gcs_dir_label.setVisible(True)
+            self.gcs_dir_edit.setVisible(True)
             self.include_nifti_check_box.setVisible(True)
             self.include_dicom_check_box.setVisible(True)
             self.dicom_gcs_bucket_label.setVisible(self.include_dicom_check_box.isChecked())

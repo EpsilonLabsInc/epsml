@@ -59,6 +59,7 @@ class AppController(QObject):
         try:
             self.show_status_signal.emit("Loading images", 0)
             self.clear_table_signal.emit()
+            self.clear_preview_signal.emit()
             QApplication.processEvents()
 
             index = self.__main_window.image_source_combo_box.currentIndex()
@@ -107,11 +108,11 @@ class AppController(QObject):
                 self.__main_window.table_widget.setRowHidden(row, True)
 
     def __load_from_bucket(self):
-        gcs_bucket_name = self.__main_window.get_nifti_gcs_bucket()
-        gcs_images_dir = self.__main_window.get_nifti_gcs_images_dir()
+        gcs_bucket_name = self.__main_window.get_gcs_bucket()
+        gcs_dir = self.__main_window.get_gcs_dir()
         max_results = self.__main_window.get_max_results()
 
-        file_names = gcs_utils.list_files(gcs_bucket_name=gcs_bucket_name, gcs_dir=gcs_images_dir, max_results=max_results)
+        file_names = gcs_utils.list_files(gcs_bucket_name=gcs_bucket_name, gcs_dir=gcs_dir, max_results=max_results)
         file_names = [file_name for file_name in file_names if file_name.endswith(".txt")]
 
         row_count = self.__main_window.table_widget.rowCount()
@@ -141,7 +142,7 @@ class AppController(QObject):
         raise RuntimeError(f"Not implemented yet")
 
     def __load_from_single_file(self):
-        file_name = self.__main_window.get_nifti_gcs_images_dir() + "/" + self.__main_window.get_single_file()
+        file_name = self.__main_window.get_gcs_dir() + "/" + self.__main_window.get_single_file()
 
         row_count = self.__main_window.table_widget.rowCount()
         self.__main_window.table_widget.insertRow(row_count)
@@ -168,8 +169,8 @@ class AppController(QObject):
 
         t1 = time.time()
 
-        nifti_gcs_bucket_name = self.__main_window.get_nifti_gcs_bucket()
-        gcs_utils.download_file(gcs_bucket_name=nifti_gcs_bucket_name,
+        gcs_bucket_name = self.__main_window.get_gcs_bucket()
+        gcs_utils.download_file(gcs_bucket_name=gcs_bucket_name,
                                 gcs_file_name=remote_nifti_file_name,
                                 local_file_name=local_nifti_file_name,
                                 num_retries=None,  # Retry indefinitely.
@@ -188,8 +189,8 @@ class AppController(QObject):
 
         t1 = time.time()
 
-        nifti_gcs_bucket_name = self.__main_window.get_nifti_gcs_bucket()
-        gcs_utils.download_file(gcs_bucket_name=nifti_gcs_bucket_name,
+        gcs_bucket_name = self.__main_window.get_gcs_bucket()
+        gcs_utils.download_file(gcs_bucket_name=gcs_bucket_name,
                                 gcs_file_name=remote_txt_file_name,
                                 local_file_name=local_txt_file_name,
                                 num_retries=None,  # Retry indefinitely.
@@ -256,7 +257,7 @@ class AppController(QObject):
         file_path_no_ext = file_name.replace(".nii.gz", "").replace(".txt", "")
         unique_name = self.shorten_name(file_path_no_ext)
 
-        gcs_bucket_name = self.__main_window.get_nifti_gcs_bucket()
+        gcs_bucket_name = self.__main_window.get_gcs_bucket()
         data_dir = os.path.join(self.__cache_dir, gcs_bucket_name, unique_name)
 
         remote_nifti_file_name = file_path_no_ext + ".nii.gz"
@@ -267,9 +268,9 @@ class AppController(QObject):
 
         is_dicom_dir = "instances." in file_name
         if is_dicom_dir:
-            remote_dicom_file_or_dir = self.__main_window.get_dicom_gcs_images_dir() + "/" + file_path_no_ext.replace("_", "/")
+            remote_dicom_file_or_dir = self.__main_window.get_dicom_gcs_images_dir() + "/" + os.path.basename(file_path_no_ext).replace("_", "/")
         else:
-            remote_dicom_file_or_dir = self.__main_window.get_dicom_gcs_images_dir() + "/" + file_path_no_ext.replace("_", "/") + ".dcm"
+            remote_dicom_file_or_dir = self.__main_window.get_dicom_gcs_images_dir() + "/" + os.path.basename(file_path_no_ext).replace("_", "/") + ".dcm"
         local_dicom_dir = data_dir
 
         file_names = {
