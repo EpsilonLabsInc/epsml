@@ -389,7 +389,7 @@ class TorchTrainingHelper:
 
             if validation_type == "Validation":
                 all_targets = all_targets.tolist()
-                all_outputs = (all_outputs > 0.5).int().tolist()
+                all_outputs = (torch.sigmoid(all_outputs) > 0.5).int().tolist()
 
                 # Log confusion matrix.
                 calc = ConfusionMatrixCalculator()
