@@ -24,6 +24,7 @@ class TrainingParameters:
             gradient_accumulation_steps=None,
             training_batch_size=4,
             validation_batch_size=4,
+            min_allowed_batch_size=None,
             criterion=torch.nn.CrossEntropyLoss(),
             checkpoint_dir="checkpoint",
             last_checkpoint=None,
@@ -43,6 +44,7 @@ class TrainingParameters:
         self.gradient_accumulation_steps = gradient_accumulation_steps
         self.training_batch_size = training_batch_size
         self.validation_batch_size = validation_batch_size
+        self.min_allowed_batch_size = min_allowed_batch_size
         self.criterion = criterion
         self.checkpoint_dir = checkpoint_dir
         self.last_checkpoint = last_checkpoint
@@ -225,6 +227,12 @@ class TorchTrainingHelper:
             # Get the inputs.
             data, target = batch
 
+            # Skip step if necessary.
+            batch_size = data.shape[0]
+            if self.__training_parameters.min_allowed_batch_size and batch_size < self.__training_parameters.min_allowed_batch_size:
+                print(f"Batch size {batch_size} < min allowed batch size {self.__training_parameters.min_allowed_batch_size}, skipping this training step")
+                continue
+
             # Save visualization data.
             if self.__training_parameters.save_visualizaton_data_during_training:
                 torch.save({"inputs": data, "labels": target}, "visualization_data.pt")
@@ -322,6 +330,12 @@ class TorchTrainingHelper:
 
                 # Get the inputs.
                 data, target = batch
+
+                # Skip step if necessary.
+                batch_size = data.shape[0]
+                if self.__training_parameters.min_allowed_batch_size and batch_size < self.__training_parameters.min_allowed_batch_size:
+                    print(f"Batch size {batch_size} < min allowed batch size {self.__training_parameters.min_allowed_batch_size}, skipping this validation step")
+                    continue
 
                 # Predict.
                 if self.__is_multi_parameter_model:
