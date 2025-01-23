@@ -2,6 +2,8 @@ import torch
 
 from epsclassifiers.dino_vit_classifier import DinoVitClassifier
 from epsdatasets.helpers.gradient_cr.gradient_cr_dataset_helper import GradientCrDatasetHelper
+from epsutils.labels.cr_chest_labels import EXTENDED_CR_CHEST_LABELS
+from epsutils.training.sample_balanced_bce_with_logits_loss import SampleBalancedBCEWithLogitsLoss
 from epsutils.training.torch_training_helper import TorchTrainingHelper, TrainingParameters, MlopsType, MlopsParameters
 
 
@@ -13,13 +15,12 @@ def main():
 
     # Paths.
     dino_vit_checkpoint = "/home/andrej/work/2d-image-encoders/dino_vit/data/model_0479999.pth"
-    gcs_train_file = "gs://epsilonlabs-filestore/cleaned_CRs/gradient_rm_bad_dcm_1211_nolabel.jsonl"
-    gcs_validation_file = "gs://epsilonlabs-filestore/cleaned_CRs/11192024_test.jsonl"
-    images_dir = "/mnt/gradient/gradient-cxr/22JUL2024"
+    gcs_train_file = "gs://gradient-crs/archive/training/gradient-crs-22JUL2024-chest-images-with-labels-training.jsonl"
+    gcs_validation_file = "gs://gradient-crs/archive/training/gradient-crs-22JUL2024-chest-images-with-labels-validation.jsonl"
 
     # Training settings.
     perform_intra_epoch_validation = True
-    intra_epoch_validation_step = 3000
+    intra_epoch_validation_step = 7000
     send_wandb_notification = False
     device = "cuda"
     # device_ids = None  # Use one (the default) GPU.
@@ -27,10 +28,11 @@ def main():
     num_training_workers_per_gpu = 8
     num_validation_workers_per_gpu = 8
     learning_rate = 2e-4
-    warmup_ratio = 1 / 10
+    warmup_ratio = 1 / 20
     num_epochs = 4
     training_batch_size = 32
     validation_batch_size = 32
+    min_allowed_batch_size = 2  # In order for batch norm in the DinoVitClassifier model to work.
 
     experiment_name = f"{model_name}-finetuning-on-{dataset_name}"
     mlops_experiment_name = f"{experiment_name}"
@@ -43,13 +45,12 @@ def main():
     print("Loading the dataset")
     dataset_helper = GradientCrDatasetHelper(
         gcs_train_file=gcs_train_file,
-        gcs_validation_file=gcs_validation_file,
-        images_dir=images_dir
+        gcs_validation_file=gcs_validation_file
     )
 
     # Create the model.
     print("Creating the model")
-    model = DinoVitClassifier(num_classes=13, dino_vit_checkpoint=dino_vit_checkpoint)
+    model = DinoVitClassifier(num_classes=len(EXTENDED_CR_CHEST_LABELS), dino_vit_checkpoint=dino_vit_checkpoint)
     model = model.to("cuda")
     image_processor = model.get_image_processor()
 
@@ -68,7 +69,8 @@ def main():
                                              num_epochs=num_epochs,
                                              training_batch_size=training_batch_size,
                                              validation_batch_size=validation_batch_size,
-                                             criterion=torch.nn.BCEWithLogitsLoss(),
+                                             min_allowed_batch_size=min_allowed_batch_size,
+                                             criterion=SampleBalancedBCEWithLogitsLoss(),
                                              checkpoint_dir=checkpoint_dir,
                                              perform_intra_epoch_validation=perform_intra_epoch_validation,
                                              intra_epoch_validation_step=intra_epoch_validation_step,

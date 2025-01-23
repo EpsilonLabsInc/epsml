@@ -4,7 +4,7 @@ from dino_vit import DinoVit, DinoVitType
 
 
 class DinoVitClassifier(nn.Module):
-    def __init__(self, num_classes, dino_vit_type: DinoVitType, dino_vit_checkpoint=None, dino_vit_output_dim=1024, hidden_dim=1024, dropout_rate=0.2):
+    def __init__(self, num_classes, dino_vit_checkpoint=None, dino_vit_output_dim=1024, hidden_dim=1024, dropout_rate=0.2):
         super().__init__()
 
         print("WARNING: Because of BatchNorm1d that doesn't work on single element batches, DinoVitClassifier currently supports only batch sizes >= 2")
