@@ -66,7 +66,7 @@ class MlopsType(Enum):
 
 
 class MlopsParameters:
-    def __init__(self, mlops_type, experiment_name, run_name, notes="", label_names=None, log_metric_step=100, send_notification=False, uri=None):
+    def __init__(self, mlops_type, experiment_name, run_name=None, notes="", label_names=None, log_metric_step=100, send_notification=False, uri=None):
         try:
             self.mlops_type = MlopsType(mlops_type)
         except ValueError:
