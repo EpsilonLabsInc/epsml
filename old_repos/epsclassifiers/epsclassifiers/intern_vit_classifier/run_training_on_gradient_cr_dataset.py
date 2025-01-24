@@ -11,6 +11,8 @@ def main():
     # General settings.
     model_name = "intern_vit_classifier"
     dataset_name = "gradient_cr"
+    run_name = "8B with no labels"
+    notes = "InternVL model: 8B with no labels, loss=SampleBalancedBCEWithLogitsLoss"
     output_dir = "./output"
 
     # Paths.
@@ -85,7 +87,8 @@ def main():
 
     mlops_parameters = MlopsParameters(mlops_type=MlopsType.WANDB,
                                        experiment_name=mlops_experiment_name,
-                                       notes="InternVL model: 8B with no labels, loss=SampleBalancedBCEWithLogitsLoss",
+                                       run_name=run_name,
+                                       notes=notes,
                                        send_notification=send_wandb_notification)
 
     training_helper = TorchTrainingHelper(model=model,
