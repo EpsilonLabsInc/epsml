@@ -66,13 +66,14 @@ class MlopsType(Enum):
 
 
 class MlopsParameters:
-    def __init__(self, mlops_type, experiment_name, notes="", label_names=None, log_metric_step=100, send_notification=False, uri=None):
+    def __init__(self, mlops_type, experiment_name, run_name, notes="", label_names=None, log_metric_step=100, send_notification=False, uri=None):
         try:
             self.mlops_type = MlopsType(mlops_type)
         except ValueError:
             raise ValueError(f"Unknown MLOps type: {mlops_type} (valid options are 'mlflow' and 'wandb')")
 
         self.experiment_name = experiment_name
+        self.run_name = run_name
         self.notes = notes
         self.label_names = label_names
         self.log_metric_step = log_metric_step
@@ -429,7 +430,7 @@ class TorchTrainingHelper:
             mlflow.set_tag("mlflow.note.content", self.__mlops_parameters.notes)
         elif self.__mlops_parameters.mlops_type == MlopsType.WANDB:
             wandb.login()
-            run = wandb.init(project=self.__mlops_parameters.experiment_name, notes=self.__mlops_parameters.notes)
+            run = wandb.init(project=self.__mlops_parameters.experiment_name, name=self.__mlops_parameters.run_name, notes=self.__mlops_parameters.notes)
             if self.__mlops_parameters.send_notification:
                 run.alert(title=self.__mlops_parameters.experiment_name, text=self.__mlops_parameters.notes)
             wandb.define_metric("Steps")
