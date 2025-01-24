@@ -11,13 +11,14 @@ def main():
     # General settings.
     model_name = "intern_vit_classifier"
     dataset_name = "gradient_cr"
-    run_name = "8B with no labels"
-    notes = "InternVL model: 8B with no labels, loss=SampleBalancedBCEWithLogitsLoss"
+    run_name = "26B with labels"
+    notes = "InternVL model: 26B with labels, loss=SampleBalancedBCEWithLogitsLoss"
     output_dir = "./output"
 
     # Paths.
-    intern_vl_checkpoint_dir = "/mnt/training/internvl2.5_8b_finetune_lora_20241226_205132_1e-5_2.5_gradient_full_rm_sole_no_findings_rm_bad_dcm_tiles_6_no_labels/checkpoint-58670"
+    # intern_vl_checkpoint_dir = "/mnt/training/internvl2.5_8b_finetune_lora_20241226_205132_1e-5_2.5_gradient_full_rm_sole_no_findings_rm_bad_dcm_tiles_6_no_labels/checkpoint-58670"
     # intern_vl_checkpoint_dir = "/mnt/training/internvl2.5_26b_finetune_lora_20241229_184000_1e-5_2.5_gradient_full_rm_sole_no_findings_rm_bad_dcm_no_label/checkpoint-58670"
+    intern_vl_checkpoint_dir = "/mnt/training/internvl2.5_26b_finetune_lora_20241231_182820_1e-5_2.5_gradient_full_rm_sole_no_findings_rm_bad_dcm/checkpoint-58670"
     gcs_train_file = "gs://gradient-crs/archive/training/gradient-crs-22JUL2024-chest-images-with-labels-training.jsonl"
     gcs_validation_file = "gs://gradient-crs/archive/training/gradient-crs-22JUL2024-chest-images-with-labels-validation.jsonl"
     images_dir = "/mnt/gradient/gradient-cxr/22JUL2024"
@@ -55,7 +56,7 @@ def main():
 
     # Create the model.
     print("Creating the model")
-    model = InternVitClassifier(num_classes=len(EXTENDED_CR_CHEST_LABELS), intern_vl_checkpoint_dir=intern_vl_checkpoint_dir)
+    model = InternVitClassifier(num_classes=len(EXTENDED_CR_CHEST_LABELS), intern_vl_checkpoint_dir=intern_vl_checkpoint_dir, intern_vit_output_dim=3200)
     model = model.to("cuda")
     image_processor = model.get_image_processor()
 
