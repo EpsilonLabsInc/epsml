@@ -1,7 +1,6 @@
 import torch
 from PIL import Image
 
-from dino_vit import DinoVitType
 from epsutils.dicom import dicom_utils
 from epsclassifiers.dino_vit_classifier import DinoVitClassifier
 
@@ -10,7 +9,7 @@ IMAGE_PATH = "./samples/sample.dcm"
 
 
 def main():
-    classifier = DinoVitClassifier(num_classes=14, dino_vit_type=DinoVitType.LARGE, dino_vit_checkpoint=CHECKPOINT)
+    classifier = DinoVitClassifier(num_classes=14, dino_vit_checkpoint=CHECKPOINT)
     classifier = classifier.to("cuda")
     image_processor = classifier.get_image_processor()
 
