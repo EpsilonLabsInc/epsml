@@ -25,7 +25,7 @@ class RadDinoVitClassifier(nn.Module):
             nn.Linear(hidden_dim // 2, num_classes)
         )
 
-        # Set the dtype of the classifier to match the dtype of the DinoViT.
+        # Set the dtype of the classifier to match the dtype of the RAD-DINO ViT.
         dtype = next(self.rad_dino_vit.parameters()).dtype
         self.classifier = self.classifier.to(dtype)
 
