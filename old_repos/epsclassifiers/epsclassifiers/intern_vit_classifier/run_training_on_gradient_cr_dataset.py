@@ -56,7 +56,8 @@ def main():
 
     # Create the model.
     print("Creating the model")
-    model = InternVitClassifier(num_classes=len(EXTENDED_CR_CHEST_LABELS), intern_vl_checkpoint_dir=intern_vl_checkpoint_dir, intern_vit_output_dim=3200)
+    model = InternVitClassifier(num_classes=len(EXTENDED_CR_CHEST_LABELS), intern_vl_checkpoint_dir=intern_vl_checkpoint_dir, intern_vit_output_dim=3200)  # For InternVL 26B model.
+    # model = InternVitClassifier(num_classes=len(EXTENDED_CR_CHEST_LABELS), intern_vl_checkpoint_dir=intern_vl_checkpoint_dir, intern_vit_output_dim=1024)  # For InternVL 8B model.
     model = model.to("cuda")
     image_processor = model.get_image_processor()
 
