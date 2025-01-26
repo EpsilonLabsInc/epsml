@@ -1,29 +1,22 @@
 import torch
 
-from epsclassifiers.dino_vit_classifier import DinoVitClassifier
-from epsdatasets.helpers.gradient_cr.gradient_cr_dataset_helper import GradientCrDatasetHelper
-from epsutils.labels.cr_chest_labels import EXTENDED_CR_CHEST_LABELS
+from epsclassifiers.rad_dino_vit_classifier import RadDinoVitClassifier
+from epsdatasets.helpers.mimic.v2.mimic_two_dataset_helper import MimicTwoDatasetHelper
 from epsutils.training.sample_balanced_bce_with_logits_loss import SampleBalancedBCEWithLogitsLoss
 from epsutils.training.torch_training_helper import TorchTrainingHelper, TrainingParameters, MlopsType, MlopsParameters
 
 
 def main():
-    # TODO: Refactor this code to work with RAD-DINO.
-
     # General settings.
-    model_name = "dino_vit_classifier"
-    dataset_name = "gradient_cr"
+    model_name = "rad_dino_vit_classifier"
+    dataset_name = "mimic_two"
+    dataset_gcs_uri = "gs://epsilonlabs-filestore/mimic2-dicom/mimic-cxr-jpg-2.1.0.physionet.org"
+    notes = "Using default RAD-DINO ViT weights"
     output_dir = "./output"
-
-    # Paths.
-    dino_vit_checkpoint = "/home/andrej/work/2d-image-encoders/dino_vit/data/model_0479999.pth"
-    gcs_train_file = "gs://gradient-crs/archive/training/gradient-crs-22JUL2024-chest-images-with-labels-training.jsonl"
-    gcs_validation_file = "gs://gradient-crs/archive/training/gradient-crs-22JUL2024-chest-images-with-labels-validation.jsonl"
-    images_dir = "gs://epsilon-data-us-central1"
 
     # Training settings.
     perform_intra_epoch_validation = True
-    intra_epoch_validation_step = 7000
+    intra_epoch_validation_step = 5000
     send_wandb_notification = False
     device = "cuda"
     device_ids = None  # Use one (the default) GPU.
@@ -35,7 +28,7 @@ def main():
     num_epochs = 4
     training_batch_size = 32
     validation_batch_size = 32
-    min_allowed_batch_size = 2  # In order for batch norm in the DinoVitClassifier model to work.
+    min_allowed_batch_size = 2  # In order for batch norm in the RadDinoVitClassifier model to work.
 
     experiment_name = f"{model_name}-finetuning-on-{dataset_name}"
     mlops_experiment_name = f"{experiment_name}"
@@ -46,23 +39,19 @@ def main():
 
     # Load the dataset.
     print("Loading the dataset")
-    dataset_helper = GradientCrDatasetHelper(
-        gcs_train_file=gcs_train_file,
-        gcs_validation_file=gcs_validation_file,
-        images_dir=images_dir
-    )
+    dataset_helper = MimicTwoDatasetHelper(gcs_uri=dataset_gcs_uri)
 
     # Create the model.
     print("Creating the model")
-    model = DinoVitClassifier(num_classes=len(EXTENDED_CR_CHEST_LABELS), dino_vit_checkpoint=dino_vit_checkpoint)
+    model = RadDinoVitClassifier(num_classes=len(dataset_helper.get_labels()))
     model = model.to("cuda")
     image_processor = model.get_image_processor()
 
     for param in model.parameters():
         param.requires_grad = True
 
-    # Freeze the DinoViT.
-    for param in model.dino_vit.parameters():
+    # Freeze the RadDinoViT.
+    for param in model.rad_dino_vit.parameters():
         param.requires_grad = False
 
     # Prepare the training data.
@@ -86,7 +75,7 @@ def main():
 
     mlops_parameters = MlopsParameters(mlops_type=MlopsType.WANDB,
                                        experiment_name=mlops_experiment_name,
-                                       notes="Using Yan's merged model",
+                                       notes=notes,
                                        send_notification=send_wandb_notification)
 
     training_helper = TorchTrainingHelper(model=model,
