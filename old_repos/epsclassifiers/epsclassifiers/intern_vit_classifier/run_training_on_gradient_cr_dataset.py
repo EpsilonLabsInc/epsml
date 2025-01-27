@@ -2,7 +2,6 @@ import torch
 
 from epsclassifiers.intern_vit_classifier import InternVitClassifier
 from epsdatasets.helpers.gradient_cr.gradient_cr_dataset_helper import GradientCrDatasetHelper
-from epsutils.labels.cr_chest_labels import EXTENDED_CR_CHEST_LABELS
 from epsutils.training.sample_balanced_bce_with_logits_loss import SampleBalancedBCEWithLogitsLoss
 from epsutils.training.torch_training_helper import TorchTrainingHelper, TrainingParameters, MlopsType, MlopsParameters
 
@@ -11,25 +10,23 @@ def main():
     # General settings.
     model_name = "intern_vit_classifier"
     dataset_name = "gradient_cr"
-    run_name = "26B with labels"
-    notes = "InternVL model: 26B with labels, loss=SampleBalancedBCEWithLogitsLoss"
+    run_name = "26B with no labels"
+    notes = "InternVL model: 26B with no labels, loss=SampleBalancedBCEWithLogitsLoss"
     output_dir = "./output"
 
     # Paths.
-    # intern_vl_checkpoint_dir = "/mnt/training/internvl2.5_8b_finetune_lora_20241226_205132_1e-5_2.5_gradient_full_rm_sole_no_findings_rm_bad_dcm_tiles_6_no_labels/checkpoint-58670"
-    # intern_vl_checkpoint_dir = "/mnt/training/internvl2.5_26b_finetune_lora_20241229_184000_1e-5_2.5_gradient_full_rm_sole_no_findings_rm_bad_dcm_no_label/checkpoint-58670"
-    intern_vl_checkpoint_dir = "/mnt/training/internvl2.5_26b_finetune_lora_20241231_182820_1e-5_2.5_gradient_full_rm_sole_no_findings_rm_bad_dcm/checkpoint-58670"
+    intern_vl_checkpoint_dir = "/home/andrej/mnt/models/training/internvl2.5_26b_finetune_lora_20241229_184000_1e-5_2.5_gradient_full_rm_sole_no_findings_rm_bad_dcm_no_label"
     gcs_train_file = "gs://gradient-crs/archive/training/gradient-crs-22JUL2024-chest-images-with-labels-training.jsonl"
     gcs_validation_file = "gs://gradient-crs/archive/training/gradient-crs-22JUL2024-chest-images-with-labels-validation.jsonl"
-    images_dir = "/mnt/gradient/gradient-cxr/22JUL2024"
+    images_dir = "gs://epsilon-data-us-central1"
 
     # Training settings.
     perform_intra_epoch_validation = True
     intra_epoch_validation_step = 7000
     send_wandb_notification = False
     device = "cuda"
-    # device_ids = None  # Use one (the default) GPU.
-    device_ids = [0, 1, 2, 3, 4, 5, 6, 7]  # Use 8 GPUs.
+    device_ids = None  # Use one (the default) GPU.
+    # device_ids = [0, 1, 2, 3, 4, 5, 6, 7]  # Use 8 GPUs.
     num_training_workers_per_gpu = 8
     num_validation_workers_per_gpu = 8
     learning_rate = 2e-4
@@ -56,7 +53,7 @@ def main():
 
     # Create the model.
     print("Creating the model")
-    model = InternVitClassifier(num_classes=len(EXTENDED_CR_CHEST_LABELS), intern_vl_checkpoint_dir=intern_vl_checkpoint_dir, intern_vit_output_dim=3200)  # For InternVL 26B model.
+    model = InternVitClassifier(num_classes=len(dataset_helper.get_labels()), intern_vl_checkpoint_dir=intern_vl_checkpoint_dir, intern_vit_output_dim=3200)  # For InternVL 26B model.
     # model = InternVitClassifier(num_classes=len(EXTENDED_CR_CHEST_LABELS), intern_vl_checkpoint_dir=intern_vl_checkpoint_dir, intern_vit_output_dim=1024)  # For InternVL 8B model.
     model = model.to("cuda")
     image_processor = model.get_image_processor()
@@ -91,6 +88,7 @@ def main():
                                        experiment_name=mlops_experiment_name,
                                        run_name=run_name,
                                        notes=notes,
+                                       label_names=dataset_helper.get_labels(),
                                        send_notification=send_wandb_notification)
 
     training_helper = TorchTrainingHelper(model=model,

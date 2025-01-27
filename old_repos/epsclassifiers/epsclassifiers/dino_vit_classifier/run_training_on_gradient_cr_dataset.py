@@ -2,7 +2,6 @@ import torch
 
 from epsclassifiers.dino_vit_classifier import DinoVitClassifier
 from epsdatasets.helpers.gradient_cr.gradient_cr_dataset_helper import GradientCrDatasetHelper
-from epsutils.labels.cr_chest_labels import EXTENDED_CR_CHEST_LABELS
 from epsutils.training.sample_balanced_bce_with_logits_loss import SampleBalancedBCEWithLogitsLoss
 from epsutils.training.torch_training_helper import TorchTrainingHelper, TrainingParameters, MlopsType, MlopsParameters
 
@@ -11,6 +10,7 @@ def main():
     # General settings.
     model_name = "dino_vit_classifier"
     dataset_name = "gradient_cr"
+    notes = "Using Yan's merged model"
     output_dir = "./output"
 
     # Paths.
@@ -52,7 +52,7 @@ def main():
 
     # Create the model.
     print("Creating the model")
-    model = DinoVitClassifier(num_classes=len(EXTENDED_CR_CHEST_LABELS), dino_vit_checkpoint=dino_vit_checkpoint)
+    model = DinoVitClassifier(num_classes=len(dataset_helper.get_labels()), dino_vit_checkpoint=dino_vit_checkpoint)
     model = model.to("cuda")
     image_processor = model.get_image_processor()
 
@@ -84,7 +84,8 @@ def main():
 
     mlops_parameters = MlopsParameters(mlops_type=MlopsType.WANDB,
                                        experiment_name=mlops_experiment_name,
-                                       notes="Using Yan's merged model",
+                                       notes=notes,
+                                       label_names=dataset_helper.get_labels(),
                                        send_notification=send_wandb_notification)
 
     training_helper = TorchTrainingHelper(model=model,
