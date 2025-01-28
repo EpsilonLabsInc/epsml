@@ -12,9 +12,10 @@ from epsutils.labels.cr_chest_labels import EXTENDED_CR_CHEST_LABELS
 GCS_INPUT_FILE = "gs://epsilonlabs-filestore/cleaned_CRs/gradient_rm_bad_dcm_1211_nolabel.jsonl"
 GCS_INPUT_IMAGES_DIR = "GRADIENT-DATABASE/CR/22JUL2024/"
 GCS_CHEST_IMAGES_FILE = "gs://gradient-crs/archive/training/chest_files_gradient_all_3_batches.csv"
+TARGET_LABELS = ["Fracture"]
 SEED = 42
-OUTPUT_TRAINING_FILE = "gradient-crs-22JUL2024-chest-images-with-labels-training.jsonl"
-OUTPUT_VALIDATION_FILE = "gradient-crs-22JUL2024-chest-images-with-labels-validation.jsonl"
+OUTPUT_TRAINING_FILE = "gradient-crs-22JUL2024-chest-images-with-fracture-label-training.jsonl"
+OUTPUT_VALIDATION_FILE = "gradient-crs-22JUL2024-chest-images-with-fracture-label-validation.jsonl"
 
 
 def get_labels_distribution(images):
@@ -89,8 +90,8 @@ def main():
     print(f"Newly added labels: {newly_added_labels}")
 
     print("")
-    print("6.")
-    print("Fixing labels")
+    print("6a.")
+    print("Fixing labels: Renaming unknown labels to 'Other'")
 
     for image in filtered_images:
         labels = image["labels"]
@@ -107,6 +108,59 @@ def main():
     labels_dist, newly_added_labels = get_labels_distribution(filtered_images)
     print(f"Labels distribution: {labels_dist}")
     print(f"Newly added labels: {newly_added_labels}")
+
+    if TARGET_LABELS:
+        print("")
+        print("6b.")
+        print(f"Fixing labels: Applying target labels {TARGET_LABELS}")
+
+        num_non_empty = 0
+        for image in filtered_images:
+            labels = image["labels"]
+            fixed_labels = []
+
+            for label in labels:
+                if label in TARGET_LABELS:
+                    fixed_labels.append(label)
+
+            image["labels"] = fixed_labels
+
+            if len(fixed_labels) > 0:
+                num_non_empty += 1
+
+        labels_dist, newly_added_labels = get_labels_distribution(filtered_images)
+        print(f"Labels distribution: {labels_dist}")
+        print(f"Newly added labels: {newly_added_labels}")
+
+        print("")
+        print("6c.")
+        print(f"Fixing labels: Selecting image subset for better labels distribution")
+
+        selected_images = []
+        max_num = num_non_empty
+        num_non_empty = 0
+        num_empty = 0
+
+        for image in filtered_images:
+            if num_empty == num_non_empty == max_num:
+                break
+
+            labels = image["labels"]
+
+            if len(labels) > 0 and num_non_empty < max_num:
+                selected_images.append(image)
+                num_non_empty += 1
+            elif len(labels) == 0 and num_empty < max_num:
+                selected_images.append(image)
+                num_empty += 1
+
+        filtered_images = selected_images
+
+        print(f"Subset selected: {num_non_empty} images with non-empty labels, {num_empty} images with empty labels")
+
+        labels_dist, newly_added_labels = get_labels_distribution(filtered_images)
+        print(f"Labels distribution: {labels_dist}")
+        print(f"Newly added labels: {newly_added_labels}")
 
     print("")
     print("7.")
