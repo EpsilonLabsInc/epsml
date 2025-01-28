@@ -69,6 +69,13 @@ def main():
             print(f"Probabilities: {probabilities}")
             print("")
 
+        del pixel_values
+        del output
+        del probabilities
+        del indices
+        del labels
+        torch.cuda.empty_cache()
+
 
 if __name__ == "__main__":
     main()
