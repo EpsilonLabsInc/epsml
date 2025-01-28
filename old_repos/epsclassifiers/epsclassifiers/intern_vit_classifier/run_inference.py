@@ -9,8 +9,9 @@ from epsutils.gcs import gcs_utils
 from epsutils.labels.cr_chest_labels import EXTENDED_CR_CHEST_LABELS
 from epsclassifiers.intern_vit_classifier import InternVitClassifier
 
-INITIAL_CHECKPOINT_DIR = "/mnt/disk-0/mnt/training/internvl2.5_26b_finetune_lora_20241231_182820_1e-5_2.5_gradient_full_rm_sole_no_findings_rm_bad_dcm/checkpoint-58670"
-TRAINING_CHECKPOINT = "/home/andrej/work/epsclassifiers/epsclassifiers/intern_vit_classifier/output/intern_vit_classifier-finetuning-on-gradient_cr/checkpoint/internvit_classifier_26b_labels_checkpoint.pt"
+INITIAL_CHECKPOINT_DIR = "/home/andrej/mnt/models/training/internvl2.5_26b_finetune_lora_20241229_184000_1e-5_2.5_gradient_full_rm_sole_no_findings_rm_bad_dcm_no_label/checkpoint-58670"
+TRAINING_CHECKPOINT = "/home/andrej/mnt/models/output/intern_vit_classifier-finetuning-on-gradient_cr/checkpoint/internvit_classifier_26b_no_labels_checkpoint.pt"
+SHOW_CONDENSED_RESULTS = True
 IMAGE_GCS_URI_LIST = [
     "gs://epsilon-data-us-central1/GRADIENT-DATABASE/CR/22JUL2024/GRDNDAVUSE39U08F/GRDN4FFS5ZTYB14G/studies/1.2.826.0.1.3680043.8.498.78181900056882406186628082793731723194/series/1.2.826.0.1.3680043.8.498.50034729269282488548399764152887492003/instances/1.2.826.0.1.3680043.8.498.55440357540027523193668070801511156312.dcm",
     "gs://epsilon-data-us-central1/GRADIENT-DATABASE/CR/22JUL2024/GRDNSHWOJKIY53SY/GRDNAYTXFWVI6247/studies/1.2.826.0.1.3680043.8.498.95250369936666688034957243334415451518/series/1.2.826.0.1.3680043.8.498.23207201404760221380499247009432380291/instances/1.2.826.0.1.3680043.8.498.88066182359908319664341751962096219172.dcm",
@@ -54,13 +55,19 @@ def main():
         # Run inference.
         output = classifier(pixel_values)[0]
         probabilities = torch.sigmoid(output)
+        indices = torch.where(probabilities >= 0.5)[0]
+        labels = [EXTENDED_CR_CHEST_LABELS[i.item()] for i in indices]
 
-        print("--------------------------------------------------------")
-        print("")
-        print(f"GCS URI: {image_path}")
-        print(f"All labels: {EXTENDED_CR_CHEST_LABELS}")
-        print(f"Probabilities: {probabilities}")
-        print("")
+        if SHOW_CONDENSED_RESULTS:
+            print(labels)
+        else:
+            print("--------------------------------------------------------")
+            print("")
+            print(f"GCS URI: {image_path}")
+            print(f"Probabilities: {probabilities}")
+            print(f"Labels: {labels}")
+            print(f"All labels: {EXTENDED_CR_CHEST_LABELS}")
+            print("")
 
 
 if __name__ == "__main__":
