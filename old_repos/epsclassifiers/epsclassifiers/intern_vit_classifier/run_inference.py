@@ -64,9 +64,9 @@ def main():
             print("--------------------------------------------------------")
             print("")
             print(f"GCS URI: {image_path}")
-            print(f"Probabilities: {probabilities}")
             print(f"Labels: {labels}")
             print(f"All labels: {EXTENDED_CR_CHEST_LABELS}")
+            print(f"Probabilities: {probabilities}")
             print("")
 
 
