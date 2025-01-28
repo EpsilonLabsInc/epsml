@@ -203,6 +203,46 @@ class TorchTrainingHelper:
         print("")
         print("Training finished")
 
+    def run_validation(self, collate_function_for_validation=None):
+        torch.cuda.empty_cache()
+
+        # Create validation data loader.
+        self.__validatation_data_loader = self.__dataset_helper.get_torch_validation_data_loader(
+            collate_function=collate_function_for_validation,
+            batch_size=self.__training_parameters.validation_batch_size,
+            num_workers=self.__training_parameters.num_validation_workers_per_gpu * len(self.__device_ids)
+                if self.__device_ids is not None else self.__training_parameters.num_validation_workers_per_gpu)
+
+        # Create parallel model.
+        self.__parallel_model = torch.nn.DataParallel(self.__model, device_ids=self.__device_ids)
+        self.__parallel_model.to(self.__device)
+
+        # Model statistics.
+        self.__model_size_in_mib = training_utils.get_torch_model_size_in_mib(self.__parallel_model)
+        self.__model_dtype = next(self.__parallel_model.parameters()).dtype
+        self.__num_model_params = training_utils.get_num_torch_parameters(self.__parallel_model, requires_grad_only=False)
+        print(f"Model size: {self.__model_size_in_mib:.2f} MiB")
+        print(f"Model's dtype: {self.__model_dtype}")
+        print(f"Num model params: {self.__num_model_params}")
+
+        # Load checkpoint.
+        if self.__training_parameters.last_checkpoint:
+            print(f"Loading checkpoint {self.__training_parameters.last_checkpoint}")
+            checkpoint = torch.load(self.__training_parameters.last_checkpoint)
+            epoch = checkpoint["epoch"] - 1 # Convert epoch number from one-based to zero-based.
+            self.__model.load_state_dict(checkpoint["model_state_dict"])
+            self.__parallel_model.load_state_dict(checkpoint["parallel_model_state_dict"])
+            self.__optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
+        else:
+            epoch = 0
+
+        # Log training parameters.
+        if self.__mlops_parameters is not None:
+            self.__log_params()
+
+        print("VALIDATION")
+        self.__validate(step=epoch, validation_type="Validation")
+
     def save_model(self, model_file_name, parallel_model_file_name):
         torch.save(self.__parallel_model.module, model_file_name)
         print(f"Model saved as '{model_file_name}'")
