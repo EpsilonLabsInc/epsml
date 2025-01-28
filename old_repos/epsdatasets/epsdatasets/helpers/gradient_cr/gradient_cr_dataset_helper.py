@@ -17,7 +17,7 @@ from epsutils.labels.cr_chest_labels import EXTENDED_CR_CHEST_LABELS
 
 
 class GradientCrDatasetHelper(BaseDatasetHelper):
-    def __init__(self, gcs_train_file, gcs_validation_file, gcs_test_file=None, images_dir=None, convert_images_to_rgb=True):
+    def __init__(self, gcs_train_file, gcs_validation_file, gcs_test_file=None, images_dir=None, convert_images_to_rgb=True, custom_labels=None):
         """
         Initializes the GradientCrDatasetHelper with the specified parameters.
 
@@ -31,7 +31,8 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
                          gcs_validation_file=gcs_validation_file,
                          gcs_test_file=gcs_test_file,
                          images_dir=images_dir,
-                         convert_images_to_rgb=convert_images_to_rgb)
+                         convert_images_to_rgb=convert_images_to_rgb,
+                         custom_labels=custom_labels)
 
     def _load_dataset(self, *args, **kwargs):
         # Store params.
@@ -40,6 +41,7 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
         self.__gcs_test_file = kwargs["gcs_test_file"] if "gcs_test_file" in kwargs else next((arg for arg in args if arg == "gcs_test_file"), None)
         self.__images_dir = kwargs["images_dir"] if "images_dir" in kwargs else next((arg for arg in args if arg == "images_dir"), None)
         self.__convert_images_to_rgb = kwargs["convert_images_to_rgb"] if "convert_images_to_rgb" in kwargs else next((arg for arg in args if arg == "convert_images_to_rgb"), None)
+        self.__custom_labels = kwargs["custom_labels"] if "custom_labels" in kwargs else next((arg for arg in args if arg == "custom_labels"), None)
 
         self.__pandas_full_dataset = None
         self.__pandas_train_dataset = None
@@ -154,7 +156,10 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
         raise NotImplementedError("Not implemented")
 
     def get_labels(self):
-        return EXTENDED_CR_CHEST_LABELS
+        if self.__custom_labels:
+            return self.__custom_labels
+        else:
+            return EXTENDED_CR_CHEST_LABELS
 
     def get_ids_to_labels(self):
         raise NotImplementedError("Not implemented")
@@ -163,7 +168,7 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
         raise NotImplementedError("Not implemented")
 
     def get_torch_label(self, item):
-        return torch.tensor(labels_utils.to_multi_hot_encoding(item["labels"], EXTENDED_CR_CHEST_LABELS))
+        return torch.tensor(labels_utils.to_multi_hot_encoding(item["labels"], self.__custom_labels if self.__custom_labels else EXTENDED_CR_CHEST_LABELS))
 
     def get_pandas_full_dataset(self):
         raise NotImplementedError("Not implemented")
