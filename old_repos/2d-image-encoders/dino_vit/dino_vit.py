@@ -34,7 +34,6 @@ class DinoVit(nn.Module):
             raise ValueError(f"Unsupported Dino ViT type: {dino_vit_type}")
 
         self.__image_processor.size["shortest_edge"] = img_size
-        self.__image_processor.size["shortest_edge"] = img_size
         self.__image_processor.crop_size["height"] = img_size
         self.__image_processor.crop_size["width"] = img_size
 
