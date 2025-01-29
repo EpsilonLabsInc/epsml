@@ -10,8 +10,8 @@ def main():
     # General settings.
     model_name = "intern_vit_classifier"
     dataset_name = "gradient_cr_pneumothorax"
-    run_name = "26B with no labels"
-    notes = "InternVL model: 26B with no labels, loss=SampleBalancedBCEWithLogitsLoss"
+    run_name = "26B with no labels (with tiles)"
+    notes = "InternVL model: 26B with no labels with tiles, loss=SampleBalancedBCEWithLogitsLoss"
     output_dir = "./output"
 
     # Paths.
@@ -36,6 +36,7 @@ def main():
     training_batch_size = 32
     validation_batch_size = 32
     min_allowed_batch_size = 2  # In order for batch norm in the InternVitClassifier model to work.
+    use_tiles = True
 
     experiment_name = f"{model_name}-training-on-{dataset_name}"
     mlops_experiment_name = f"{experiment_name}"
@@ -58,8 +59,8 @@ def main():
 
     # Create the model.
     print("Creating the model")
-    model = InternVitClassifier(num_classes=len(dataset_helper.get_labels()), intern_vl_checkpoint_dir=intern_vl_checkpoint_dir, intern_vit_output_dim=3200)  # For InternVL 26B model.
-    # model = InternVitClassifier(num_classes=len(EXTENDED_CR_CHEST_LABELS), intern_vl_checkpoint_dir=intern_vl_checkpoint_dir, intern_vit_output_dim=1024)  # For InternVL 8B model.
+    model = InternVitClassifier(num_classes=len(dataset_helper.get_labels()), intern_vl_checkpoint_dir=intern_vl_checkpoint_dir, intern_vit_output_dim=3200, use_tiles=use_tiles)  # For InternVL 26B model.
+    # model = InternVitClassifier(num_classes=len(EXTENDED_CR_CHEST_LABELS), intern_vl_checkpoint_dir=intern_vl_checkpoint_dir, intern_vit_output_dim=1024, use_tiles=use_tiles)  # For InternVL 8B model.
     model = model.to("cuda")
     image_processor = model.get_image_processor()
 

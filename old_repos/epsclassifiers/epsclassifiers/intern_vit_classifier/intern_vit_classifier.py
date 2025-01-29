@@ -10,6 +10,9 @@ class InternVitClassifier(nn.Module):
 
         print("WARNING: Because of BatchNorm1d that doesn't work on single element batches, InternVitClassifier currently supports only batch sizes >= 2")
 
+        if use_tiles:
+            print("INFO: InternVitClassifier will be using tile splitting")
+
         self.__use_tiles = use_tiles
         self.__intern_vit_output_dim = intern_vit_output_dim * 5 if use_tiles else intern_vit_output_dim
 
