@@ -1,6 +1,7 @@
 import ast
 import concurrent.futures
 import hashlib
+import json
 import os
 import shutil
 import time
@@ -150,16 +151,26 @@ class AppController(QObject):
     def __load_from_jsonl(self):
         input_file = self.__main_window.get_input_file()
         column = self.__main_window.get_input_column()
-        row_count = self.__main_window.table_widget.rowCount()
 
+        data = []
         with open(input_file, "r", encoding="utf-8") as f:
             for line in f:
-                row = ast.literal_eval(line)
-                images = row[column]
+                content = json.loads(line.strip())
+                images = content[column]
+                images = images if isinstance(images, list) else [images]
 
                 for image in images:
-                    self.__main_window.table_widget.insertRow(row_count)
-                    self.__main_window.table_widget.setItem(row_count, 0, QTableWidgetItem(image))
+                    data.append({"image": image, "content": str(content)})
+
+        self.__main_window.table_widget.setRowCount(len(data))
+        self.__main_window.table_widget.setUpdatesEnabled(False)
+
+        for row_count, element in enumerate(data):
+            item = QTableWidgetItem(element["image"])
+            item.setToolTip(element["content"])
+            self.__main_window.table_widget.setItem(row_count, 0, item)
+
+        self.__main_window.table_widget.setUpdatesEnabled(True)
 
     def __load_from_data_lake(self):
         raise RuntimeError(f"Not implemented yet")
@@ -278,6 +289,9 @@ class AppController(QObject):
 
     def __generate_file_names(self, file_name):
         if file_name.endswith(".dcm"):
+            if file_name.startswith(self.__main_window.get_dicom_gcs_images_dir()):
+                file_name = os.path.relpath(file_name, self.__main_window.get_dicom_gcs_images_dir()).replace("\\", "/")
+
             file_name = file_name.replace("/", "_").replace(".dcm", ".txt")
             file_name = self.__main_window.get_gcs_dir() + "/" + file_name
 
