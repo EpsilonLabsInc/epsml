@@ -62,7 +62,7 @@ def main():
     model = InternVitClassifier(num_classes=len(dataset_helper.get_labels()), intern_vl_checkpoint_dir=intern_vl_checkpoint_dir, intern_vit_output_dim=3200, use_tiles=use_tiles)  # For InternVL 26B model.
     # model = InternVitClassifier(num_classes=len(EXTENDED_CR_CHEST_LABELS), intern_vl_checkpoint_dir=intern_vl_checkpoint_dir, intern_vit_output_dim=1024, use_tiles=use_tiles)  # For InternVL 8B model.
     model = model.to("cuda")
-    image_processor = model.get_image_processor()
+    image_processor = model.get_tile_splitting_image_processor() if use_tiles else model.get_image_processor()
 
     for param in model.parameters():
         param.requires_grad = True
@@ -106,7 +106,10 @@ def main():
 
     def get_torch_images(samples):
         images = [dataset_helper.get_pil_image(item) for item in samples]
-        pixel_values = image_processor(images=images, return_tensors="pt").pixel_values
+        if use_tiles:
+            pixel_values = image_processor(images=images, return_tensors="pt")
+        else:
+            pixel_values = image_processor(images=images, return_tensors="pt").pixel_values
         pixel_values = pixel_values.to(torch.bfloat16)
         return pixel_values
 
