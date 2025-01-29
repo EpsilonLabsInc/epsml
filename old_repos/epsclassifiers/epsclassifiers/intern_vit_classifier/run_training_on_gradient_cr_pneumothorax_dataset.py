@@ -106,10 +106,7 @@ def main():
 
     def get_torch_images(samples):
         images = [dataset_helper.get_pil_image(item) for item in samples]
-        if use_tiles:
-            pixel_values = image_processor(images=images, return_tensors="pt")
-        else:
-            pixel_values = image_processor(images=images, return_tensors="pt").pixel_values
+        pixel_values = image_processor(images=images, return_tensors="pt") if use_tiles else image_processor(images=images, return_tensors="pt").pixel_values
         pixel_values = pixel_values.to(torch.bfloat16)
         return pixel_values
 
