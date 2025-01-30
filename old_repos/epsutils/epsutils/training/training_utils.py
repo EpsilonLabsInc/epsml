@@ -25,8 +25,6 @@ def get_gpu_utilization_in_mib():
     return info.used // 1024**2
 
 
-from torch.optim.lr_scheduler import LambdaLR, CosineAnnealingLR, SequentialLR
-
 def create_lr_scheduler(optimizer, total_steps, warmup_steps=None, apply_cosine_annealing=False):
     schedulers = []
     milestones = []
