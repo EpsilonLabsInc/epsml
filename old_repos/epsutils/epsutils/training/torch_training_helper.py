@@ -20,6 +20,7 @@ class TrainingParameters:
             self,
             learning_rate=1e-6,
             warmup_ratio=0.1,
+            apply_cosine_annealing=True,
             num_epochs=10,
             gradient_accumulation_steps=None,
             training_batch_size=4,
@@ -40,6 +41,7 @@ class TrainingParameters:
             pause_on_validation_visualization=False):
         self.learning_rate = learning_rate
         self.warmup_ratio = warmup_ratio
+        self.apply_cosine_annealing = apply_cosine_annealing
         self.num_epochs = num_epochs
         self.gradient_accumulation_steps = gradient_accumulation_steps
         self.training_batch_size = training_batch_size
@@ -147,11 +149,17 @@ class TorchTrainingHelper:
 
         # Create LR scheduler.
         total_steps = len(self.__train_data_loader) * self.__training_parameters.num_epochs
-        warmup_steps = min(math.ceil(total_steps * self.__training_parameters.warmup_ratio), total_steps)
-        print(f"Total training steps = Num batches x Num epochs = {len(self.__train_data_loader)} x {self.__training_parameters.num_epochs} = {total_steps}")
-        print(f"Warmup steps = Total steps x Warmup ratio = {total_steps} x {self.__training_parameters.warmup_ratio} = {warmup_steps}")
-        self.__lr_scheduler = training_utils.create_lr_scheduler_with_warmup_and_cosine_annealing(
-            optimizer=self.__optimizer, total_steps=total_steps, warmup_steps=warmup_steps)
+        if self.__training_parameters.warmup_ratio:
+            warmup_steps = min(math.ceil(total_steps * self.__training_parameters.warmup_ratio), total_steps)
+            print(f"Total training steps = Num batches x Num epochs = {len(self.__train_data_loader)} x {self.__training_parameters.num_epochs} = {total_steps}")
+            print(f"Warmup steps = Total steps x Warmup ratio = {total_steps} x {self.__training_parameters.warmup_ratio} = {warmup_steps}")
+        else:
+            warmup_steps = None
+        self.__lr_scheduler = training_utils.create_lr_scheduler(
+            optimizer=self.__optimizer,
+            total_steps=total_steps,
+            warmup_steps=warmup_steps,
+            apply_cosine_annealing=self.__training_parameters.apply_cosine_annealing)
 
         # Model statistics.
         self.__model_size_in_mib = training_utils.get_torch_model_size_in_mib(self.__parallel_model)

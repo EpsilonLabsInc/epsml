@@ -25,21 +25,31 @@ def get_gpu_utilization_in_mib():
     return info.used // 1024**2
 
 
-def create_lr_scheduler_with_warmup_and_cosine_annealing(optimizer, total_steps, warmup_steps):
-    def lr_lambda(current_step):
-        if current_step < warmup_steps:
-            return float(current_step) / float(max(1, warmup_steps))  # Linear warmup
-        else:
-            return 1.0
+from torch.optim.lr_scheduler import LambdaLR, CosineAnnealingLR, SequentialLR
 
-    warmup_scheduler = LambdaLR(optimizer=optimizer, lr_lambda=lr_lambda)
-    cosine_scheduler = CosineAnnealingLR(optimizer=optimizer, T_max=total_steps - warmup_steps, eta_min=0.0)
+def create_lr_scheduler(optimizer, total_steps, warmup_steps=None, apply_cosine_annealing=False):
+    schedulers = []
+    milestones = []
 
-    lr_scheduler = SequentialLR(
-        optimizer,
-        schedulers=[warmup_scheduler, cosine_scheduler],
-        milestones=[warmup_steps],
-    )
+    # Warmup.
+    if warmup_steps is not None:
+        def lr_lambda(current_step):
+            if current_step < warmup_steps:
+                return float(current_step) / float(max(1, warmup_steps))  # Linear warmup.
+            else:
+                return 1.0
+
+        warmup_scheduler = LambdaLR(optimizer=optimizer, lr_lambda=lr_lambda)
+        schedulers.append(warmup_scheduler)
+        milestones.append(warmup_steps)
+
+    # Cosine annealing.
+    if apply_cosine_annealing:
+        cosine_steps = total_steps - warmup_steps if warmup_steps else total_steps
+        cosine_scheduler = CosineAnnealingLR(optimizer=optimizer, T_max=cosine_steps, eta_min=0.0)
+        schedulers.append(cosine_scheduler)
+
+    lr_scheduler = SequentialLR(optimizer, schedulers=schedulers, milestones=milestones)
 
     return lr_scheduler
 
