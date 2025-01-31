@@ -5,19 +5,27 @@ from intern_vit import InternVit
 
 
 class InternVitClassifier(nn.Module):
-    def __init__(self, num_classes, intern_vl_checkpoint_dir, intern_vit_output_dim=1024, hidden_dim=1024, dropout_rate=0.2, use_tiles=False):
+    def __init__(self, num_classes, intern_vl_checkpoint_dir, intern_vit_output_dim=1024, hidden_dim=1024,
+                 dropout_rate=0.2, use_tiles=False, num_tiles_x=None, num_tiles_y=None):
         super().__init__()
 
         print("WARNING: Because of BatchNorm1d that doesn't work on single element batches, InternVitClassifier currently supports only batch sizes >= 2")
 
-        if use_tiles:
-            print("INFO: InternVitClassifier will be using tile splitting")
-
-        self.__use_tiles = use_tiles
-        self.__intern_vit_output_dim = intern_vit_output_dim * 5 if use_tiles else intern_vit_output_dim
-
         # InternViT model.
         self.intern_vit = InternVit(intern_vl_checkpoint_dir=intern_vl_checkpoint_dir)
+
+        # Use tiling?
+        if use_tiles:
+            print(f"INFO: InternVitClassifier will be using {num_tiles_x}x{num_tiles_y} tile splitting")
+            self.__image_processor = TileSplittingImageProcessor(
+                image_processor=self.intern_vit.get_image_processor(), num_rows=num_tiles_y, num_cols=num_tiles_x)
+            self.__intern_vit_output_dim = intern_vit_output_dim * self.__image_processor.get_num_tiles()
+        else:
+            self.__image_processor = self.intern_vit.get_image_processor()
+            self.__in__intern_vit_output_dimtern = intern_vit_output_dim
+
+        self.__hidden_dim = self.__intern_vit_output_dim
+        self.__use_tiles = use_tiles
 
         # Classifier head.
         self.classifier = nn.Sequential(
@@ -53,7 +61,4 @@ class InternVitClassifier(nn.Module):
             return self.classifier(output.pooler_output)
 
     def get_image_processor(self):
-        return self.intern_vit.get_image_processor()
-
-    def get_tile_splitting_image_processor(self):
-        return TileSplittingImageProcessor(image_processor=self.intern_vit.get_image_processor())
+        return self.__image_processor

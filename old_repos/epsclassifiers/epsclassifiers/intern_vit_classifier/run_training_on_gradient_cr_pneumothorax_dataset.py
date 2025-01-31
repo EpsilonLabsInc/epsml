@@ -10,8 +10,8 @@ def main():
     # General settings.
     model_name = "intern_vit_classifier"
     dataset_name = "gradient_cr_pneumothorax"
-    run_name = "26B with no labels (with tiles)"
-    notes = "InternVL model: 26B with no labels with tiles, loss=SampleBalancedBCEWithLogitsLoss"
+    run_name = "26B with no labels (with 9+1 tiles, ext classifier head)"
+    notes = "InternVL model: 26B with no labels with 9+1 tiles, ext classifier head, loss=SampleBalancedBCEWithLogitsLoss"
     output_dir = "./output"
 
     # Paths.
@@ -59,10 +59,14 @@ def main():
 
     # Create the model.
     print("Creating the model")
-    model = InternVitClassifier(num_classes=len(dataset_helper.get_labels()), intern_vl_checkpoint_dir=intern_vl_checkpoint_dir, intern_vit_output_dim=3200, use_tiles=use_tiles)  # For InternVL 26B model.
-    # model = InternVitClassifier(num_classes=len(EXTENDED_CR_CHEST_LABELS), intern_vl_checkpoint_dir=intern_vl_checkpoint_dir, intern_vit_output_dim=1024, use_tiles=use_tiles)  # For InternVL 8B model.
+    model = InternVitClassifier(num_classes=len(dataset_helper.get_labels()),
+                                intern_vl_checkpoint_dir=intern_vl_checkpoint_dir,
+                                intern_vit_output_dim=3200,  # 3200 for InternVL 26B model, 1024 for InternVL 8B model.
+                                use_tiles=use_tiles,
+                                num_tiles_x=3,
+                                num_tiles_y=3)
     model = model.to("cuda")
-    image_processor = model.get_tile_splitting_image_processor() if use_tiles else model.get_image_processor()
+    image_processor = model.get_image_processor()
 
     for param in model.parameters():
         param.requires_grad = True
