@@ -15,7 +15,7 @@ def main():
     output_dir = "./output"
 
     # Paths.
-    intern_vl_checkpoint_dir = "/workspace/models/internvl2.5_26b_finetune_lora_20241229_184000_1e-5_2.5_gradient_full_rm_sole_no_findings_rm_bad_dcm_no_label"
+    intern_vl_checkpoint_dir = "/workspace/models/internvl2.5_26b_finetune_lora_20241229_184000_1e-5_2.5_gradient_full_rm_sole_no_findings_rm_bad_dcm_no_label/checkpoint-58670"
     gcs_train_file = "gs://gradient-crs/archive/training/gradient-crs-22JUL2024-chest-images-with-pleural-effusion-label-training.jsonl"
     gcs_validation_file = "gs://gradient-crs/archive/training/gradient-crs-22JUL2024-chest-images-with-pleural-effusion-label-validation.jsonl"
     images_dir = "/workspace/CR/22JUL2024"
