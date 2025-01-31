@@ -12,10 +12,11 @@ from epsutils.labels.cr_chest_labels import EXTENDED_CR_CHEST_LABELS
 GCS_INPUT_FILE = "gs://epsilonlabs-filestore/cleaned_CRs/gradient_rm_bad_dcm_1211_nolabel.jsonl"
 GCS_INPUT_IMAGES_DIR = "GRADIENT-DATABASE/CR/22JUL2024/"
 GCS_CHEST_IMAGES_FILE = "gs://gradient-crs/archive/training/chest_files_gradient_all_3_batches.csv"
-TARGET_LABELS = ["Fracture"]
+TARGET_LABELS = ["Other"]
 SEED = 42
-OUTPUT_TRAINING_FILE = "gradient-crs-22JUL2024-chest-images-with-fracture-label-training.jsonl"
-OUTPUT_VALIDATION_FILE = "gradient-crs-22JUL2024-chest-images-with-fracture-label-validation.jsonl"
+FILL_UP_VALIDATION_LIST = False
+OUTPUT_TRAINING_FILE = "gradient-crs-22JUL2024-chest-images-with-other-label-training.jsonl"
+OUTPUT_VALIDATION_FILE = "gradient-crs-22JUL2024-chest-images-with-other-label-validation.jsonl"
 
 
 def get_labels_distribution(images):
@@ -114,7 +115,6 @@ def main():
         print("6b.")
         print(f"Fixing labels: Applying target labels {TARGET_LABELS}")
 
-        num_non_empty = 0
         for image in filtered_images:
             labels = image["labels"]
             fixed_labels = []
@@ -125,9 +125,6 @@ def main():
 
             image["labels"] = fixed_labels
 
-            if len(fixed_labels) > 0:
-                num_non_empty += 1
-
         labels_dist, newly_added_labels = get_labels_distribution(filtered_images)
         print(f"Labels distribution: {labels_dist}")
         print(f"Newly added labels: {newly_added_labels}")
@@ -136,27 +133,14 @@ def main():
         print("6c.")
         print(f"Fixing labels: Selecting image subset for better labels distribution")
 
-        selected_images = []
-        max_num = num_non_empty
-        num_non_empty = 0
-        num_empty = 0
+        images_with_non_empty_labels = [image for image in filtered_images if image["labels"]]
+        images_with_empty_labels = [image for image in filtered_images if not image["labels"]]
+        selected_images_with_empty_labels = images_with_empty_labels[0:len(images_with_non_empty_labels)]
+        remaining_images_for_validation = images_with_empty_labels[len(images_with_non_empty_labels):]
+        filtered_images = images_with_non_empty_labels + selected_images_with_empty_labels
 
-        for image in filtered_images:
-            if num_empty == num_non_empty == max_num:
-                break
-
-            labels = image["labels"]
-
-            if len(labels) > 0 and num_non_empty < max_num:
-                selected_images.append(image)
-                num_non_empty += 1
-            elif len(labels) == 0 and num_empty < max_num:
-                selected_images.append(image)
-                num_empty += 1
-
-        filtered_images = selected_images
-
-        print(f"Subset selected: {num_non_empty} images with non-empty labels, {num_empty} images with empty labels")
+        print(f"Subset selected: {len(images_with_non_empty_labels)} images with non-empty labels, {len(selected_images_with_empty_labels)} images with empty labels")
+        print(f"Remaining images for validation: {len(remaining_images_for_validation)}")
 
         labels_dist, newly_added_labels = get_labels_distribution(filtered_images)
         print(f"Labels distribution: {labels_dist}")
@@ -171,6 +155,9 @@ def main():
     split_index = int(0.98 * len(filtered_images))
     training_set = filtered_images[:split_index]
     validation_set = filtered_images[split_index:]
+
+    if TARGET_LABELS and FILL_UP_VALIDATION_LIST:
+        validation_set.extend(remaining_images_for_validation)
 
     print("")
     print(f"Training set size: {len(training_set)}")
