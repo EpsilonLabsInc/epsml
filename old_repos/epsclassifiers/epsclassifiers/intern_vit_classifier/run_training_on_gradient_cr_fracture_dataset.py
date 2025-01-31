@@ -10,31 +10,35 @@ def main():
     # General settings.
     model_name = "intern_vit_classifier"
     dataset_name = "gradient_cr_fracture"
-    run_name = "26B with no labels"
-    notes = "InternVL model: 26B with no labels, loss=SampleBalancedBCEWithLogitsLoss"
+    run_name = "26B with no labels (with 9+1 tiles, ext classifier)"
+    notes = "InternVL model: 26B with no labels with 9+1 tiles, ext classifier, loss=SampleBalancedBCEWithLogitsLoss"
     output_dir = "./output"
 
     # Paths.
-    intern_vl_checkpoint_dir = "/home/andrej/mnt/models/training/internvl2.5_26b_finetune_lora_20241229_184000_1e-5_2.5_gradient_full_rm_sole_no_findings_rm_bad_dcm_no_label"
+    intern_vl_checkpoint_dir = "/workspace/models/internvl2.5_26b_finetune_lora_20241229_184000_1e-5_2.5_gradient_full_rm_sole_no_findings_rm_bad_dcm_no_label/checkpoint-58670"
     gcs_train_file = "gs://gradient-crs/archive/training/gradient-crs-22JUL2024-chest-images-with-fracture-label-training.jsonl"
     gcs_validation_file = "gs://gradient-crs/archive/training/gradient-crs-22JUL2024-chest-images-with-fracture-label-validation.jsonl"
-    images_dir = "gs://epsilon-data-us-central1"
+    images_dir = "/workspace/CR/22JUL2024"
+    dir_prefix_to_remove = "GRADIENT-DATABASE/CR/22JUL2024"
 
     # Training settings.
     perform_intra_epoch_validation = True
-    intra_epoch_validation_step = 5000
+    intra_epoch_validation_step = 1000
     send_wandb_notification = False
     device = "cuda"
     device_ids = None  # Use one (the default) GPU.
     # device_ids = [0, 1, 2, 3, 4, 5, 6, 7]  # Use 8 GPUs.
-    num_training_workers_per_gpu = 8
-    num_validation_workers_per_gpu = 8
+    num_training_workers_per_gpu = 32
+    num_validation_workers_per_gpu = 32
     learning_rate = 2e-4
     warmup_ratio = 1 / 20
     num_epochs = 4
     training_batch_size = 32
     validation_batch_size = 32
     min_allowed_batch_size = 2  # In order for batch norm in the InternVitClassifier model to work.
+    use_tiles = True
+    num_tiles_x = 3
+    num_tiles_y = 3
 
     experiment_name = f"{model_name}-finetuning-on-{dataset_name}"
     mlops_experiment_name = f"{experiment_name}"
@@ -49,6 +53,7 @@ def main():
         gcs_train_file=gcs_train_file,
         gcs_validation_file=gcs_validation_file,
         images_dir=images_dir,
+        dir_prefix_to_remove=dir_prefix_to_remove,
         custom_labels=["Fracture"]
     )
 
@@ -56,8 +61,12 @@ def main():
 
     # Create the model.
     print("Creating the model")
-    model = InternVitClassifier(num_classes=len(dataset_helper.get_labels()), intern_vl_checkpoint_dir=intern_vl_checkpoint_dir, intern_vit_output_dim=3200)  # For InternVL 26B model.
-    # model = InternVitClassifier(num_classes=len(EXTENDED_CR_CHEST_LABELS), intern_vl_checkpoint_dir=intern_vl_checkpoint_dir, intern_vit_output_dim=1024)  # For InternVL 8B model.
+    model = InternVitClassifier(num_classes=len(dataset_helper.get_labels()),
+                                intern_vl_checkpoint_dir=intern_vl_checkpoint_dir,
+                                intern_vit_output_dim=3200,  # 3200 for InternVL 26B model, 1024 for InternVL 8B model.
+                                use_tiles=use_tiles,
+                                num_tiles_x=num_tiles_x,
+                                num_tiles_y=num_tiles_y)
     model = model.to("cuda")
     image_processor = model.get_image_processor()
 
@@ -103,7 +112,7 @@ def main():
 
     def get_torch_images(samples):
         images = [dataset_helper.get_pil_image(item) for item in samples]
-        pixel_values = image_processor(images=images, return_tensors="pt").pixel_values
+        pixel_values = image_processor(images=images, return_tensors="pt") if use_tiles else image_processor(images=images, return_tensors="pt").pixel_values
         pixel_values = pixel_values.to(torch.bfloat16)
         return pixel_values
 
