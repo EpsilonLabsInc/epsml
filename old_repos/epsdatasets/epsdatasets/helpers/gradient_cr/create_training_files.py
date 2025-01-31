@@ -14,7 +14,7 @@ GCS_INPUT_IMAGES_DIR = "GRADIENT-DATABASE/CR/22JUL2024/"
 GCS_CHEST_IMAGES_FILE = "gs://gradient-crs/archive/training/chest_files_gradient_all_3_batches.csv"
 TARGET_LABELS = ["Other"]
 SEED = 42
-FILL_UP_VALIDATION_LIST = False
+FILL_UP_VALIDATION_DATASET = False
 OUTPUT_TRAINING_FILE = "gradient-crs-22JUL2024-chest-images-with-other-label-training.jsonl"
 OUTPUT_VALIDATION_FILE = "gradient-crs-22JUL2024-chest-images-with-other-label-validation.jsonl"
 
@@ -156,7 +156,7 @@ def main():
     training_set = filtered_images[:split_index]
     validation_set = filtered_images[split_index:]
 
-    if TARGET_LABELS and FILL_UP_VALIDATION_LIST:
+    if TARGET_LABELS and FILL_UP_VALIDATION_DATASET:
         validation_set.extend(remaining_images_for_validation)
 
     print("")
