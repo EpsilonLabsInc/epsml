@@ -22,7 +22,7 @@ class InternVitClassifier(nn.Module):
             self.__intern_vit_output_dim = intern_vit_output_dim * self.__image_processor.get_num_tiles()
         else:
             self.__image_processor = self.intern_vit.get_image_processor()
-            self.__in__intern_vit_output_dimtern = intern_vit_output_dim
+            self.__intern_vit_output_dim = intern_vit_output_dim
 
         self.__hidden_dim = self.__intern_vit_output_dim
         self.__use_tiles = use_tiles
