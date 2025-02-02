@@ -10,8 +10,8 @@ def main():
     # General settings.
     model_name = "intern_vit_classifier"
     dataset_name = "gradient_cr_pneumothorax"
-    run_name = "26B with no labels (with 9+1 tiles)"
-    notes = "InternVL model: 26B with no labels with 9+1 tiles, loss=SampleBalancedBCEWithLogitsLoss"
+    run_name = "26B with no labels (frontal-only)"
+    notes = "InternVL model: 26B with no labels, frontal-only, loss=SampleBalancedBCEWithLogitsLoss"
     output_dir = "./output"
 
     # Paths.
