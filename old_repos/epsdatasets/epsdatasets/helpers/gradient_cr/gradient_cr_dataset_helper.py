@@ -89,10 +89,7 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
             row = ast.literal_eval(row)
             image_path = row["image_path"]
             if files_to_keep and image_path not in files_to_keep:
-                print(f"NOT keeping {image_path}")
                 continue
-            else:
-                print(f"Keeping {image_path}")
             image_path = os.path.relpath(image_path, self.__dir_prefix_to_remove) if self.__dir_prefix_to_remove else image_path
             data.append({"image_path": os.path.join(self.__images_dir, image_path), "labels": row["labels"]})
 
