@@ -1,4 +1,5 @@
 import logging
+import os
 from concurrent.futures import ProcessPoolExecutor
 
 from tqdm import tqdm
@@ -8,6 +9,7 @@ from epsutils.logging import logging_utils
 
 EPSILON_GCS_BUCKET_NAME = "gradient-crs"
 EPSILON_GCS_IMAGES_DIR = "22JUL2024"
+GRADIENT_GCS_IMAGES_DIR = "GRADIENT-DATABASE/CR/22JUL2024"
 CONTENT_TO_SEARCH = "(0008,103E) Series Description:"
 OUTPUT_FILE = "gradient-crs-22JUL2024-frontal-views.csv"
 
@@ -25,7 +27,8 @@ def process_file(file):
             words = series_description.lower().split()
 
             if {"pa", "ap"}.intersection(words) and {"chest", "rib", "ribs"}.intersection(words) and not {"lateral", "lat"}.intersection(words):
-                logging.info(f"{file};{series_description}")
+                gradient_file_name = os.path.join(GRADIENT_GCS_IMAGES_DIR, os.path.basename(file).replace("_", "/").replace(".txt", ".dcm"))
+                logging.info(f"{gradient_file_name};{series_description}")
 
             return
 
@@ -35,7 +38,7 @@ def main():
     logging_utils.configure_logger(logger_file_name=OUTPUT_FILE, show_logging_level=False)
 
     # Get a list of files in the Epsilon GCS bucket.
-    print(f"Getting a list of files in the {EPSILON_GCS_BUCKET_NAME} GCS bucket")
+    print(f"Getting a list of files in the '{EPSILON_GCS_BUCKET_NAME}' GCS bucket")
     files_in_bucket = gcs_utils.list_files(gcs_bucket_name=EPSILON_GCS_BUCKET_NAME, gcs_dir=EPSILON_GCS_IMAGES_DIR)
     files_in_bucket = [file for file in files_in_bucket if file.endswith(".txt")]
     files_in_bucket = set(files_in_bucket)  # Sets have average-time complexity of O(1) for lookups. In contrast, lists have an average-time complexity of O(n).
