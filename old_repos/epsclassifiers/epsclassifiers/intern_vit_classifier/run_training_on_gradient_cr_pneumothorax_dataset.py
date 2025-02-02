@@ -18,6 +18,7 @@ def main():
     intern_vl_checkpoint_dir = "/workspace/models/internvl2.5_26b_finetune_lora_20241229_184000_1e-5_2.5_gradient_full_rm_sole_no_findings_rm_bad_dcm_no_label/checkpoint-58670"
     gcs_train_file = "gs://gradient-crs/archive/training/gradient-crs-22JUL2024-chest-images-with-pneumothorax-label-training.jsonl"
     gcs_validation_file = "gs://gradient-crs/archive/training/gradient-crs-22JUL2024-chest-images-with-pneumothorax-label-validation.jsonl"
+    gcs_extra_filtering_file = "gs://gradient-crs/archive/training/gradient-crs-22JUL2024-frontal-views.csv"
     images_dir = "/workspace/CR/22JUL2024"
     dir_prefix_to_remove = "GRADIENT-DATABASE/CR/22JUL2024"
 
@@ -36,7 +37,7 @@ def main():
     training_batch_size = 32
     validation_batch_size = 32
     min_allowed_batch_size = 2  # In order for batch norm in the InternVitClassifier model to work.
-    use_tiles = True
+    use_tiles = False
     num_tiles_x = 3
     num_tiles_y = 3
 
@@ -52,6 +53,7 @@ def main():
     dataset_helper = GradientCrDatasetHelper(
         gcs_train_file=gcs_train_file,
         gcs_validation_file=gcs_validation_file,
+        gcs_extra_filtering_file=gcs_extra_filtering_file,
         images_dir=images_dir,
         dir_prefix_to_remove=dir_prefix_to_remove,
         custom_labels=["Pneumothorax"]

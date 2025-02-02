@@ -21,6 +21,7 @@ class InternVitClassifier(nn.Module):
                 image_processor=self.intern_vit.get_image_processor(), num_rows=num_tiles_y, num_cols=num_tiles_x)
             self.__intern_vit_output_dim = intern_vit_output_dim * self.__image_processor.get_num_tiles()
         else:
+            print(f"INFO: InternVitClassifier will NOT be using tile splitting")
             self.__image_processor = self.intern_vit.get_image_processor()
             self.__intern_vit_output_dim = intern_vit_output_dim
 
