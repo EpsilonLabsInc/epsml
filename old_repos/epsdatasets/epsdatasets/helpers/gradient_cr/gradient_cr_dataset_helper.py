@@ -20,7 +20,7 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
     def __init__(self, gcs_train_file,
                  gcs_validation_file,
                  gcs_test_file=None,
-                 extra_filtering_file=None,
+                 gcs_extra_filtering_file=None,
                  images_dir=None,
                  dir_prefix_to_remove=None,
                  convert_images_to_rgb=True,
@@ -32,7 +32,7 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
             gcs_train_file (str): GCS URI of the training file.
             gcs_validation_file (str): GCS URI of the validation file.
             gcs_test_file (str, optional): GCS URI of the test file.
-            extra_filtering_file (str, optional): GCS URI of the extra filtering file. Images in the training/validation/test list that are not present in this file are skipped.
+            gcs_extra_filtering_file (str, optional): GCS URI of the extra filtering file. Images in the training/validation/test list that are not present in this file are skipped.
             images_dir (str, optional): GCS URI or local path of the base folder where the images are located.
             dir_prefix_to_remove (str, optional): Dir prefix to be removed from the input image paths.
             convert_images_to_rgb (bool, optional): If True, loaded images will be converted to RGB before being returned.
@@ -41,7 +41,7 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
         super().__init__(gcs_train_file=gcs_train_file,
                          gcs_validation_file=gcs_validation_file,
                          gcs_test_file=gcs_test_file,
-                         extra_filtering_file=extra_filtering_file,
+                         gcs_extra_filtering_file=gcs_extra_filtering_file,
                          images_dir=images_dir,
                          dir_prefix_to_remove=dir_prefix_to_remove,
                          convert_images_to_rgb=convert_images_to_rgb,
@@ -52,7 +52,7 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
         self.__gcs_train_file = kwargs["gcs_train_file"] if "gcs_train_file" in kwargs else next((arg for arg in args if arg == "gcs_train_file"), None)
         self.__gcs_validation_file = kwargs["gcs_validation_file"] if "gcs_validation_file" in kwargs else next((arg for arg in args if arg == "gcs_validation_file"), None)
         self.__gcs_test_file = kwargs["gcs_test_file"] if "gcs_test_file" in kwargs else next((arg for arg in args if arg == "gcs_test_file"), None)
-        self.__extra_filtering_file = kwargs["extra_filtering_file"] if "extra_filtering_file" in kwargs else next((arg for arg in args if arg == "extra_filtering_file"), None)
+        self.__gcs_extra_filtering_file = kwargs["gcs_extra_filtering_file"] if "gcs_extra_filtering_file" in kwargs else next((arg for arg in args if arg == "gcs_extra_filtering_file"), None)
         self.__images_dir = kwargs["images_dir"] if "images_dir" in kwargs else next((arg for arg in args if arg == "images_dir"), None)
         self.__dir_prefix_to_remove = kwargs["dir_prefix_to_remove"] if "dir_prefix_to_remove" in kwargs else next((arg for arg in args if arg == "dir_prefix_to_remove"), None)
         self.__convert_images_to_rgb = kwargs["convert_images_to_rgb"] if "convert_images_to_rgb" in kwargs else next((arg for arg in args if arg == "convert_images_to_rgb"), None)
@@ -67,9 +67,9 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
         self.__torch_test_dataset = None
 
         # Download extra filtering file.
-        if extra_filtering_file:
+        if self.__gcs_extra_filtering_file:
             print("Downloading the extra filtering file")
-            gcs_data = gcs_utils.split_gcs_uri(self.__extra_filtering_file)
+            gcs_data = gcs_utils.split_gcs_uri(self.__gcs_extra_filtering_file)
             content = gcs_utils.download_file_as_string(gcs_bucket_name=gcs_data["gcs_bucket_name"], gcs_file_name=gcs_data["gcs_path"])
             df = pd.read_csv(StringIO(content), sep=';', header=None)
             files_to_keep = set(df[0])
@@ -89,7 +89,10 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
             row = ast.literal_eval(row)
             image_path = row["image_path"]
             if files_to_keep and image_path not in files_to_keep:
+                print(f"NOT keeping {image_path}")
                 continue
+            else:
+                print(f"Keeping {image_path}")
             image_path = os.path.relpath(image_path, self.__dir_prefix_to_remove) if self.__dir_prefix_to_remove else image_path
             data.append({"image_path": os.path.join(self.__images_dir, image_path), "labels": row["labels"]})
 
