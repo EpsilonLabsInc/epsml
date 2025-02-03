@@ -10,14 +10,15 @@ def main():
     # General settings.
     model_name = "intern_vit_classifier"
     dataset_name = "gradient_cr_pleural_effusion"
-    run_name = "26B with no labels"
-    notes = "InternVL model: 26B with no labels, loss=SampleBalancedBCEWithLogitsLoss"
+    run_name = "26B with no labels (frontal-only)"
+    notes = "InternVL model: 26B with no labels, frontal-only, loss=SampleBalancedBCEWithLogitsLoss"
     output_dir = "./output"
 
     # Paths.
     intern_vl_checkpoint_dir = "/workspace/models/internvl2.5_26b_finetune_lora_20241229_184000_1e-5_2.5_gradient_full_rm_sole_no_findings_rm_bad_dcm_no_label/checkpoint-58670"
     gcs_train_file = "gs://gradient-crs/archive/training/gradient-crs-22JUL2024-chest-images-with-pleural-effusion-label-training.jsonl"
     gcs_validation_file = "gs://gradient-crs/archive/training/gradient-crs-22JUL2024-chest-images-with-pleural-effusion-label-validation.jsonl"
+    gcs_extra_filtering_file = "gs://gradient-crs/archive/training/gradient-crs-22JUL2024-frontal-views.csv"
     images_dir = "/workspace/CR/22JUL2024"
     dir_prefix_to_remove = "GRADIENT-DATABASE/CR/22JUL2024"
 
@@ -30,7 +31,7 @@ def main():
     # device_ids = [0, 1, 2, 3, 4, 5, 6, 7]  # Use 8 GPUs.
     num_training_workers_per_gpu = 32
     num_validation_workers_per_gpu = 32
-    learning_rate = 2e-4
+    learning_rate = 1e-2  # 2e-4
     warmup_ratio = 1 / 20
     num_epochs = 4
     training_batch_size = 32
@@ -49,6 +50,7 @@ def main():
     dataset_helper = GradientCrDatasetHelper(
         gcs_train_file=gcs_train_file,
         gcs_validation_file=gcs_validation_file,
+        gcs_extra_filtering_file=gcs_extra_filtering_file,
         images_dir=images_dir,
         dir_prefix_to_remove=dir_prefix_to_remove,
         custom_labels=["Pleural Effusion"]
