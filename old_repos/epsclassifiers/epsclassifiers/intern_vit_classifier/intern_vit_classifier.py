@@ -63,3 +63,19 @@ class InternVitClassifier(nn.Module):
 
     def get_image_processor(self):
         return self.__image_processor
+
+    def freeze_all_layers(self):
+        for param in self.parameters():
+            param.requires_grad = False
+
+    def unfreeze_classifier(self):
+        for param in self.classifier.parameters():
+            param.requires_grad = True
+
+    def unfreeze_intern_vit(self, num_last_layers_to_unfreeze=None):
+        if num_last_layers_to_unfreeze is None:
+            num_last_layers_to_unfreeze = len(self.intern_vit._InternVit__model.encoder.layers)
+
+        for layer in self.intern_vit._InternVit__model.encoder.layers[-num_last_layers_to_unfreeze:]:
+            for param in layer.parameters():
+                param.requires_grad = True
