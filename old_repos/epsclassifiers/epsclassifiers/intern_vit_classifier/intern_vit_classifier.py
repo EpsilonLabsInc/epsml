@@ -6,7 +6,7 @@ from intern_vit import InternVit
 
 class InternVitClassifier(nn.Module):
     def __init__(self, num_classes, intern_vl_checkpoint_dir, intern_vit_output_dim=1024, hidden_dim=1024,
-                 dropout_rate=0.2, use_tiles=False, num_tiles_x=None, num_tiles_y=None):
+                 dropout_rate=0.2, multi_image_input=False, num_multi_images=None, use_tiles=False, num_tiles_x=None, num_tiles_y=None):
         super().__init__()
 
         print("WARNING: Because of BatchNorm1d that doesn't work on single element batches, InternVitClassifier currently supports only batch sizes >= 2")
@@ -14,18 +14,21 @@ class InternVitClassifier(nn.Module):
         # InternViT model.
         self.intern_vit = InternVit(intern_vl_checkpoint_dir=intern_vl_checkpoint_dir)
 
-        # Use tiling?
-        if use_tiles:
+        if multi_image_input:
+            print(f"INFO: InternVitClassifier will be using multi image input of size {num_multi_images}")
+            self.__image_processor = self.intern_vit.get_image_processor()
+            self.__intern_vit_output_dim = intern_vit_output_dim * num_multi_images
+        elif use_tiles:
             print(f"INFO: InternVitClassifier will be using {num_tiles_x}x{num_tiles_y} tile splitting")
             self.__image_processor = TileSplittingImageProcessor(
                 image_processor=self.intern_vit.get_image_processor(), num_rows=num_tiles_y, num_cols=num_tiles_x)
             self.__intern_vit_output_dim = intern_vit_output_dim * self.__image_processor.get_num_tiles()
         else:
-            print(f"INFO: InternVitClassifier will NOT be using tile splitting")
+            print(f"INFO: InternVitClassifier will NOT be using multi image input and will NOT be using tile splitting")
             self.__image_processor = self.intern_vit.get_image_processor()
             self.__intern_vit_output_dim = intern_vit_output_dim
 
-        self.__hidden_dim = self.__intern_vit_output_dim
+        self.__multi_image_input = multi_image_input
         self.__use_tiles = use_tiles
 
         # Classifier head.
@@ -49,11 +52,11 @@ class InternVitClassifier(nn.Module):
         if x.shape[0] < 2:
             raise ValueError("Because of BatchNorm1d that doesn't work on single element batches, InternVitClassifier currently supports only batch sizes >= 2")
 
-        if self.__use_tiles:
-            # 5 dimensions indicate use of tiles: (batch_num, num_tiles, num_channels, img_height, img_width)
+        if self.__multi_image_input or self.__use_tiles:
+            # 5 dimensions indicate use of multi image input or tiles: (batch_num, num_tiles, num_channels, img_height, img_width)
             assert len(x.shape) == 5
-            batch, tiles, num_channels, height, width = x.shape
-            x_reshaped = x.view(batch * tiles, num_channels, height, width)
+            batch, group, num_channels, height, width = x.shape
+            x_reshaped = x.view(batch * group, num_channels, height, width)
             output = self.intern_vit(x_reshaped)
             reshaped_output = output.pooler_output.reshape(batch, -1)
             return self.classifier(reshaped_output)
