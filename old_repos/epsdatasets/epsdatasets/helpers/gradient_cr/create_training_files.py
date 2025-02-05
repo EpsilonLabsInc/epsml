@@ -5,18 +5,20 @@ import random
 from io import StringIO
 
 import pandas as pd
+from tqdm import tqdm
 
 from epsutils.gcs import gcs_utils
 from epsutils.labels.cr_chest_labels import EXTENDED_CR_CHEST_LABELS
 
-GCS_INPUT_FILE = "gs://epsilonlabs-filestore/cleaned_CRs/gradient_rm_bad_dcm_1211_nolabel.jsonl"
-GCS_INPUT_IMAGES_DIR = "GRADIENT-DATABASE/CR/22JUL2024/"
+GCS_INPUT_FILE = "gs://epsilonlabs-filestore/cleaned_CRs/GRADIENT-DATABASE_CR_09JAN2025.csv"
+GCS_INPUT_IMAGES_DIR = "GRADIENT-DATABASE/CR/09JAN2025/deid"
 GCS_CHEST_IMAGES_FILE = "gs://gradient-crs/archive/training/chest_files_gradient_all_3_batches.csv"
-TARGET_LABELS = ["Other"]
+TARGET_LABELS = ["Pneumothorax"]
 SEED = 42
+SPLIT_RATIO = 0.98
 FILL_UP_VALIDATION_DATASET = False
-OUTPUT_TRAINING_FILE = "gradient-crs-22JUL2024-chest-images-with-other-label-training.jsonl"
-OUTPUT_VALIDATION_FILE = "gradient-crs-22JUL2024-chest-images-with-other-label-validation.jsonl"
+OUTPUT_TRAINING_FILE = "gradient-crs-09JAN2025-per-study-chest-images-with-pneumothorax-label-training.jsonl"
+OUTPUT_VALIDATION_FILE = "gradient-crs-09JAN2025-per-study-chest-images-with-pneumothorax-label-validation.jsonl"
 
 
 def get_labels_distribution(images):
@@ -32,6 +34,15 @@ def get_labels_distribution(images):
                 labels_dist[label] = 1
 
     return labels_dist, newly_added_labels
+
+
+def normalize_list(lst, num_elems):
+    if len(lst) > num_elems:
+        return lst[:num_elems]
+    elif len(lst) == num_elems:
+        return lst
+    else:
+        return lst + [lst[-1]] * (num_elems - len(lst))
 
 
 def main():
@@ -60,16 +71,31 @@ def main():
     print("Generating a list of input images")
 
     input_images = []
-    rows = content.splitlines()
-    for row in rows:
-        row = ast.literal_eval(row)
-        labels = row["labels"]
-        assert labels != []
-        images = row["image"]
 
-        for image in images:
-            image_path = os.path.join(GCS_INPUT_IMAGES_DIR, image)
-            input_images.append({"image_path": image_path, "labels": labels})
+    if GCS_INPUT_FILE.endswith(".jsonl"):
+        rows = content.splitlines()
+        for row in rows:
+            row = ast.literal_eval(row)
+            labels = row["labels"]
+            assert labels != []
+            images = row["image"]
+
+            for image in images:
+                image_path = os.path.join(GCS_INPUT_IMAGES_DIR, image)
+                input_images.append({"image_path": image_path, "labels": labels})
+
+    elif GCS_INPUT_FILE.endswith(".csv"):
+        df = pd.read_csv(StringIO(content))
+        df = df[["labels", "image_paths"]]
+        for index, row in tqdm(df.iterrows(), total=len(df), desc="Processing"):
+            labels = [label.strip() for label in row["labels"].split(",")]
+            image_paths = ast.literal_eval(row["image_paths"])
+            image_paths = [os.path.join(GCS_INPUT_IMAGES_DIR, image_path) for image_path in image_paths]
+            image_paths = normalize_list(image_paths, num_elems=3)  # Take max 3 images per study. If less then 3, multiplicate last image to fill up the gap.
+            input_images.append({"image_path": image_paths, "labels": labels})
+
+    else:
+        raise ValueError("Input file type not supported")
 
     print(f"Number of input images: {len(input_images)}")
 
@@ -79,8 +105,12 @@ def main():
 
     filtered_images = []
     for input_image in input_images:
-        if input_image["image_path"] not in chest_images:
-            continue
+        if isinstance(input_image["image_path"], list):
+            if not any(image_path in chest_images for image_path in input_image["image_path"]):
+                continue
+        else:
+            if input_image["image_path"] not in chest_images:
+                continue
 
         filtered_images.append(input_image)
 
@@ -152,7 +182,7 @@ def main():
 
     random.seed(SEED)
     random.shuffle(filtered_images)
-    split_index = int(0.98 * len(filtered_images))
+    split_index = int(SPLIT_RATIO * len(filtered_images))
     training_set = filtered_images[:split_index]
     validation_set = filtered_images[split_index:]
 
