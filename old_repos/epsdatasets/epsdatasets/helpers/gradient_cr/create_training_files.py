@@ -37,7 +37,9 @@ def get_labels_distribution(images):
 
 
 def normalize_list(lst, num_elems):
-    if len(lst) > num_elems:
+    if len(lst) == 0:
+        return []
+    elif len(lst) > num_elems:
         return lst[:num_elems]
     elif len(lst) == num_elems:
         return lst
