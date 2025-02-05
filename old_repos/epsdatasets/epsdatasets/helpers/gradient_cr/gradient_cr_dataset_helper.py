@@ -87,11 +87,18 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
         rows = content.splitlines()
         for row in rows:
             row = ast.literal_eval(row)
-            image_path = row["image_path"]
-            if files_to_keep and image_path not in files_to_keep:
-                continue
-            image_path = os.path.relpath(image_path, self.__dir_prefix_to_remove) if self.__dir_prefix_to_remove else image_path
-            data.append({"image_path": os.path.join(self.__images_dir, image_path), "labels": row["labels"]})
+
+            if not isinstance(row["image_path"], list):
+                image_path = row["image_path"]
+                if files_to_keep and image_path not in files_to_keep:
+                    continue
+                image_path = os.path.relpath(image_path, self.__dir_prefix_to_remove) if self.__dir_prefix_to_remove else image_path
+                data.append({"image_path": os.path.join(self.__images_dir, image_path), "labels": row["labels"]})
+            else:
+                image_paths = row["image_path"]
+                image_paths = [os.path.relpath(image_path, self.__dir_prefix_to_remove) if self.__dir_prefix_to_remove else image_path for image_path in image_paths]
+                image_paths = [os.path.join(self.__images_dir, image_path) for image_path in image_paths]
+                data.append({"image_path": image_paths, "labels": row["labels"]})
 
         # Create traning dataset.
         print("Creating the training dataset")
@@ -113,11 +120,18 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
         rows = content.splitlines()
         for row in rows:
             row = ast.literal_eval(row)
-            image_path = row["image_path"]
-            if files_to_keep and image_path not in files_to_keep:
-                continue
-            image_path = os.path.relpath(image_path, self.__dir_prefix_to_remove) if self.__dir_prefix_to_remove else image_path
-            data.append({"image_path": os.path.join(self.__images_dir, image_path), "labels": row["labels"]})
+
+            if not isinstance(row["image_path"], list):
+                image_path = row["image_path"]
+                if files_to_keep and image_path not in files_to_keep:
+                    continue
+                image_path = os.path.relpath(image_path, self.__dir_prefix_to_remove) if self.__dir_prefix_to_remove else image_path
+                data.append({"image_path": os.path.join(self.__images_dir, image_path), "labels": row["labels"]})
+            else:
+                image_paths = row["image_path"]
+                image_paths = [os.path.relpath(image_path, self.__dir_prefix_to_remove) if self.__dir_prefix_to_remove else image_path for image_path in image_paths]
+                image_paths = [os.path.join(self.__images_dir, image_path) for image_path in image_paths]
+                data.append({"image_path": image_paths, "labels": row["labels"]})
 
         # Create validation dataset.
         print("Creating the validation dataset")
@@ -140,11 +154,18 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
             rows = content.splitlines()
             for row in rows:
                 row = ast.literal_eval(row)
-                image_path = row["image_path"]
-                if files_to_keep and image_path not in files_to_keep:
-                    continue
-                image_path = os.path.relpath(image_path, self.__dir_prefix_to_remove) if self.__dir_prefix_to_remove else image_path
-                data.append({"image_path": os.path.join(self.__images_dir, image_path), "labels": row["labels"]})
+
+                if not isinstance(row["image_path"], list):
+                    image_path = row["image_path"]
+                    if files_to_keep and image_path not in files_to_keep:
+                        continue
+                    image_path = os.path.relpath(image_path, self.__dir_prefix_to_remove) if self.__dir_prefix_to_remove else image_path
+                    data.append({"image_path": os.path.join(self.__images_dir, image_path), "labels": row["labels"]})
+                else:
+                    image_paths = row["image_path"]
+                    image_paths = [os.path.relpath(image_path, self.__dir_prefix_to_remove) if self.__dir_prefix_to_remove else image_path for image_path in image_paths]
+                    image_paths = [os.path.join(self.__images_dir, image_path) for image_path in image_paths]
+                    data.append({"image_path": image_paths, "labels": row["labels"]})
 
             # Create test dataset.
             print("Creating the test dataset")
@@ -162,6 +183,44 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
         self.__torch_test_dataset = GradientCrTorchDataset(pandas_dataframe=self.__pandas_test_dataset) if self.__pandas_test_dataset else None
 
     def get_pil_image(self, item):
+        if isinstance(item["image_path"], list):
+            return self.__get_pil_images(item)
+        else:
+            return self.__get_pil_image(item)
+
+    def __get_pil_images(self, item):
+        image_paths = item["image_path"]
+        images = []
+
+        for image_path in image_paths:
+            try:
+                if gcs_utils.is_gcs_uri(image_path):
+                    gcs_data = gcs_utils.split_gcs_uri(image_path)
+                    image_path = BytesIO(gcs_utils.download_file_as_bytes(gcs_bucket_name=gcs_data["gcs_bucket_name"], gcs_file_name=gcs_data["gcs_path"]))
+
+                image = dicom_utils.get_dicom_image(image_path, custom_windowing_parameters={"window_center": 0, "window_width": 0})
+                image = image.astype(np.float32)
+                eps = 1e-10
+                image = (image - image.min()) / (image.max() - image.min() + eps)
+
+                if self.__convert_images_to_rgb:
+                    image = image * 255
+                    image = image.astype(np.uint8)
+
+                image = Image.fromarray(image)
+
+                if self.__convert_images_to_rgb:
+                    image = image.convert("RGB")
+
+                images.append(image)
+
+            except Exception as e:
+                print(f"Error loading {item['image_path']}: {str(e)}")
+                raise
+
+        return images
+
+    def __get_pil_image(self, item):
         try:
             image_path = item["image_path"]
 
