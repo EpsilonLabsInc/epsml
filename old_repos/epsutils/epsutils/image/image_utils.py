@@ -53,3 +53,20 @@ def validate_image_histogram(image, config=VALIDATE_IMAGE_HISTOGRAM_CONFIGURATIO
 
     except Exception as e:
         return False, f"{e}"
+
+
+def numpy_array_to_pil_image(image_array, convert_to_uint8=True, convert_to_rgb=True):
+    image = image_array.astype(np.float32)
+    eps = 1e-10
+    image = (image - image.min()) / (image.max() - image.min() + eps)
+
+    if convert_to_uint8 or convert_to_rgb:
+        image = image * 255
+        image = image.astype(np.uint8)
+
+    image = Image.fromarray(image)
+
+    if convert_to_rgb:
+        image = image.convert("RGB")
+
+    return image
