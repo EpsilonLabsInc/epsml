@@ -10,15 +10,17 @@ from tqdm import tqdm
 from epsutils.gcs import gcs_utils
 from epsutils.labels.cr_chest_labels import EXTENDED_CR_CHEST_LABELS
 
-GCS_INPUT_FILE = "gs://epsilonlabs-filestore/cleaned_CRs/GRADIENT-DATABASE_CR_09JAN2025.csv"
-GCS_INPUT_IMAGES_DIR = "GRADIENT-DATABASE/CR/09JAN2025/deid"
+# GCS_INPUT_FILE = "gs://epsilonlabs-filestore/cleaned_CRs/GRADIENT-DATABASE_CR_09JAN2025.csv"
+GCS_INPUT_FILE = "gs://epsilonlabs-filestore/cleaned_CRs/GRADIENT_CR_batch_1.csv"
+GCS_INPUT_IMAGES_DIR = "GRADIENT-DATABASE/CR/22JUL2024"
 GCS_CHEST_IMAGES_FILE = "gs://gradient-crs/archive/training/chest_files_gradient_all_3_batches.csv"
-TARGET_LABELS = ["Pneumothorax"]
+TARGET_LABELS = ["Atelectasis"]
+USE_OLD_REPORT_FORMAT = True
 SEED = 42
 SPLIT_RATIO = 0.98
 FILL_UP_VALIDATION_DATASET = False
-OUTPUT_TRAINING_FILE = "gradient-crs-09JAN2025-per-study-chest-images-with-pneumothorax-label-training.jsonl"
-OUTPUT_VALIDATION_FILE = "gradient-crs-09JAN2025-per-study-chest-images-with-pneumothorax-label-validation.jsonl"
+OUTPUT_TRAINING_FILE = "gradient-crs-22JUL2024-per-study-chest-images-with-atelectasis-label-training.jsonl"
+OUTPUT_VALIDATION_FILE = "gradient-crs-22JUL2024-per-study-chest-images-with-atelectasis-label-validation.jsonl"
 
 
 def get_labels_distribution(images):
@@ -90,8 +92,20 @@ def main():
         df = pd.read_csv(StringIO(content))
         df = df[["labels", "image_paths"]]
         for index, row in tqdm(df.iterrows(), total=len(df), desc="Processing"):
-            labels = [label.strip() for label in row["labels"].split(",")]
+            try:
+                labels = [label.strip() for label in row["labels"].split(",")]
+            except:
+                print(f"Error parsing labels {row['labels']}")
+                continue
+
             image_paths = ast.literal_eval(row["image_paths"])
+
+            if USE_OLD_REPORT_FORMAT:
+                image_paths_dict = image_paths
+                image_paths = []
+                for value in image_paths_dict.values():
+                    image_paths.extend(value["paths"])
+
             image_paths = [os.path.join(GCS_INPUT_IMAGES_DIR, image_path) for image_path in image_paths]
             image_paths = normalize_list(image_paths, num_elems=3)  # Take max 3 images per study. If less then 3, multiplicate last image to fill up the gap.
             input_images.append({"image_path": image_paths, "labels": labels})
