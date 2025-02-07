@@ -10,17 +10,19 @@ from tqdm import tqdm
 from epsutils.gcs import gcs_utils
 from epsutils.labels.cr_chest_labels import EXTENDED_CR_CHEST_LABELS
 
-# GCS_INPUT_FILE = "gs://epsilonlabs-filestore/cleaned_CRs/GRADIENT-DATABASE_CR_09JAN2025.csv"
-GCS_INPUT_FILE = "gs://epsilonlabs-filestore/cleaned_CRs/GRADIENT_CR_batch_1.csv"
-GCS_INPUT_IMAGES_DIR = "GRADIENT-DATABASE/CR/22JUL2024"
+GCS_INPUT_FILE = "gs://epsilonlabs-filestore/cleaned_CRs/GRADIENT-DATABASE_CR_09JAN2025.csv"
+# GCS_INPUT_FILE = "gs://epsilonlabs-filestore/cleaned_CRs/GRADIENT_CR_batch_1_chest_with_image_paths.csv"
+# GCS_INPUT_FILE = "gs://epsilonlabs-filestore/cleaned_CRs/gradient_rm_bad_dcm_1211_nolabel.jsonl"
+GCS_INPUT_IMAGES_DIR = "GRADIENT-DATABASE/CR/09JAN2025/deid"
 GCS_CHEST_IMAGES_FILE = "gs://gradient-crs/archive/training/chest_files_gradient_all_3_batches.csv"
-TARGET_LABELS = ["Atelectasis"]
-USE_OLD_REPORT_FORMAT = True
+TARGET_LABELS = ["Enlarged Cardiomediastinum"]
+USE_OLD_REPORT_FORMAT = False
+GENERATE_PER_STUDY = False
 SEED = 42
 SPLIT_RATIO = 0.98
 FILL_UP_VALIDATION_DATASET = False
-OUTPUT_TRAINING_FILE = "gradient-crs-22JUL2024-per-study-chest-images-with-atelectasis-label-training.jsonl"
-OUTPUT_VALIDATION_FILE = "gradient-crs-22JUL2024-per-study-chest-images-with-atelectasis-label-validation.jsonl"
+OUTPUT_TRAINING_FILE = "gradient-crs-09JAN2025-chest-images-with-enlarged-cardiomediastinum-label-training.jsonl"
+OUTPUT_VALIDATION_FILE = "gradient-crs-09JAN2025-chest-images-with-enlarged-cardiomediastinum-label-validation.jsonl"
 
 
 def get_labels_distribution(images):
@@ -98,7 +100,10 @@ def main():
                 print(f"Error parsing labels {row['labels']}")
                 continue
 
-            image_paths = ast.literal_eval(row["image_paths"])
+            try:
+                image_paths = ast.literal_eval(row["image_paths"])
+            except:
+                continue
 
             if USE_OLD_REPORT_FORMAT:
                 image_paths_dict = image_paths
@@ -107,8 +112,13 @@ def main():
                     image_paths.extend(value["paths"])
 
             image_paths = [os.path.join(GCS_INPUT_IMAGES_DIR, image_path) for image_path in image_paths]
-            image_paths = normalize_list(image_paths, num_elems=3)  # Take max 3 images per study. If less then 3, multiplicate last image to fill up the gap.
-            input_images.append({"image_path": image_paths, "labels": labels})
+
+            if GENERATE_PER_STUDY:
+                image_paths = normalize_list(image_paths, num_elems=3)  # Take max 3 images per study. If less then 3, multiplicate last image to fill up the gap.
+                input_images.append({"image_path": image_paths, "labels": labels})
+            else:
+                for image_path in image_paths:
+                    input_images.append({"image_path": image_path, "labels": labels})
 
     else:
         raise ValueError("Input file type not supported")
