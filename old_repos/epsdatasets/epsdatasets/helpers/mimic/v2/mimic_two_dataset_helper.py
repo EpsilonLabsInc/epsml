@@ -5,6 +5,7 @@ import datasets
 import pandas as pd
 import torch
 from PIL import Image
+from sklearn.model_selection import train_test_split
 from torch.utils.data import Dataset, DataLoader
 
 from epsdatasets.helpers.base.base_dataset_helper import BaseDatasetHelper
@@ -19,12 +20,13 @@ NEGBIO_FILE = "mimic-cxr-2.0.0-negbio.csv.gz"
 
 
 class MimicTwoDatasetHelper(BaseDatasetHelper):
-    def __init__(self, gcs_uri, labels_generator="chexpert"):
-        super().__init__(gcs_uri=gcs_uri, labels_generator=labels_generator)
+    def __init__(self, gcs_uri, labels_generator="chexpert", binary_label=None):
+        super().__init__(gcs_uri=gcs_uri, labels_generator=labels_generator, binary_label=binary_label)
 
     def _load_dataset(self, *args, **kwargs):
         self.__gcs_uri = kwargs["gcs_uri"] if "gcs_uri" in kwargs else next((arg for arg in args if arg == "gcs_uri"), None)
         self.__labels_generator = kwargs["labels_generator"] if "labels_generator" in kwargs else next((arg for arg in args if arg == "labels_generator"), None)
+        self.__binary_label = kwargs["binary_label"] if "binary_label" in kwargs else next((arg for arg in args if arg == "binary_label"), None)
 
         if self.__labels_generator == "chexpert":
             self.__labels_file = CHEXPERT_FILE
@@ -149,9 +151,13 @@ class MimicTwoDatasetHelper(BaseDatasetHelper):
         self.__splits_dataset = pd.read_csv(BytesIO(content), compression="gzip")
 
     def __get_label_names(self):
-        columns_list = self.__labels_dataset.columns.values.tolist()
-        label_names = [column for column in columns_list if column not in ["subject_id", "study_id"]]
-        print(f"Found the following label names: {label_names}")
+        if self.__binary_label:
+            label_names = [self.__binary_label]
+            print(f"Using the following label names: {label_names}")
+        else:
+            columns_list = self.__labels_dataset.columns.values.tolist()
+            label_names = [column for column in columns_list if column not in ["subject_id", "study_id"]]
+            print(f"Found the following label names: {label_names}")
 
         self.__all_labels = label_names
         self.__labels_to_ids = {label: i for i, label in enumerate(self.__all_labels)}
@@ -198,6 +204,9 @@ class MimicTwoDatasetHelper(BaseDatasetHelper):
         self.__pandas_full_dataset["labels"] = self.__pandas_full_dataset.apply(lambda row: row.index[row == 1.0].tolist(), axis=1)
         self.__pandas_full_dataset["labels"] = self.__pandas_full_dataset["labels"].apply(lambda x: ["No Finding"] if not x else x)
 
+        if self.__binary_label:
+            self.__pandas_full_dataset["labels"] = self.__pandas_full_dataset["labels"].apply(lambda x: [self.__binary_label] if self.__binary_label in x else [])
+
         # Prepend GCS URI to the file name.
         self.__pandas_full_dataset["file_name"] = self.__pandas_full_dataset["file_name"].apply(lambda x: os.path.join(self.__gcs_uri, x))
 
@@ -206,9 +215,14 @@ class MimicTwoDatasetHelper(BaseDatasetHelper):
 
     def __create_splits(self):
         print("Creating splits")
-        self.__pandas_train_dataset = self.__pandas_full_dataset.loc[self.__pandas_full_dataset["split"] == "train"]
-        self.__pandas_validation_dataset = self.__pandas_full_dataset.loc[self.__pandas_full_dataset["split"] == "validate"]
-        self.__pandas_test_dataset = self.__pandas_full_dataset.loc[self.__pandas_full_dataset["split"] == "test"]
+        if self.__binary_label:
+            seed = 42  # TODO: Parametrize.
+            self.__pandas_train_dataset, temp = train_test_split(self.__pandas_full_dataset, test_size=0.2, random_state=seed)
+            self.__pandas_validation_dataset, self.__pandas_test_dataset = train_test_split(temp, test_size=0.5, random_state=seed)
+        else:
+            self.__pandas_train_dataset = self.__pandas_full_dataset.loc[self.__pandas_full_dataset["split"] == "train"]
+            self.__pandas_validation_dataset = self.__pandas_full_dataset.loc[self.__pandas_full_dataset["split"] == "validate"]
+            self.__pandas_test_dataset = self.__pandas_full_dataset.loc[self.__pandas_full_dataset["split"] == "test"]
 
         print(f"Train dataset size: {len(self.__pandas_train_dataset)}")
         print(f"Validation dataset size: {len(self.__pandas_validation_dataset)}")
