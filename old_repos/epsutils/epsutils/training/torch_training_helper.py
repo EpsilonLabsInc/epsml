@@ -240,7 +240,6 @@ class TorchTrainingHelper:
             epoch = checkpoint["epoch"] - 1 # Convert epoch number from one-based to zero-based.
             self.__model.load_state_dict(checkpoint["model_state_dict"])
             self.__parallel_model.load_state_dict(checkpoint["parallel_model_state_dict"])
-            self.__optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
         else:
             epoch = 0
 
@@ -275,6 +274,8 @@ class TorchTrainingHelper:
 
             # Get the inputs.
             data, target = batch
+            if data is None:
+                continue
 
             # Skip step if necessary.
             batch_size = data.shape[0]
@@ -379,6 +380,8 @@ class TorchTrainingHelper:
 
                 # Get the inputs.
                 data, target = batch
+                if data is None:
+                    continue
 
                 # Skip step if necessary.
                 batch_size = data.shape[0]
