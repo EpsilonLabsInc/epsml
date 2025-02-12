@@ -77,7 +77,7 @@ def main():
     mlops_parameters = MlopsParameters(mlops_type=MlopsType.WANDB,
                                        experiment_name=mlops_experiment_name,
                                        notes=notes,
-                                       dataset_helper.get_labels(),
+                                       label_names=dataset_helper.get_labels(),
                                        send_notification=send_wandb_notification)
 
     training_helper = TorchTrainingHelper(model=model,
