@@ -28,6 +28,7 @@ def process_file(file):
         series_description = line[len(CONTENT_TO_SEARCH):].strip()
         dicom_file = os.path.join(GRADIENT_IMAGES_DIR, os.path.basename(file).replace("_", "/").replace(".txt", ".dcm"))
         logging.info(f"{series_description};{dicom_file}")
+        return
 
     raise ValueError(f"Content '{CONTENT_TO_SEARCH}' not found in {file}")
 
