@@ -45,7 +45,7 @@ def row_handler(row, index):
         image_paths.extend(value["paths"])
 
     for image_path in image_paths:
-        logging.info(f"{age};{os.path.join(GCS_IMAGES_DIR, image_path)}")
+        logging.info(f"{os.path.join(GCS_IMAGES_DIR, image_path)};{age}")
 
 
 def main():
