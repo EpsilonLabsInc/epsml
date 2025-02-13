@@ -5,6 +5,7 @@ import json
 import os
 import shutil
 import time
+import traceback
 
 import numpy as np
 import pandas as pd
@@ -83,6 +84,7 @@ class AppController(QObject):
             self.clear_status_signal.emit()
 
         except Exception as e:
+            traceback.print_exc()
             self.show_error_signal.emit(str(e), 10000)
 
     def on_table_selection_changed(self, index):
@@ -98,6 +100,7 @@ class AppController(QObject):
             self.clear_status_signal.emit()
 
         except Exception as e:
+            traceback.print_exc()
             self.show_error_signal.emit(f"{e}", 10000)
 
     def on_search_edit_text_changed(self, search_text):
@@ -139,14 +142,20 @@ class AppController(QObject):
         column = columns[0]
         key = columns[1] if len(columns) == 2 else None
 
-        df = pd.read_csv(self.__main_window.get_input_file())
-        items = df[column]
-        row_count = self.__main_window.table_widget.rowCount()
+        df = pd.read_csv(self.__main_window.get_input_file(), header=None, sep=";")
+        if column.isdigit():
+            items = df.iloc[:, int(column)]
+        else:
+            items = df[column]
 
-        for item in items:
+        self.__main_window.table_widget.setRowCount(len(items))
+        self.__main_window.table_widget.setUpdatesEnabled(False)
+
+        for row_count, item in enumerate(items):
             file_name = item if key is None else ast.literal_eval(item)[key]
-            self.__main_window.table_widget.insertRow(row_count)
             self.__main_window.table_widget.setItem(row_count, 0, QTableWidgetItem(file_name))
+
+        self.__main_window.table_widget.setUpdatesEnabled(True)
 
     def __load_from_jsonl(self):
         input_file = self.__main_window.get_input_file()
@@ -176,7 +185,11 @@ class AppController(QObject):
         raise RuntimeError(f"Not implemented yet")
 
     def __load_from_single_file(self):
-        file_name = self.__main_window.get_gcs_dir() + "/" + self.__main_window.get_single_file()
+        file_name = self.__main_window.get_single_file()
+        if file_name.endswith(".dcm"):
+            file_name = os.path.join(self.__main_window.get_dicom_gcs_images_dir(), file_name)
+        else:
+            file_name = self.__main_window.get_gcs_dir() + "/" + self.__main_window.get_single_file()
 
         row_count = self.__main_window.table_widget.rowCount()
         self.__main_window.table_widget.insertRow(row_count)
@@ -194,6 +207,9 @@ class AppController(QObject):
                 future.result()
 
     def __download_nifti(self, remote_nifti_file_name, local_nifti_file_name):
+        if remote_nifti_file_name is None or local_nifti_file_name is None:
+            return
+
         if not self.__main_window.get_include_nifti_files():
             return
 
@@ -217,6 +233,9 @@ class AppController(QObject):
         print(f"NIfTI download time: {t2 - t1} sec")
 
     def __download_txt(self, remote_txt_file_name, local_txt_file_name):
+        if remote_txt_file_name is None or local_txt_file_name is None:
+            return
+
         if os.path.exists(local_txt_file_name):
             # TXT file already in cache.
             return
@@ -237,6 +256,9 @@ class AppController(QObject):
         print(f"TXT download time: {t2 - t1} sec")
 
     def __download_dicom(self, remote_dicom_file_or_dir, local_dicom_dir):
+        if remote_dicom_file_or_dir is None or remote_dicom_file_or_dir is None:
+            return
+
         if not self.__main_window.get_include_dicom_files():
             return
 
@@ -272,28 +294,44 @@ class AppController(QObject):
         file_names = self.__generate_file_names(file_name)
 
         # Show NIfTI file.
-        if self.__main_window.get_include_nifti_files():
+        if self.__main_window.get_include_nifti_files() and file_names["local_nifti_file_name"] is not None:
             sitk_image = sitk.ReadImage(file_names["local_nifti_file_name"])
             numpy_image_array = sitk.GetArrayFromImage(sitk_image)
             self.show_nifti_signal.emit(numpy_image_array)
 
         # Show image info.
-        with open(file_names["local_txt_file_name"], "r") as file:
-            image_info = file.read()
-        self.show_image_info_signal.emit(image_info)
+        if file_names["local_txt_file_name"] is not None:
+            with open(file_names["local_txt_file_name"], "r") as file:
+                image_info = file.read()
+            self.show_image_info_signal.emit(image_info)
 
         # Show DICOM files.
-        if self.__main_window.get_include_dicom_files():
+        if self.__main_window.get_include_dicom_files() and file_names["local_dicom_dir"] is not None:
             numpy_image_array = self.__load_dicom_files(file_names["local_dicom_dir"])
             self.show_dicom_signal.emit(numpy_image_array)
 
     def __generate_file_names(self, file_name):
-        if file_name.endswith(".dcm"):
-            if file_name.startswith(self.__main_window.get_dicom_gcs_images_dir()):
-                file_name = os.path.relpath(file_name, self.__main_window.get_dicom_gcs_images_dir()).replace("\\", "/")
+        file_names = {
+            "data_dir": None,
+            "remote_nifti_file_name": None,
+            "remote_txt_file_name": None,
+            "local_nifti_file_name": None,
+            "local_txt_file_name": None,
+            "remote_dicom_file_or_dir": None,
+            "local_dicom_dir": None
+        }
 
-            file_name = file_name.replace("/", "_").replace(".dcm", ".txt")
-            file_name = self.__main_window.get_gcs_dir() + "/" + file_name
+        if file_name.endswith(".dcm"):
+            file_name = os.path.join(self.__main_window.get_dicom_gcs_images_dir(), file_name)
+            unique_name = self.shorten_name(file_name.replace(".dcm", ""))
+            data_dir = os.path.join(self.__cache_dir, self.__main_window.get_dicom_gcs_bucket(), unique_name)
+            local_dicom_dir = data_dir
+
+            file_names["data_dir"] = data_dir
+            file_names["remote_dicom_file_or_dir"] = file_name
+            file_names["local_dicom_dir"] = local_dicom_dir
+
+            return file_names
 
         file_path_no_ext = file_name.replace(".nii.gz", "").replace(".txt", "")
         unique_name = self.shorten_name(file_path_no_ext)

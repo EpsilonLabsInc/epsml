@@ -76,8 +76,6 @@ class MainWindow(QMainWindow):
 
     def get_dicom_gcs_images_dir(self):
         images_dir = self.dicom_gcs_images_dir_edit.text()
-        if not images_dir:
-            raise ValueError("DICOM GCS images dir is empty")
         return images_dir
 
     def show_status(self, message, timeout):
