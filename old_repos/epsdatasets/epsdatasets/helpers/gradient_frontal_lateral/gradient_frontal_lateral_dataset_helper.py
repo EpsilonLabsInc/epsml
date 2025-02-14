@@ -20,12 +20,14 @@ class GradientFrontalLateralDatasetHelper(BaseDatasetHelper):
                  gcs_chest_images_file,
                  gcs_frontal_images_file,
                  gcs_lateral_images_file,
-                 gcs_bucket_name,
+                 images_dir=None,
+                 dir_prefix_to_remove=None,
                  seed=None):
         super().__init__(gcs_chest_images_file=gcs_chest_images_file,
                          gcs_frontal_images_file=gcs_frontal_images_file,
                          gcs_lateral_images_file=gcs_lateral_images_file,
-                         gcs_bucket_name=gcs_bucket_name,
+                         images_dir=images_dir,
+                         dir_prefix_to_remove=dir_prefix_to_remove,
                          seed=seed)
 
     def _load_dataset(self, *args, **kwargs):
@@ -33,7 +35,8 @@ class GradientFrontalLateralDatasetHelper(BaseDatasetHelper):
         self.__gcs_chest_images_file = kwargs["gcs_chest_images_file"] if "gcs_chest_images_file" in kwargs else next((arg for arg in args if arg == "gcs_chest_images_file"), None)
         self.__gcs_frontal_images_file = kwargs["gcs_frontal_images_file"] if "gcs_frontal_images_file" in kwargs else next((arg for arg in args if arg == "gcs_frontal_images_file"), None)
         self.__gcs_lateral_images_file = kwargs["gcs_lateral_images_file"] if "gcs_lateral_images_file" in kwargs else next((arg for arg in args if arg == "gcs_lateral_images_file"), None)
-        self.__gcs_bucket_name = kwargs["gcs_bucket_name"] if "gcs_bucket_name" in kwargs else next((arg for arg in args if arg == "gcs_bucket_name"), None)
+        self.__images_dir = kwargs["images_dir"] if "images_dir" in kwargs else next((arg for arg in args if arg == "gcs_buimages_dircket_name"), None)
+        self.__dir_prefix_to_remove = kwargs["dir_prefix_to_remove"] if "dir_prefix_to_remove" in kwargs else next((arg for arg in args if arg == "dir_prefix_to_remove"), None)
         self.__seed = kwargs["seed"] if "seed" in kwargs else next((arg for arg in args if arg == "seed"), None)
 
         # Download chest images file.
@@ -54,13 +57,19 @@ class GradientFrontalLateralDatasetHelper(BaseDatasetHelper):
         # Add frontal images.
         print("Adding frontal images to dataset")
         data = []
+        num_accepted = 0
         lines = content.splitlines()
         for line in lines:
             image_path = line.split(";")[0].strip()
             if image_path not in chest_images:
                 continue
-            gcs_uri = "gs://" + os.path.join(self.__gcs_bucket_name, image_path)
-            data.append("image_path": {gcs_uri}, "labels": [1, 0])
+            image_path = os.path.relpath(image_path, self.__dir_prefix_to_remove) if self.__dir_prefix_to_remove else image_path
+            image_path = os.path.join(self.__images_dir, image_path) if self.__images_dir else image_path
+            data.append({"image_path": image_path, "labels": [1, 0]})
+            num_accepted += 1
+
+        print(f"Num frontal images before non-chest removal: {len(lines)}")
+        print(f"Num frontal images after non-chest removal: {num_accepted}")
 
         # Download lateral images file.
         print("Downloading lateral images file")
@@ -69,13 +78,19 @@ class GradientFrontalLateralDatasetHelper(BaseDatasetHelper):
 
         # Add lateral images.
         print("Adding lateral images to dataset")
+        num_accepted = 0
         lines = content.splitlines()
         for line in lines:
             image_path = line.split(";")[0].strip()
             if image_path not in chest_images:
                 continue
-            gcs_uri = "gs://" + os.path.join(self.__gcs_bucket_name, image_path)
-            data.append("image_path": {gcs_uri}, "labels": [0, 1])
+            image_path = os.path.relpath(image_path, self.__dir_prefix_to_remove) if self.__dir_prefix_to_remove else image_path
+            image_path = os.path.join(self.__images_dir, image_path) if self.__images_dir else image_path
+            data.append({"image_path": image_path, "labels": [0, 1]})
+            num_accepted += 1
+
+        print(f"Num lateral images before non-chest removal: {len(lines)}")
+        print(f"Num lateral images after non-chest removal: {num_accepted}")
 
         # Popullate the dataset.
         print("Populating the dataset")
@@ -92,9 +107,9 @@ class GradientFrontalLateralDatasetHelper(BaseDatasetHelper):
 
         # Create Torch datasets.
         print("Creating Torch datasets")
-        self.__torch_train_dataset = GradientChestNonChestTorchDataset(pandas_dataframe=self.__pandas_train_dataset)
-        self.__torch_validation_dataset = GradientChestNonChestTorchDataset(pandas_dataframe=self.__pandas_validation_dataset)
-        self.__torch_test_dataset = GradientChestNonChestTorchDataset(pandas_dataframe=self.__pandas_test_dataset)
+        self.__torch_train_dataset = GradientFrontalLateralTorchDataset(pandas_dataframe=self.__pandas_train_dataset)
+        self.__torch_validation_dataset = GradientFrontalLateralTorchDataset(pandas_dataframe=self.__pandas_validation_dataset)
+        self.__torch_test_dataset = GradientFrontalLateralTorchDataset(pandas_dataframe=self.__pandas_test_dataset)
 
     def get_pil_image(self, item):
         raise NotImplementedError("Not implemented")
@@ -175,10 +190,14 @@ class GradientFrontalLateralTorchDataset(Dataset):
     def __getitem__(self, idx):
         try:
             item = self.__pandas_dataframe.iloc[idx]
+            image_path = item["image_path"]
 
-            # Download file.
-            gcs_data = gcs_utils.split_gcs_uri(item["image_path"])
-            content = BytesIO(gcs_utils.download_file_as_bytes(gcs_bucket_name=gcs_data["gcs_bucket_name"], gcs_file_name=gcs_data["gcs_path"]))
+            # Download image from GCS or load locally.
+            if gcs_utils.is_gcs_uri(image_path):
+                gcs_data = gcs_utils.split_gcs_uri(image_path)
+                content = BytesIO(gcs_utils.download_file_as_bytes(gcs_bucket_name=gcs_data["gcs_bucket_name"], gcs_file_name=gcs_data["gcs_path"]))
+            else:
+                content = image_path
 
             # Convert to PIL image.
             image = dicom_utils.get_dicom_image(content, custom_windowing_parameters={"window_center": 0, "window_width": 0})
