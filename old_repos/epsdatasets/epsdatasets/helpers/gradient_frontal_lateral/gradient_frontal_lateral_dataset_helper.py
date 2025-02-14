@@ -35,7 +35,7 @@ class GradientFrontalLateralDatasetHelper(BaseDatasetHelper):
         self.__gcs_chest_images_file = kwargs["gcs_chest_images_file"] if "gcs_chest_images_file" in kwargs else next((arg for arg in args if arg == "gcs_chest_images_file"), None)
         self.__gcs_frontal_images_file = kwargs["gcs_frontal_images_file"] if "gcs_frontal_images_file" in kwargs else next((arg for arg in args if arg == "gcs_frontal_images_file"), None)
         self.__gcs_lateral_images_file = kwargs["gcs_lateral_images_file"] if "gcs_lateral_images_file" in kwargs else next((arg for arg in args if arg == "gcs_lateral_images_file"), None)
-        self.__images_dir = kwargs["images_dir"] if "images_dir" in kwargs else next((arg for arg in args if arg == "gcs_buimages_dircket_name"), None)
+        self.__images_dir = kwargs["images_dir"] if "images_dir" in kwargs else next((arg for arg in args if arg == "images_dir"), None)
         self.__dir_prefix_to_remove = kwargs["dir_prefix_to_remove"] if "dir_prefix_to_remove" in kwargs else next((arg for arg in args if arg == "dir_prefix_to_remove"), None)
         self.__seed = kwargs["seed"] if "seed" in kwargs else next((arg for arg in args if arg == "seed"), None)
 
