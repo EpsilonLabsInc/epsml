@@ -16,7 +16,8 @@ if __name__ == "__main__":
     gcs_chest_images_file = "gs://gradient-crs/archive/training/chest/chest_files_gradient_all_3_batches.csv"
     gcs_frontal_images_file = "gs://gradient-crs/archive/projections/gradient-crs-22JUL2024-frontal-views.csv"
     gcs_lateral_images_file = "gs://gradient-crs/archive/projections/gradient-crs-22JUL2024-lateral-views.csv"
-    gcs_bucket_name = "gs://epsilon-data-us-central1"
+    images_dir = "/workspace/CR"
+    dir_prefix_to_remove = "GRADIENT-DATABASE/CR"
     seed = 42
 
     # Training settings.
@@ -46,8 +47,9 @@ if __name__ == "__main__":
     dataset_helper = GradientFrontalLateralDatasetHelper(gcs_chest_images_file=gcs_chest_images_file,
                                                          gcs_frontal_images_file=gcs_frontal_images_file,
                                                          gcs_lateral_images_file=gcs_lateral_images_file,
-                                                         gcs_bucket_name=gcs_bucket_name,
-                                                         seed=seed):
+                                                         images_dir=images_dir,
+                                                         dir_prefix_to_remove=dir_prefix_to_remove,
+                                                         seed=seed)
 
     # Create the model.
     classifier = CrProjectionClassifier()
