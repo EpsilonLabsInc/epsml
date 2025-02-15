@@ -12,7 +12,7 @@ from epsutils.gcs import gcs_utils
 INPUT_LABELS = ["Atelectasis", "Atelectasis (Suspected)", "No Findings"]
 GCS_INPUT_FILE = "gs://epsilonlabs-filestore/cleaned_CRs/GRADIENT_CR_batch_1_chest_with_image_paths_with_atelectasis_labels.csv"
 GCS_INPUT_IMAGES_DIR = "GRADIENT-DATABASE/CR/22JUL2024"
-GCS_CHEST_IMAGES_FILE = "gs://gradient-crs/archive/training/chest_files_gradient_all_3_batches.csv"
+GCS_CHEST_IMAGES_FILE = "gs://gradient-crs/archive/training/chest/chest_files_gradient_all_3_batches.csv"
 TARGET_LABELS = ["Atelectasis"]
 USE_OLD_REPORT_FORMAT = True
 GENERATE_PER_STUDY = False
