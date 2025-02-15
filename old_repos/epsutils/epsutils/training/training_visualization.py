@@ -10,7 +10,7 @@ def show_visualization_data(visualization_data, num_view_grid_columns, label_to_
     # Extract visualization data.
     inputs = visualization_data["inputs"]
     assert(len(inputs) > 0)
-    labels = visualization_data["labels"]
+    labels = visualization_data["labels"].cpu()
     assert(len(labels) > 0)
     probabilities = visualization_data["probabilities"] if "probabilities" in visualization_data else None
 
