@@ -8,5 +8,5 @@ wandb/
 output/
 data/
 
-# Torch.
-*.pt*
+# Visualization.
+visualization_data.pt

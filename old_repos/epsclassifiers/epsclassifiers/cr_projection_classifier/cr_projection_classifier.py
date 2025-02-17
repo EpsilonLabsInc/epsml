@@ -88,7 +88,7 @@ if __name__ == "__main__":
     # Load model.
     print("Loading the model")
     classifier = CrProjectionClassifier()
-    classifier.load_state_dict(torch.load("./models/todo.pt"))  # TODO: Create with correct model path.
+    classifier.load_state_dict(torch.load("./models/cr_projection_classifier_trained_on_500k_gradient_samples.pt"))
 
     # The first file represents a frontal view and the second one a lateral.
     gcs_file_names = [
