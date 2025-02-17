@@ -59,14 +59,14 @@ def classification_task(progress_bar):
 
             # Write results.
             for dicom_file, label in zip(dicom_files, labels):
-                logging.info(f"{dicom_file};{LABEL_TO_STRING(label)}")
+                logging.info(f"{dicom_file};{LABEL_TO_STRING[label]}")
 
         except queue.Empty:
             # DICOM queue is empty. Classify the remaining DICOM files in the queue and exit the classification loop.
             if len(dicom_files) > 0:
                 labels = classifier.predict(images=dicom_datasets, device="cuda")
                 for dicom_file, label in zip(dicom_files, labels):
-                    logging.info(f"{dicom_file};{LABEL_TO_STRING(label)}")
+                    logging.info(f"{dicom_file};{LABEL_TO_STRING[label]}")
 
             break
 
