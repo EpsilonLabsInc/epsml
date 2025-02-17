@@ -76,8 +76,13 @@ class CrProjectionClassifier:
             probabilities = torch.sigmoid(outputs)
 
         # Get labels.
+        all_ge_05 = torch.all(probabilities >= 0.5, dim=1)
         max_probs, max_indices = torch.max(probabilities, dim=1)
-        labels = [Label(max_indices[i].item()) if max_probs[i].item() >= 0.5 else Label.OTHER_PROJECTION for i in range(len(max_probs))]
+        labels = [
+            Label.OTHER_PROJECTION if all_ge_05[i].item() else
+            (Label(max_indices[i].item()) if max_probs[i].item() >= 0.5 else Label.OTHER_PROJECTION)
+            for i in range(len(max_probs))
+        ]
 
         return labels
 
