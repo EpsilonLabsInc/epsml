@@ -21,6 +21,13 @@ class Label(Enum):
     OTHER_PROJECTION = 2
 
 
+LABEL_TO_STRING = {
+    Label.FRONTAL_PROJECTION: "Frontal",
+    Label.LATERAL_PROJECTION: "Lateral",
+    Label.OTHER_PROJECTION: "Other"
+}
+
+
 class CrProjectionClassifier:
     def __init__(self):
         self.__model = xrv.models.DenseNet(num_classes=2)
