@@ -43,12 +43,41 @@ class CrProjectionClassifier:
     def load_state_dict(self, state_dict):
         self.__model.load_state_dict(state_dict)
 
-    def predict(self, images: List[Union[pydicom.dataset.FileDataset, PIL.Image.Image, np.ndarray]], device: str) -> List[Label]:
+    def preprocess(self, image: Union[pydicom.dataset.FileDataset, PIL.Image.Image, np.ndarray]) -> torch.Tensor:
         """
-        Accepts a list of pydicom datasets, PIL images or numpy arrays and runs inference on them.
+        Accepts a pydicom dataset, PIL image or numpy array, preprocesses it and returns a PyTorch tensor.
+        If input is a PyTorch tensor, it is returned without being preprocessed.
 
         Args:
-            images (List[Union[pydicom.dataset.FileDataset, PIL.Image.Image]]): List of pydicom datasets, PIL images or numpy arrays.
+            image (Union[pydicom.dataset.FileDataset, PIL.Image.Image, np.ndarray]): pydicom dataset, PIL image or numpy array.
+
+        Returns:
+            torch.Tensor: A PyTorch tensor created from the input data.
+        """
+
+        if isinstance(image, torch.Tensor):
+            return image
+        elif isinstance(image, pydicom.dataset.FileDataset):
+            image = dicom_utils.get_dicom_image_from_dataset(image, custom_windowing_parameters={"window_center": 0, "window_width": 0})
+        elif isinstance(image, Image.Image):
+            image = np.array(image)
+        elif isinstance(image, np.ndarray):
+            pass
+        else:
+            raise ValueError("Unsupported image type")
+
+        image = cv2.resize(image, (224, 224), interpolation=cv2.INTER_LINEAR)
+        image = image_utils.numpy_array_to_pil_image(image, convert_to_uint8=False, convert_to_rgb=False)
+        image = self.__transform(image)
+
+        return image
+
+    def predict(self, images: List[Union[pydicom.dataset.FileDataset, PIL.Image.Image, np.ndarray]], device: str) -> List[Label]:
+        """
+        Accepts a list of PyTorch tensors, pydicom datasets, PIL images or numpy arrays and runs inference on them.
+
+        Args:
+            images (List[Union[torch.Tensor, pydicom.dataset.FileDataset, PIL.Image.Image, np.ndarray]]): List of PyTorch tensors, pydicom datasets, PIL images or numpy arrays.
             device (str): CUDA device. Can be 'cpu' or 'cuda'.
 
         Returns:
@@ -56,21 +85,7 @@ class CrProjectionClassifier:
         """
 
         # Convert images to torch tensors.
-        torch_images = []
-        for image in images:
-            if isinstance(image, pydicom.dataset.FileDataset):
-                image = dicom_utils.get_dicom_image_from_dataset(image, custom_windowing_parameters={"window_center": 0, "window_width": 0})
-            elif isinstance(image, Image.Image):
-                image = np.array(image)
-            elif isinstance(image, np.ndarray):
-                pass
-            else:
-                raise ValueError("Unsupported image type")
-
-            image = cv2.resize(image, (224, 224), interpolation=cv2.INTER_LINEAR)
-            image = image_utils.numpy_array_to_pil_image(image, convert_to_uint8=False, convert_to_rgb=False)
-            image = self.__transform(image)
-            torch_images.append(image)
+        torch_images = [self.preprocess(image) for image in images]
 
         # Stack images.
         inputs = torch.stack(torch_images)
