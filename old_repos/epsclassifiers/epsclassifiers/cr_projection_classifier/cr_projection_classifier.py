@@ -43,13 +43,13 @@ class CrProjectionClassifier:
     def load_state_dict(self, state_dict):
         self.__model.load_state_dict(state_dict)
 
-    def preprocess(self, image: Union[pydicom.dataset.FileDataset, PIL.Image.Image, np.ndarray]) -> torch.Tensor:
+    def preprocess(self, image: Union[torch.Tensor, pydicom.dataset.FileDataset, PIL.Image.Image, np.ndarray]) -> torch.Tensor:
         """
-        Accepts a pydicom dataset, PIL image or numpy array, preprocesses it and returns a PyTorch tensor.
-        If input is a PyTorch tensor, it is returned without being preprocessed.
+        Accepts a PyTorch tensor, pydicom dataset, PIL image or numpy array. If input is a PyTorch tensor, it is returned without being preprocessed,
+        otherwise it is preprocessed and converted to PyTorch tensor before being returned.
 
         Args:
-            image (Union[pydicom.dataset.FileDataset, PIL.Image.Image, np.ndarray]): pydicom dataset, PIL image or numpy array.
+            image (Union[torch.Tensor, pydicom.dataset.FileDataset, PIL.Image.Image, np.ndarray]): A PyTorch tensor, pydicom dataset, PIL image or numpy array.
 
         Returns:
             torch.Tensor: A PyTorch tensor created from the input data.
