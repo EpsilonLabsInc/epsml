@@ -9,6 +9,7 @@ if __name__ == "__main__":
     # General settings.
     model_name = "cr_fracture_classifier"
     dataset_name = "gradient_fractures"
+    run_name = "224x224 image size"
     notes = ""
     output_dir = "./output"
 
@@ -78,6 +79,7 @@ if __name__ == "__main__":
 
     mlops_parameters = MlopsParameters(mlops_type=MlopsType.WANDB,
                                        experiment_name=mlops_experiment_name,
+                                       run_name=run_name,
                                        notes=notes,
                                        send_notification=send_wandb_notification)
 
