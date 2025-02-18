@@ -88,9 +88,9 @@ class GradientFracturesDatasetHelper(BaseDatasetHelper):
 
         # Create Torch datasets.
         print("Creating Torch datasets")
-        self.__torch_train_dataset = GradientFrontalLateralTorchDataset(pandas_dataframe=self.__pandas_train_dataset)
-        self.__torch_validation_dataset = GradientFrontalLateralTorchDataset(pandas_dataframe=self.__pandas_validation_dataset)
-        self.__torch_test_dataset = GradientFrontalLateralTorchDataset(pandas_dataframe=self.__pandas_test_dataset)
+        self.__torch_train_dataset = GradientFracturesTorchDataset(pandas_dataframe=self.__pandas_train_dataset)
+        self.__torch_validation_dataset = GradientFracturesTorchDataset(pandas_dataframe=self.__pandas_validation_dataset)
+        self.__torch_test_dataset = GradientFracturesTorchDataset(pandas_dataframe=self.__pandas_test_dataset)
 
     def get_pil_image(self, item):
         raise NotImplementedError("Not implemented")
@@ -159,7 +159,7 @@ class GradientFracturesDatasetHelper(BaseDatasetHelper):
         return data_loader
 
 
-class GradientFrontalLateralTorchDataset(Dataset):
+class GradientFracturesTorchDataset(Dataset):
     def __init__(self, pandas_dataframe):
         self.__pandas_dataframe = pandas_dataframe
 
