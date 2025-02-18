@@ -192,7 +192,7 @@ class GradientFrontalLateralTorchDataset(Dataset):
                 print(f"ERROR: There are NaN values in the tensor generated from {item['image_path']}")
 
             # Get labels.
-            labels = torch.tensor(item["label"]).float()
+            labels = torch.tensor([item["label"]]).float()
 
             return image, labels
 
