@@ -13,6 +13,7 @@ from tqdm.auto import tqdm
 from epsutils.training import training_utils
 from epsutils.training.confusion_matrix_calculator import ConfusionMatrixCalculator
 from epsutils.training.evaluation_metrics_calculator import EvaluationMetricsCalculator
+from epsutils.training.scores_distribution_generator import ScoresDistributionGenerator
 
 
 class TrainingParameters:
@@ -441,7 +442,8 @@ class TorchTrainingHelper:
 
             if validation_type == "Validation":
                 all_targets = all_targets.tolist()
-                all_outputs = (torch.sigmoid(all_outputs) > 0.5).int().tolist()
+                all_probs = torch.sigmoid(all_outputs)
+                all_outputs = (all_probs > 0.5).int().tolist()
 
                 # Log confusion matrix.
                 calc = ConfusionMatrixCalculator()
@@ -453,6 +455,13 @@ class TorchTrainingHelper:
                 cms = calc.compute_per_class_confusion_matrices(y_true=all_targets, y_pred=all_outputs)
                 plot = calc.create_plot(confusion_matrices=cms, titles=self.__mlops_parameters.label_names)
                 self.__log_confusion_matrix(plot, "Validation Per-Label CMs")
+
+                # Log scores distribution.
+                if all_probs.shape[1] == 1:
+                    gen = ScoresDistributionGenerator()
+                    scores = all_probs.cpu().to(torch.float32)
+                    plot = gen.create_plot(scores=scores, title="Scores distribution")
+                    self.__log_scores_distribution(plot, "Validation scores distribution")
 
     def __save_checkpoint(self, epoch, step=None):
         checkpoint = {
@@ -506,6 +515,14 @@ class TorchTrainingHelper:
             print("Logging confusion matrix is not supported for MLflow")
         elif self.__mlops_parameters.mlops_type == MlopsType.WANDB:
             wandb.log({title: wandb.Image(confusion_matrix_plot)})
+        else:
+            raise ValueError(f"Unsupported MLOps type {self.__mlops_parameters.mlops_type}")
+
+    def __log_scores_distribution(self, scores_distribution_plot, title):
+        if self.__mlops_parameters.mlops_type == MlopsType.MLFLOW:
+            print("Logging scores distribution is not supported for MLflow")
+        elif self.__mlops_parameters.mlops_type == MlopsType.WANDB:
+            wandb.log({title: wandb.Image(scores_distribution_plot)})
         else:
             raise ValueError(f"Unsupported MLOps type {self.__mlops_parameters.mlops_type}")
 
