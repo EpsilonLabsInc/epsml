@@ -474,7 +474,7 @@ class TorchTrainingHelper:
             "mlops_parameters_dict": self.__mlops_parameters.__dict__
         }
 
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S") + "_utc"
 
         if step is None:
             torch.save(checkpoint, os.path.join(self.__training_parameters.checkpoint_dir, f"checkpoint_epoch_{epoch + 1}_{timestamp}.pt"))
