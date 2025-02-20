@@ -8,10 +8,11 @@ from tqdm import tqdm
 
 from epsutils.gcs import gcs_utils
 
-GCS_REPORTS_FILE = "gs://epsilonlabs-filestore/cleaned_CRs/GRADIENT-DATABASE_CR_09JAN2025.csv"
-GCS_CHEST_IMAGES_FILE = "gs://gradient-crs/archive/training/chest_files_gradient_all_3_batches.csv"
-TARGET_LABEL = "Pneumothorax"
-OUTPUT_VALIDATION_FILE = "gradient-crs-09JAN2025-per-study-chest-images-with-pneumothorax-label-validation.jsonl"
+GCS_REPORTS_FILE = "gs://epsilonlabs-filestore/cleaned_CRs/GRADIENT_CR_batch_1_chest_with_image_paths_with_fracture_labels_structured.csv"
+GCS_CHEST_IMAGES_FILE = "gs://gradient-crs/archive/training/chest/chest_files_gradient_all_3_batches.csv"
+GCS_IMAGES_DIR = "GRADIENT-DATABASE/CR/22JUL2024"
+USE_OLD_REPORT_FORMAT = True
+OUTPUT_VALIDATION_FILE = "gradient-crs-22JUL2024-chest-images-with-only-recent-rib-fracture-validation.jsonl"
 
 
 def main():
@@ -29,24 +30,44 @@ def main():
 
     print("Reading file")
     df = pd.read_csv(StringIO(content))
-    df = df[["labels", "image_paths", "image_base_path"]]
+    df = df[["image_paths", "fracture_labels_structured"]]
     print(f"{len(df)} total reports in the file")
 
     print("Generating validation dataset")
     validation_dataset = []
     for index, row in tqdm(df.iterrows(), total=len(df), desc="Processing"):
-        image_base_path = row["image_base_path"]
-        image_paths = ast.literal_eval(row["image_paths"])
-        image_paths = [os.path.join(image_base_path, image_path) for image_path in image_paths]
-        rel_image_paths = [os.path.relpath(image_path, "gs://epsilon-data-us-central1") for image_path in image_paths]
+        try:
+            image_paths = ast.literal_eval(row["image_paths"])
+        except Exception as e:
+            continue
+
+        if USE_OLD_REPORT_FORMAT:
+            image_paths_dict = image_paths
+            image_paths = []
+            for value in image_paths_dict.values():
+                image_paths.extend(value["paths"])
+
+        image_paths = [os.path.join(GCS_IMAGES_DIR, image_path) for image_path in image_paths]
 
         # At least one study image must be a chest.
-        is_chest = any(rel_image_path in chest_images for rel_image_path in rel_image_paths)
+        is_chest = all(image_path in chest_images for image_path in image_paths)
         if not is_chest:
             continue
 
-        labels = [label.strip() for label in row["labels"].split(",")]
-        validation_dataset.append({"image_path": image_paths, "labels": [TARGET_LABEL] if TARGET_LABEL in labels else []})
+        labels = row["fracture_labels_structured"]
+        labels = ast.literal_eval(labels)
+
+        match = False
+        for label in labels:
+            if label["fracture_type"] == "Recent" and label["body_part"] == "Rib":
+                match = True
+                break
+
+        if not match:
+            continue
+
+        for image_path in image_paths:
+            validation_dataset.append({"image_path": image_path, "labels": ["Fracture"]})
 
     print(f"Validation dataset has {len(validation_dataset)} rows")
 
