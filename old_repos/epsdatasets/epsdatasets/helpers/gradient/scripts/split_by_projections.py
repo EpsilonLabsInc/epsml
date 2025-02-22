@@ -73,9 +73,9 @@ def main():
 
     # Save output files.
     print("Saving output files")
-    frontal_projections.to_csv(FRONTAL_OUTPUT_FILE, header=False, index=False)
-    lateral_projections.to_csv(LATERAL_OUTPUT_FILE, header=False, index=False)
-    other_projections.to_csv(OTHER_OUTPUT_FILE, header=False, index=False)
+    frontal_projections.to_csv(FRONTAL_OUTPUT_FILE, sep=";", header=False, index=False)
+    lateral_projections.to_csv(LATERAL_OUTPUT_FILE, sep=";", header=False, index=False)
+    other_projections.to_csv(OTHER_OUTPUT_FILE, sep=";", header=False, index=False)
 
 
 if __name__ == "__main__":
