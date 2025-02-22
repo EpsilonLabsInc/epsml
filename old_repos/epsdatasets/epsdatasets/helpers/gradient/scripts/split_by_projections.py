@@ -2,6 +2,7 @@ import os
 from io import StringIO
 
 import pandas as pd
+from tqdm import tqdm
 
 from epsutils.gcs import gcs_utils
 
@@ -38,7 +39,7 @@ def main():
     # Remove non-chest projections.
     print("Removing non-chest projections")
     filtered_projections = []
-    for index, row in df.iterrows():
+    for index, row in tqdm(df.iterrows(), total=len(df), desc="Processing"):
         file_name = os.path.join(GCS_IMAGES_DIR, row[0])
         if file_name not in chest_images:
             continue
