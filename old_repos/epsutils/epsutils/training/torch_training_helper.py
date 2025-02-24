@@ -502,7 +502,7 @@ class TorchTrainingHelper:
         else:
             torch.save(checkpoint, os.path.join(self.__training_parameters.checkpoint_dir, f"checkpoint_step_{step + 1}_{timestamp}.pt"))
 
-    def __save_misclassified(epoch, file_names, targets, outputs, probs)
+    def __save_misclassified(epoch, file_names, targets, outputs, probs):
         assert len(file_names) == len(targets) == len(outputs) == len(probs)
 
         misclassified = [
