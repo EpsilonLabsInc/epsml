@@ -10,12 +10,12 @@ from tqdm import tqdm
 from epsutils.gcs import gcs_utils
 
 INPUT_LABELS = ["Cardiomegaly", "No Findings"]
+TARGET_LABELS = ["Cardiomegaly"]
 GCS_INPUT_FILE = "gs://epsilonlabs-filestore/cleaned_CRs/binary_classification_labels/GRADIENT_CR_22JUL2024_cardiomediastinum_cardiomegaly_labels_v4.csv"
 GCS_INPUT_IMAGES_DIR = "GRADIENT-DATABASE/CR/22JUL2024"
 GCS_CHEST_IMAGES_FILE = "gs://gradient-crs/archive/training/chest/chest_files_gradient_all_3_batches.csv"
-GCS_FRONTAL_VIEWS_FILE = "gs://gradient-crs/archive/projections/gradient-crs-22JUL2024-chest-only-frontal-projections.csv"
-GCS_LATERAL_VIEWS_FILE = "gs://gradient-crs/archive/projections/gradient-crs-22JUL2024-chest-only-lateral-projections.csv"
-TARGET_LABELS = ["Cardiomegaly"]
+GCS_FRONTAL_PROJECTIONS_FILE = "gs://gradient-crs/archive/projections/gradient-crs-22JUL2024-chest-only-frontal-projections.csv"
+GCS_LATERAL_PROJECTIONS_FILE = "gs://gradient-crs/archive/projections/gradient-crs-22JUL2024-chest-only-lateral-projections.csv"
 USE_OLD_REPORT_FORMAT = True
 GENERATE_PER_NORMALIZED_STUDY = False
 GENERATE_PER_FRONTAL_LATERAL_STUDY = True
@@ -25,8 +25,8 @@ FILL_UP_VALIDATION_DATASET = False
 CREATE_VALIDATION_DATASET_FROM_SUSPECTED_ONLY = False
 CREATE_VALIDATION_DATASET_FROM_SUSPECTED_ONLY_FROM_LABEL = "Cardiomegaly (Suspected)"
 CREATE_VALIDATION_DATASET_FROM_SUSPECTED_ONLY_TO_LABEL = "Cardiomegaly"
-OUTPUT_TRAINING_FILE = "gradient-crs-22JUL2024-chest-images-with-standard-cardiomegaly-label-training.jsonl"
-OUTPUT_VALIDATION_FILE = "gradient-crs-22JUL2024-chest-images-with-standard-cardiomegaly-label-validation.jsonl"
+OUTPUT_TRAINING_FILE = "gradient-crs-22JUL2024-two-chest-image-studies-with-standard-cardiomegaly-label-training.jsonl"
+OUTPUT_VALIDATION_FILE = "gradient-crs-22JUL2024-two-chest-image-studies-with-standard-cardiomegaly-label-validation.jsonl"
 
 
 def get_labels_distribution(images):
@@ -69,9 +69,9 @@ def main():
 
     if GENERATE_PER_FRONTAL_LATERAL_STUDY:
         print("")
-        print("Downloading frontal views file")
+        print("Downloading frontal projections file")
 
-        gcs_data = gcs_utils.split_gcs_uri(GCS_FRONTAL_VIEWS_FILE)
+        gcs_data = gcs_utils.split_gcs_uri(GCS_FRONTAL_PROJECTIONS_FILE)
         content = gcs_utils.download_file_as_string(gcs_bucket_name=gcs_data["gcs_bucket_name"], gcs_file_name=gcs_data["gcs_path"])
 
         print("")
@@ -80,9 +80,9 @@ def main():
         df = pd.read_csv(StringIO(content), header=None, sep=';')
         frontal_images = set(df[0])
 
-        print("Downloading lateral views file")
+        print("Downloading lateral projections file")
 
-        gcs_data = gcs_utils.split_gcs_uri(GCS_LATERAL_VIEWS_FILE)
+        gcs_data = gcs_utils.split_gcs_uri(GCS_LATERAL_PROJECTIONS_FILE)
         content = gcs_utils.download_file_as_string(gcs_bucket_name=gcs_data["gcs_bucket_name"], gcs_file_name=gcs_data["gcs_path"])
 
         print("")
