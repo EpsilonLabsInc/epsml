@@ -9,19 +9,24 @@ from tqdm import tqdm
 
 from epsutils.gcs import gcs_utils
 
-INPUT_LABELS = ["Atelectasis", "Atelectasis (Suspected)", "No Findings"]
-GCS_INPUT_FILE = "gs://epsilonlabs-filestore/cleaned_CRs/GRADIENT_CR_batch_1_chest_with_image_paths_with_atelectasis_labels.csv"
+INPUT_LABELS = ["Cardiomegaly", "No Findings"]
+GCS_INPUT_FILE = "gs://epsilonlabs-filestore/cleaned_CRs/binary_classification_labels/GRADIENT_CR_22JUL2024_cardiomediastinum_cardiomegaly_labels_v4.csv"
 GCS_INPUT_IMAGES_DIR = "GRADIENT-DATABASE/CR/22JUL2024"
 GCS_CHEST_IMAGES_FILE = "gs://gradient-crs/archive/training/chest/chest_files_gradient_all_3_batches.csv"
-TARGET_LABELS = ["Atelectasis"]
+GCS_FRONTAL_VIEWS_FILE = "gs://gradient-crs/archive/projections/gradient-crs-22JUL2024-chest-only-frontal-projections.csv"
+GCS_LATERAL_VIEWS_FILE = "gs://gradient-crs/archive/projections/gradient-crs-22JUL2024-chest-only-lateral-projections.csv"
+TARGET_LABELS = ["Cardiomegaly"]
 USE_OLD_REPORT_FORMAT = True
-GENERATE_PER_STUDY = False
+GENERATE_PER_NORMALIZED_STUDY = False
+GENERATE_PER_FRONTAL_LATERAL_STUDY = True
 SEED = 42
 SPLIT_RATIO = 0.98
 FILL_UP_VALIDATION_DATASET = False
 CREATE_VALIDATION_DATASET_FROM_SUSPECTED_ONLY = False
-OUTPUT_TRAINING_FILE = "gradient-crs-22JUL2024-chest-images-with-obvious-atelectasis-label-training.jsonl"
-OUTPUT_VALIDATION_FILE = "gradient-crs-22JUL2024-chest-images-with-obvious-atelectasis-label-validation.jsonl"
+CREATE_VALIDATION_DATASET_FROM_SUSPECTED_ONLY_FROM_LABEL = "Cardiomegaly (Suspected)"
+CREATE_VALIDATION_DATASET_FROM_SUSPECTED_ONLY_TO_LABEL = "Cardiomegaly"
+OUTPUT_TRAINING_FILE = "gradient-crs-22JUL2024-chest-images-with-standard-cardiomegaly-label-training.jsonl"
+OUTPUT_VALIDATION_FILE = "gradient-crs-22JUL2024-chest-images-with-standard-cardiomegaly-label-validation.jsonl"
 
 
 def get_labels_distribution(images):
@@ -51,28 +56,48 @@ def normalize_list(lst, num_elems):
 
 
 def main():
-    print("1.")
     print("Downloading chest images file")
 
     gcs_data = gcs_utils.split_gcs_uri(GCS_CHEST_IMAGES_FILE)
     content = gcs_utils.download_file_as_string(gcs_bucket_name=gcs_data["gcs_bucket_name"], gcs_file_name=gcs_data["gcs_path"])
 
     print("")
-    print("2.")
     print("Generating a list of chest images")
 
     df = pd.read_csv(StringIO(content), header=None, sep=';')
     chest_images = set(df[0])
 
+    if GENERATE_PER_FRONTAL_LATERAL_STUDY:
+        print("")
+        print("Downloading frontal views file")
+
+        gcs_data = gcs_utils.split_gcs_uri(GCS_FRONTAL_VIEWS_FILE)
+        content = gcs_utils.download_file_as_string(gcs_bucket_name=gcs_data["gcs_bucket_name"], gcs_file_name=gcs_data["gcs_path"])
+
+        print("")
+        print("Generating a list of frontal images")
+
+        df = pd.read_csv(StringIO(content), header=None, sep=';')
+        frontal_images = set(df[0])
+
+        print("Downloading lateral views file")
+
+        gcs_data = gcs_utils.split_gcs_uri(GCS_LATERAL_VIEWS_FILE)
+        content = gcs_utils.download_file_as_string(gcs_bucket_name=gcs_data["gcs_bucket_name"], gcs_file_name=gcs_data["gcs_path"])
+
+        print("")
+        print("Generating a list of lateral images")
+
+        df = pd.read_csv(StringIO(content), header=None, sep=';')
+        lateral_images = set(df[0])
+
     print("")
-    print("3.")
     print("Downloading input file")
 
     gcs_data = gcs_utils.split_gcs_uri(GCS_INPUT_FILE)
     content = gcs_utils.download_file_as_string(gcs_bucket_name=gcs_data["gcs_bucket_name"], gcs_file_name=gcs_data["gcs_path"])
 
     print("")
-    print("4.")
     print("Generating a list of input images")
 
     input_images = []
@@ -91,12 +116,12 @@ def main():
 
     elif GCS_INPUT_FILE.endswith(".csv"):
         df = pd.read_csv(StringIO(content))
-        df = df[["atelectasis_labels", "image_paths"]]
+        df = df[["cardiomediastinum_cardiomegaly_labels", "image_paths"]]
         for index, row in tqdm(df.iterrows(), total=len(df), desc="Processing"):
             try:
-                labels = [row["atelectasis_labels"]]
+                labels = [row["cardiomediastinum_cardiomegaly_labels"]]
             except:
-                print(f"Error parsing atelectasis labels {row['atelectasis_labels']}")
+                print(f"Error parsing cardiomediastinum/cardiomegaly labels {row['cardiomediastinum_cardiomegaly_labels']}")
                 continue
 
             try:
@@ -112,9 +137,18 @@ def main():
 
             image_paths = [os.path.join(GCS_INPUT_IMAGES_DIR, image_path) for image_path in image_paths]
 
-            if GENERATE_PER_STUDY:
+            if GENERATE_PER_NORMALIZED_STUDY:
                 image_paths = normalize_list(image_paths, num_elems=3)  # Take max 3 images per study. If less then 3, multiplicate last image to fill up the gap.
                 input_images.append({"image_path": image_paths, "labels": labels})
+            elif GENERATE_PER_FRONTAL_LATERAL_STUDY:
+                if len(image_paths) != 2:
+                    continue
+
+                if not any(image_path in frontal_images for image_path in image_paths) or not any(image_path in lateral_images for image_path in image_paths):
+                    continue
+
+                sorted_image_paths = [image_path for image_path in image_paths if image_path in frontal_images] + [image_path for image_path in image_paths if image_path in lateral_images]
+                input_images.append({"image_path": sorted_image_paths, "labels": labels})
             else:
                 for image_path in image_paths:
                     input_images.append({"image_path": image_path, "labels": labels})
@@ -125,19 +159,18 @@ def main():
     print(f"Number of input images: {len(input_images)}")
 
     print("")
-    print("5.")
     print("Removing non-chest images from the input images")
 
     filtered_images = []
     for input_image in input_images:
         if isinstance(input_image["image_path"], list):
-            if not any(image_path in chest_images for image_path in input_image["image_path"]):
+            if not all(image_path in chest_images for image_path in input_image["image_path"]):
                 continue
         else:
             if input_image["image_path"] not in chest_images:
                 continue
 
-        if input_image["labels"] == ["Atelectasis (Suspected)"]:
+        if input_image["labels"] not in INPUT_LABELS:
             continue
 
         filtered_images.append(input_image)
@@ -149,7 +182,6 @@ def main():
     print(f"Newly added labels: {newly_added_labels}")
 
     print("")
-    print("6a.")
     print("Fixing labels: Renaming unknown labels to 'Other'")
 
     for image in filtered_images:
@@ -170,7 +202,6 @@ def main():
 
     if TARGET_LABELS:
         print("")
-        print("6b.")
         print(f"Fixing labels: Applying target labels {TARGET_LABELS}")
 
         for image in filtered_images:
@@ -178,8 +209,7 @@ def main():
             fixed_labels = []
 
             for label in labels:
-                assert label != "Atelectasis (Suspected)"
-                assert label == "Atelectasis" or label == "No Findings"
+                assert label in INPUT_LABELS
 
                 if label in TARGET_LABELS:
                     fixed_labels.append(label)
@@ -191,7 +221,6 @@ def main():
         print(f"Newly added labels: {newly_added_labels}")
 
         print("")
-        print("6c.")
         print(f"Fixing labels: Selecting image subset for better labels distribution")
 
         images_with_non_empty_labels = [image for image in filtered_images if image["labels"]]
@@ -208,7 +237,6 @@ def main():
         print(f"Newly added labels: {newly_added_labels}")
 
     print("")
-    print("7.")
     print("Creating splits")
 
     random.seed(SEED)
@@ -223,8 +251,8 @@ def main():
     if CREATE_VALIDATION_DATASET_FROM_SUSPECTED_ONLY:
         validation_set = []
         for input_image in input_images:
-            if input_image["labels"] == ["Atelectasis (Suspected)"]:
-                input_image["labels"] = ["Atelectasis"]
+            if input_image["labels"] == [CREATE_VALIDATION_DATASET_FROM_SUSPECTED_ONLY_FROM_LABEL]:
+                input_image["labels"] = [CREATE_VALIDATION_DATASET_FROM_SUSPECTED_ONLY_TO_LABEL]
                 validation_set.append(input_image)
 
     print("")
@@ -244,7 +272,6 @@ def main():
     print(f"Newly added labels: {newly_added_labels}")
 
     print("")
-    print("8.")
     print("Writing training and validation set to file")
 
     with open(OUTPUT_TRAINING_FILE, "w") as f:
