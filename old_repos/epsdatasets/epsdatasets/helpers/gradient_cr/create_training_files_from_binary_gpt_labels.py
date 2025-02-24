@@ -80,6 +80,7 @@ def main():
         df = pd.read_csv(StringIO(content), header=None, sep=';')
         frontal_images = set(df[0])
 
+        print("")
         print("Downloading lateral projections file")
 
         gcs_data = gcs_utils.split_gcs_uri(GCS_LATERAL_PROJECTIONS_FILE)
@@ -170,7 +171,7 @@ def main():
             if input_image["image_path"] not in chest_images:
                 continue
 
-        if input_image["labels"] not in INPUT_LABELS:
+        if not all(label in INPUT_LABELS for label in input_image["labels"]):
             continue
 
         filtered_images.append(input_image)
