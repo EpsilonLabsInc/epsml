@@ -391,7 +391,6 @@ class TorchTrainingHelper:
                 # Get the inputs.
                 if len(batch) == 2:
                     data, target = batch
-                    file_names = None
                 elif len(batch) == 3:
                     data, target, file_names = batch
                     all_file_names.extend(file_names)
@@ -481,7 +480,7 @@ class TorchTrainingHelper:
                     plot = gen.create_plot(scores=scores, title="Scores distribution")
                     self.__log_scores_distribution(plot, "Validation scores distribution")
 
-                # Save list of misclassified samples.
+                # Save a list of misclassified samples.
                 if all_file_names:
                     self.__save_misclassified(epoch=step, file_names=all_file_names, targets=all_targets, outputs=all_outputs, probs=all_probs)
 
