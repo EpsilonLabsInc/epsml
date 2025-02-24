@@ -1,4 +1,5 @@
 import inspect
+import json
 import math
 import os
 from datetime import datetime
@@ -274,7 +275,14 @@ class TorchTrainingHelper:
             step = epoch * num_batches + idx
 
             # Get the inputs.
-            data, target = batch
+            if len(batch) == 2:
+                data, target = batch
+            elif len(batch) == 3:
+                data, target, _ = batch
+            else:
+                raise ValueError("Unexpected batch format")
+
+            # Skip step if data is None.
             if data is None:
                 continue
 
@@ -371,6 +379,7 @@ class TorchTrainingHelper:
 
         all_targets = torch.empty(0)
         all_outputs = torch.empty(0)
+        all_file_names = []
 
         pause = True
 
@@ -380,7 +389,16 @@ class TorchTrainingHelper:
                     break
 
                 # Get the inputs.
-                data, target = batch
+                if len(batch) == 2:
+                    data, target = batch
+                    file_names = None
+                elif len(batch) == 3:
+                    data, target, file_names = batch
+                    all_file_names.extend(file_names)
+                else:
+                    raise ValueError("Unexpected batch format")
+
+                # Skip step if data is None.
                 if data is None:
                     continue
 
@@ -463,6 +481,10 @@ class TorchTrainingHelper:
                     plot = gen.create_plot(scores=scores, title="Scores distribution")
                     self.__log_scores_distribution(plot, "Validation scores distribution")
 
+                # Save list of misclassified samples.
+                if all_file_names:
+                    self.__save_misclassified(epoch=step, file_names=all_file_names, targets=all_targets, outputs=all_outputs, probs=all_probs)
+
     def __save_checkpoint(self, epoch, step=None):
         checkpoint = {
             "epoch": epoch + 1,
@@ -480,6 +502,25 @@ class TorchTrainingHelper:
             torch.save(checkpoint, os.path.join(self.__training_parameters.checkpoint_dir, f"checkpoint_epoch_{epoch + 1}_{timestamp}.pt"))
         else:
             torch.save(checkpoint, os.path.join(self.__training_parameters.checkpoint_dir, f"checkpoint_step_{step + 1}_{timestamp}.pt"))
+
+    def __save_misclassified(epoch, file_names, targets, outputs, probs)
+        assert len(file_names) == len(targets) == len(outputs) == len(probs)
+
+        misclassified = [
+            {
+                "file_name": file_names[i],
+                "target": targets[i],
+                "output": outputs[i],
+                "probs": probs[i]
+            } for i in range(len(targets)) if targets[i] != outputs[i]
+        ]
+
+        timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S") + "_utc"
+        misclassified_file = f"misclassified_epoch_{epoch + 1}_{timestamp}.jsonl"
+
+        with open(misclassified_file, "w") as jsonl_file:
+            for item in misclassified:
+                jsonl_file.write(json.dumps(item) + "\n"
 
     def __connect_to_mlops(self):
         if self.__mlops_parameters.mlops_type == MlopsType.MLFLOW:
