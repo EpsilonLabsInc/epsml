@@ -519,7 +519,7 @@ class TorchTrainingHelper:
 
         with open(misclassified_file, "w") as jsonl_file:
             for item in misclassified:
-                jsonl_file.write(json.dumps(item) + "\n"
+                jsonl_file.write(json.dumps(item) + "\n")
 
     def __connect_to_mlops(self):
         if self.__mlops_parameters.mlops_type == MlopsType.MLFLOW:
