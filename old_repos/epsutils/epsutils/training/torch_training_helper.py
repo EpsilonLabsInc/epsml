@@ -508,9 +508,9 @@ class TorchTrainingHelper:
         misclassified = [
             {
                 "file_name": file_names[i],
-                "target": targets[i],
-                "output": outputs[i],
-                "probs": probs[i]
+                "target": training_utils.convert_tensor(targets[i]),
+                "output": training_utils.convert_tensor(outputs[i]),
+                "probs": training_utils.convert_tensor(probs[i])
             } for i in range(len(targets)) if targets[i] != outputs[i]
         ]
 

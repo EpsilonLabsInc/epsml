@@ -80,3 +80,10 @@ def convert_pil_image_to_normalized_torch_tensor(image, normalization_mean=None,
     tensor = torch.from_numpy(image_np).unsqueeze(0)
 
     return tensor
+
+
+def convert_tensor(tensor):
+    if not hasattr(tensor, "item"):
+        return tensor
+
+    return tensor.item() if tensor.numel() == 1 else tensor.tolist()
