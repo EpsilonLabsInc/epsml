@@ -515,7 +515,7 @@ class TorchTrainingHelper:
         ]
 
         timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S") + "_utc"
-        misclassified_file = f"misclassified_epoch_{epoch + 1}_{timestamp}.jsonl"
+        misclassified_file = os.path.join(self.__training_parameters.checkpoint_dir, f"misclassified_epoch_{epoch + 1}_{timestamp}.jsonl")
 
         with open(misclassified_file, "w") as jsonl_file:
             for item in misclassified:
