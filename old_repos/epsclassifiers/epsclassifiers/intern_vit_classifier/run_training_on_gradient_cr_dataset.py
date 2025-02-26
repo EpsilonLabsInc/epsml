@@ -9,18 +9,19 @@ from epsutils.training.torch_training_helper import TorchTrainingHelper, Trainin
 def main():
     # General settings.
     model_name = "intern_vit_classifier"
-    dataset_name = "gradient_cr_pleural_effusion"
-    run_name = "26B with no labels (frontal-only)"
-    notes = "InternVL model: 26B with no labels, frontal-only, loss=SampleBalancedBCEWithLogitsLoss"
-    output_dir = "./output"
+    dataset_name = "gradient_cr_airspace_opacity"
+    run_name = "26B with no labels (training and validation on frontal obvious cases)"
+    notes = "InternVL model: 26B with no labels, training and validation on frontal obvious cases, loss=SampleBalancedBCEWithLogitsLoss"
+    save_full_model = False
 
     # Paths.
-    intern_vl_checkpoint_dir = "/workspace/models/internvl2.5_26b_finetune_lora_20241229_184000_1e-5_2.5_gradient_full_rm_sole_no_findings_rm_bad_dcm_no_label/checkpoint-58670"
-    gcs_train_file = "gs://gradient-crs/archive/training/gradient-crs-22JUL2024-chest-images-with-pleural-effusion-label-training.jsonl"
-    gcs_validation_file = "gs://gradient-crs/archive/training/gradient-crs-22JUL2024-chest-images-with-pleural-effusion-label-validation.jsonl"
-    gcs_extra_filtering_file = "gs://gradient-crs/archive/training/gradient-crs-22JUL2024-frontal-views.csv"
-    images_dir = "/workspace/CR/22JUL2024"
-    dir_prefix_to_remove = "GRADIENT-DATABASE/CR/22JUL2024"
+    intern_vl_checkpoint_dir = "/workspace/models/old/internvl2.5_26b_finetune_lora_20241229_184000_1e-5_2.5_gradient_full_rm_sole_no_findings_rm_bad_dcm_no_label/checkpoint-58670"
+    gcs_train_file = "gs://gradient-crs/archive/training/individual-labels/airspace-opacity/gradient-crs-22JUL2024-chest-images-with-obvious-airspace-opacity-label-training.jsonl"
+    gcs_validation_file = "gs://gradient-crs/archive/training/individual-labels/airspace-opacity/gradient-crs-22JUL2024-chest-images-with-obvious-airspace-opacity-label-validation.jsonl"
+    gcs_extra_filtering_file = "gs://gradient-crs/archive/projections/gradient-crs-22JUL2024-chest-only-frontal-projections.csv"
+    images_dir = "/workspace/CR"
+    dir_prefix_to_remove = "GRADIENT-DATABASE/CR"
+    output_dir = "./output"
 
     # Training settings.
     perform_intra_epoch_validation = True
@@ -37,7 +38,10 @@ def main():
     training_batch_size = 32
     validation_batch_size = 32
     min_allowed_batch_size = 2  # In order for batch norm in the InternVitClassifier model to work.
+    multi_image_input = False  # True
+    num_multi_images = None  # 2
 
+    # Auto-generated names. Don't change.
     experiment_name = f"{model_name}-training-on-{dataset_name}"
     mlops_experiment_name = f"{experiment_name}"
     experiment_dir = f"{output_dir}/{experiment_name}"
@@ -53,7 +57,7 @@ def main():
         gcs_extra_filtering_file=gcs_extra_filtering_file,
         images_dir=images_dir,
         dir_prefix_to_remove=dir_prefix_to_remove,
-        custom_labels=["Pleural Effusion"]
+        custom_labels=["Airspace Opacity"]
     )
 
     print(f"Using the following labels: {dataset_helper.get_labels()}")
@@ -62,7 +66,9 @@ def main():
     print("Creating the model")
     model = InternVitClassifier(num_classes=len(dataset_helper.get_labels()),
                                 intern_vl_checkpoint_dir=intern_vl_checkpoint_dir,
-                                intern_vit_output_dim=3200)  # 3200 for InternVL 26B model, 1024 for InternVL 8B model.
+                                intern_vit_output_dim=3200,  # 3200 for InternVL 26B model, 1024 for InternVL 8B model.
+                                multi_image_input=multi_image_input,
+                                num_multi_images=num_multi_images)
     model = model.to("cuda")
     image_processor = model.get_image_processor()
 
@@ -107,10 +113,28 @@ def main():
                                           mlops_parameters=mlops_parameters)
 
     def get_torch_images(samples):
-        images = [dataset_helper.get_pil_image(item) for item in samples]
-        pixel_values = image_processor(images=images, return_tensors="pt").pixel_values
-        pixel_values = pixel_values.to(torch.bfloat16)
-        return pixel_values
+        if multi_image_input:
+            try:
+                stack = []
+                for item in samples:
+                    images = dataset_helper.get_pil_image(item)
+                    assert len(images) == num_multi_images
+                    pixel_values = image_processor(images=images, return_tensors="pt").pixel_values
+                    stack.append(pixel_values)
+
+                pixel_values = torch.stack(stack)
+                pixel_values = pixel_values.to(torch.bfloat16)
+                return pixel_values
+            except:
+                return None
+        else:
+            try:
+                images = [dataset_helper.get_pil_image(item) for item in samples]
+                pixel_values = image_processor(images=images, return_tensors="pt").pixel_values
+                pixel_values = pixel_values.to(torch.bfloat16)
+                return pixel_values
+            except:
+                return None
 
     def get_torch_labels(samples):
         labels = torch.stack([dataset_helper.get_torch_label(item).to(torch.bfloat16) for item in samples])
@@ -119,10 +143,12 @@ def main():
     def collate_function(samples):
         images = get_torch_images(samples)
         labels = get_torch_labels(samples)
-        return images, labels
+        return images, labels, [sample["image_path"] for sample in samples]
 
     training_helper.start_training(collate_function_for_training=collate_function)
-    training_helper.save_model(model_file_name=save_model_filename, parallel_model_file_name=save_parallel_model_filename)
+
+    if save_full_model:
+        training_helper.save_model(model_file_name=save_model_filename, parallel_model_file_name=save_parallel_model_filename)
 
 
 if __name__ == "__main__":
