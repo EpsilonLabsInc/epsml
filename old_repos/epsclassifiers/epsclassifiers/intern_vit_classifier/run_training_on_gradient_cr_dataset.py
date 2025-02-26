@@ -1,4 +1,6 @@
+import argparse
 import torch
+import yaml
 
 from epsclassifiers.intern_vit_classifier import InternVitClassifier
 from epsdatasets.helpers.gradient_cr.gradient_cr_dataset_helper import GradientCrDatasetHelper
@@ -6,40 +8,71 @@ from epsutils.training.sample_balanced_bce_with_logits_loss import SampleBalance
 from epsutils.training.torch_training_helper import TorchTrainingHelper, TrainingParameters, MlopsType, MlopsParameters
 
 
-def main():
-    # General settings.
-    model_name = "intern_vit_classifier"
-    dataset_name = "gradient_cr_airspace_opacity"
-    run_name = "26B with no labels (training and validation on frontal obvious cases)"
-    notes = "InternVL model: 26B with no labels, training and validation on frontal obvious cases, loss=SampleBalancedBCEWithLogitsLoss"
-    save_full_model = False
+def main(config_path):
+    # Read the configuration file.
+    with open(config_path, "r") as file:
+        config = yaml.safe_load(file)
 
-    # Paths.
-    intern_vl_checkpoint_dir = "/workspace/models/old/internvl2.5_26b_finetune_lora_20241229_184000_1e-5_2.5_gradient_full_rm_sole_no_findings_rm_bad_dcm_no_label/checkpoint-58670"
-    gcs_train_file = "gs://gradient-crs/archive/training/individual-labels/airspace-opacity/gradient-crs-22JUL2024-chest-images-with-obvious-airspace-opacity-label-training.jsonl"
-    gcs_validation_file = "gs://gradient-crs/archive/training/individual-labels/airspace-opacity/gradient-crs-22JUL2024-chest-images-with-obvious-airspace-opacity-label-validation.jsonl"
-    gcs_extra_filtering_file = "gs://gradient-crs/archive/projections/gradient-crs-22JUL2024-chest-only-frontal-projections.csv"
-    images_dir = "/workspace/CR"
-    dir_prefix_to_remove = "GRADIENT-DATABASE/CR"
-    output_dir = "./output"
+    # Get the configuration parameters.
+    model_name                     = config["general"].get("model_name", "")
+    dataset_name                   = config["general"].get("dataset_name", "")
+    run_name                       = config["general"].get("run_name", "")
+    notes                          = config["general"].get("notes", "")
+    save_full_model                = config["general"].get("save_full_model", False)
+    intern_vl_checkpoint_dir       = config["paths"].get("intern_vl_checkpoint_dir", "")
+    gcs_train_file                 = config["paths"].get("gcs_train_file", "")
+    gcs_validation_file            = config["paths"].get("gcs_validation_file", "")
+    gcs_extra_filtering_file       = config["paths"].get("gcs_extra_filtering_file", "")
+    images_dir                     = config["paths"].get("images_dir", "")
+    dir_prefix_to_remove           = config["paths"].get("dir_prefix_to_remove", "")
+    output_dir                     = config["paths"].get("output_dir", "")
+    perform_intra_epoch_validation = config["training"].get("perform_intra_epoch_validation", False)
+    intra_epoch_validation_step    = config["training"].get("intra_epoch_validation_step", 5000)
+    send_wandb_notification        = config["training"].get("send_wandb_notification", True)
+    device                         = config["training"].get("device", "")
+    device_ids                     = config["training"].get("device_ids", None)
+    num_training_workers_per_gpu   = config["training"].get("num_training_workers_per_gpu", 1)
+    num_validation_workers_per_gpu = config["training"].get("num_validation_workers_per_gpu", 1)
+    learning_rate                  = config["training"].get("learning_rate", 1e-6)
+    warmup_ratio                   = config["training"].get("warmup_ratio", 0.1)
+    num_epochs                     = config["training"].get("num_epochs", 1)
+    training_batch_size            = config["training"].get("training_batch_size", 1)
+    validation_batch_size          = config["training"].get("validation_batch_size", 1)
+    min_allowed_batch_size         = config["training"].get("min_allowed_batch_size", 1)
+    multi_image_input              = config["training"].get("multi_image_input", False)
+    num_multi_images               = config["training"].get("num_multi_images", None)
 
-    # Training settings.
-    perform_intra_epoch_validation = True
-    intra_epoch_validation_step = 1000
-    send_wandb_notification = False
-    device = "cuda"
-    device_ids = None  # Use one (the default) GPU.
-    # device_ids = [0, 1, 2, 3, 4, 5, 6, 7]  # Use 8 GPUs.
-    num_training_workers_per_gpu = 32
-    num_validation_workers_per_gpu = 32
-    learning_rate = 1e-2  # 2e-4
-    warmup_ratio = 1 / 20
-    num_epochs = 4
-    training_batch_size = 32
-    validation_batch_size = 32
-    min_allowed_batch_size = 2  # In order for batch norm in the InternVitClassifier model to work.
-    multi_image_input = False  # True
-    num_multi_images = None  # 2
+    # Print configuration parameters.
+    print("----------------------------------------------------------")
+    print("Using the following configuration parameters:")
+    print(f"+ model_name: {model_name}")
+    print(f"+ dataset_name: {dataset_name}")
+    print(f"+ run_name: {run_name}")
+    print(f"+ notes: {notes}")
+    print(f"+ save_full_model: {save_full_model}")
+    print(f"+ intern_vl_checkpoint_dir: {intern_vl_checkpoint_dir}")
+    print(f"+ gcs_train_file: {gcs_train_file}")
+    print(f"+ gcs_validation_file: {gcs_validation_file}")
+    print(f"+ gcs_extra_filtering_file: {gcs_extra_filtering_file}")
+    print(f"+ images_dir: {images_dir}")
+    print(f"+ dir_prefix_to_remove: {dir_prefix_to_remove}")
+    print(f"+ output_dir: {output_dir}")
+    print(f"+ perform_intra_epoch_validation: {perform_intra_epoch_validation}")
+    print(f"+ intra_epoch_validation_step: {intra_epoch_validation_step}")
+    print(f"+ send_wandb_notification: {send_wandb_notification}")
+    print(f"+ device: {device}")
+    print(f"+ device_ids: {device_ids}")
+    print(f"+ num_training_workers_per_gpu: {num_training_workers_per_gpu}")
+    print(f"+ num_validation_workers_per_gpu: {num_validation_workers_per_gpu}")
+    print(f"+ learning_rate: {learning_rate}")
+    print(f"+ warmup_ratio: {warmup_ratio}")
+    print(f"+ num_epochs: {num_epochs}")
+    print(f"+ training_batch_size: {training_batch_size}")
+    print(f"+ validation_batch_size: {validation_batch_size}")
+    print(f"+ min_allowed_batch_size: {min_allowed_batch_size}")
+    print(f"+ multi_image_input: {multi_image_input}")
+    print(f"+ num_multi_images: {num_multi_images}")
+    print("----------------------------------------------------------")
 
     # Auto-generated names. Don't change.
     experiment_name = f"{model_name}-training-on-{dataset_name}"
@@ -152,4 +185,8 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="InternViT classifier training script")
+    parser.add_argument("config_path", type=str, help="Path to the configuration file")
+
+    args = parser.parse_args()
+    main(args.config_path)
