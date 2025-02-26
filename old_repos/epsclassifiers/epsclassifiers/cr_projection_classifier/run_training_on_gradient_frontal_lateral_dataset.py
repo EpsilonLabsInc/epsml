@@ -14,8 +14,8 @@ if __name__ == "__main__":
 
     # Gradient frontal/lateral dataset helper.
     gcs_chest_images_file = "gs://gradient-crs/archive/training/chest/chest_files_gradient_all_3_batches.csv"
-    gcs_frontal_images_file = "gs://gradient-crs/archive/projections/gradient-crs-22JUL2024-frontal-views.csv"
-    gcs_lateral_images_file = "gs://gradient-crs/archive/projections/gradient-crs-22JUL2024-lateral-views.csv"
+    gcs_frontal_images_file = "gs://gradient-crs/archive/projections/gradient-crs-22JUL2024-dicom-tag-frontal-views.csv"
+    gcs_lateral_images_file = "gs://gradient-crs/archive/projections/gradient-crs-22JUL2024-dicom-tag-lateral-views.csv"
     images_dir = "/workspace/CR"
     dir_prefix_to_remove = "GRADIENT-DATABASE/CR"
     seed = 42
