@@ -1,5 +1,4 @@
 import argparse
-import ast
 import torch
 import yaml
 
@@ -7,6 +6,13 @@ from epsclassifiers.intern_vit_classifier import InternVitClassifier
 from epsdatasets.helpers.gradient_cr.gradient_cr_dataset_helper import GradientCrDatasetHelper
 from epsutils.training.sample_balanced_bce_with_logits_loss import SampleBalancedBCEWithLogitsLoss
 from epsutils.training.torch_training_helper import TorchTrainingHelper, TrainingParameters, MlopsType, MlopsParameters
+
+
+def convert_none(value):
+    if value == "None":
+        return None
+
+    return value
 
 
 def main(config_path):
@@ -19,7 +25,7 @@ def main(config_path):
     dataset_name                   = config["general"].get("dataset_name", "")
     run_name                       = config["general"].get("run_name", "")
     notes                          = config["general"].get("notes", "")
-    custom_labels                  = ast.literal_eval(config["general"].get("custom_labels", "None"))
+    custom_labels                  = convert_none(config["general"].get("custom_labels", None))
     save_full_model                = config["general"].get("save_full_model", False)
     intern_vl_checkpoint_dir       = config["paths"].get("intern_vl_checkpoint_dir", "")
     gcs_train_file                 = config["paths"].get("gcs_train_file", "")
@@ -32,7 +38,7 @@ def main(config_path):
     intra_epoch_validation_step    = config["training"].get("intra_epoch_validation_step", 5000)
     send_wandb_notification        = config["training"].get("send_wandb_notification", True)
     device                         = config["training"].get("device", "")
-    device_ids                     = ast.literal_eval(config["training"].get("device_ids", "None"))
+    device_ids                     = convert_none(config["training"].get("device_ids", None))
     num_training_workers_per_gpu   = config["training"].get("num_training_workers_per_gpu", 1)
     num_validation_workers_per_gpu = config["training"].get("num_validation_workers_per_gpu", 1)
     learning_rate                  = config["training"].get("learning_rate", 1e-6)
@@ -42,7 +48,7 @@ def main(config_path):
     validation_batch_size          = config["training"].get("validation_batch_size", 1)
     min_allowed_batch_size         = config["training"].get("min_allowed_batch_size", 1)
     multi_image_input              = config["training"].get("multi_image_input", False)
-    num_multi_images               = ast.literal_eval(config["training"].get("num_multi_images", "None"))
+    num_multi_images               = convert_none(config["training"].get("num_multi_images", None))
 
     # Print configuration parameters.
     print("----------------------------------------------------------")
