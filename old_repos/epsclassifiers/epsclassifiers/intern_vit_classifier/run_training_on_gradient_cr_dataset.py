@@ -1,4 +1,5 @@
 import argparse
+import ast
 import torch
 import yaml
 
@@ -18,6 +19,7 @@ def main(config_path):
     dataset_name                   = config["general"].get("dataset_name", "")
     run_name                       = config["general"].get("run_name", "")
     notes                          = config["general"].get("notes", "")
+    custom_labels                  = ast.literal_eval(config["general"].get("custom_labels", "None"))
     save_full_model                = config["general"].get("save_full_model", False)
     intern_vl_checkpoint_dir       = config["paths"].get("intern_vl_checkpoint_dir", "")
     gcs_train_file                 = config["paths"].get("gcs_train_file", "")
@@ -30,7 +32,7 @@ def main(config_path):
     intra_epoch_validation_step    = config["training"].get("intra_epoch_validation_step", 5000)
     send_wandb_notification        = config["training"].get("send_wandb_notification", True)
     device                         = config["training"].get("device", "")
-    device_ids                     = config["training"].get("device_ids", None)
+    device_ids                     = ast.literal_eval(config["training"].get("device_ids", "None"))
     num_training_workers_per_gpu   = config["training"].get("num_training_workers_per_gpu", 1)
     num_validation_workers_per_gpu = config["training"].get("num_validation_workers_per_gpu", 1)
     learning_rate                  = config["training"].get("learning_rate", 1e-6)
@@ -40,7 +42,7 @@ def main(config_path):
     validation_batch_size          = config["training"].get("validation_batch_size", 1)
     min_allowed_batch_size         = config["training"].get("min_allowed_batch_size", 1)
     multi_image_input              = config["training"].get("multi_image_input", False)
-    num_multi_images               = config["training"].get("num_multi_images", None)
+    num_multi_images               = ast.literal_eval(config["training"].get("num_multi_images", "None"))
 
     # Print configuration parameters.
     print("----------------------------------------------------------")
@@ -49,6 +51,7 @@ def main(config_path):
     print(f"+ dataset_name: {dataset_name}")
     print(f"+ run_name: {run_name}")
     print(f"+ notes: {notes}")
+    print(f"+ custom_labels: {custom_labels}")
     print(f"+ save_full_model: {save_full_model}")
     print(f"+ intern_vl_checkpoint_dir: {intern_vl_checkpoint_dir}")
     print(f"+ gcs_train_file: {gcs_train_file}")
@@ -90,7 +93,7 @@ def main(config_path):
         gcs_extra_filtering_file=gcs_extra_filtering_file,
         images_dir=images_dir,
         dir_prefix_to_remove=dir_prefix_to_remove,
-        custom_labels=["Airspace Opacity"]
+        custom_labels=custom_labels
     )
 
     print(f"Using the following labels: {dataset_helper.get_labels()}")
