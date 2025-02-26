@@ -25,8 +25,8 @@ training:
   # device_ids: [0, 1, 2, 3, 4, 5, 6, 7]  # Use 8 GPUs.
   num_training_workers_per_gpu: 32
   num_validation_workers_per_gpu: 32
-  learning_rate:  1e-2  # 2e-4
-  warmup_ratio: 1 / 20
+  learning_rate:  0.01
+  warmup_ratio: 0.05  # = 1/20
   num_epochs: 4
   training_batch_size: 32
   validation_batch_size: 32
