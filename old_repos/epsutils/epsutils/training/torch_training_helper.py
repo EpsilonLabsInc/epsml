@@ -419,7 +419,7 @@ class TorchTrainingHelper:
                     loss = outputs.loss
                 else:
                     outputs = self.__parallel_model(data.to(self.__device))
-                    embeddings = outputs["embeddings"] if isinstance(outputs, dict) else None
+                    embeddings = outputs["embeddings"] if isinstance(outputs, dict) and "embeddings" in outputs else None
                     outputs = outputs["output"] if isinstance(outputs, dict) else outputs
                     loss = self.__training_parameters.criterion(outputs, target.to(self.__device))
 
