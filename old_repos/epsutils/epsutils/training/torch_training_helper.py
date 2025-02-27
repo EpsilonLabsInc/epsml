@@ -286,7 +286,7 @@ class TorchTrainingHelper:
             if data is None:
                 continue
 
-            # Skip step if necessary.
+            # Skip step if batch size is less than min allowed batch size.
             batch_size = data.shape[0]
             if self.__training_parameters.min_allowed_batch_size and batch_size < self.__training_parameters.min_allowed_batch_size:
                 print(f"Batch size {batch_size} < min allowed batch size {self.__training_parameters.min_allowed_batch_size}, skipping this training step")
@@ -402,11 +402,7 @@ class TorchTrainingHelper:
                 if data is None:
                     continue
 
-                # Add file names.
-                if len(batch) == 3:
-                    all_file_names.extend(file_names)
-
-                # Skip step if necessary.
+                # Skip step if batch size is less than min allowed batch size.
                 batch_size = data.shape[0]
                 if self.__training_parameters.min_allowed_batch_size and batch_size < self.__training_parameters.min_allowed_batch_size:
                     print(f"Batch size {batch_size} < min allowed batch size {self.__training_parameters.min_allowed_batch_size}, skipping this validation step")
@@ -441,6 +437,10 @@ class TorchTrainingHelper:
                 # Stack embeddings.
                 if embeddings is not None:
                     all_embeddings = embeddings if all_embeddings.numel() == 0 else torch.cat((all_embeddings, embeddings), dim=0)
+
+                # Add file names.
+                if len(batch) == 3:
+                    all_file_names.extend(file_names)
 
                 # If 'loss' is a vector, it needs to be averaged.
                 if loss.numel() > 1:
