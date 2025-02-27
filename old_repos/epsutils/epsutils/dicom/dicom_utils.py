@@ -93,6 +93,23 @@ def read_all_dicom_tags(dicom_file_name, include_pixel_data=False):
     return read_all_dicom_tags_from_dataset(dataset, include_pixel_data)
 
 
+def generate_dicom_dict_from_dataset(dataset: pydicom.dataset.FileDataset, include_pixel_data=False):
+    dicom_dict = {}
+
+    for element in dataset:
+        if element.name == "Pixel Data" and not include_pixel_data:
+            continue
+
+        dicom_dict[f"{element.tag} {element.name}"] = str(element.value)
+
+    return dicom_dict
+
+
+def generate_dicom_dict(dicom_file_name, include_pixel_data=False):
+    dataset = pydicom.dcmread(dicom_file_name)
+    return generate_dicom_dict_from_dataset(dataset, include_pixel_data)
+
+
 def get_dicom_image_from_dataset(dataset: pydicom.dataset.FileDataset, custom_windowing_parameters=None):
     pixel_array = dataset.pixel_array
 
