@@ -58,11 +58,14 @@ class InternVitClassifier(nn.Module):
             batch, group, num_channels, height, width = x.shape
             x_reshaped = x.view(batch * group, num_channels, height, width)
             output = self.intern_vit(x_reshaped)
-            reshaped_output = output.pooler_output.reshape(batch, -1)
-            return self.classifier(reshaped_output)
+            embeddings = output.pooler_output.reshape(batch, -1)
+            output = self.classifier(embeddings)
         else:
             output = self.intern_vit(x)
-            return self.classifier(output.pooler_output)
+            embeddings = output.pooler_output
+            output = self.classifier(embeddings)
+
+        return {"output": output, "embeddings": embeddings}
 
     def get_image_processor(self):
         return self.__image_processor
