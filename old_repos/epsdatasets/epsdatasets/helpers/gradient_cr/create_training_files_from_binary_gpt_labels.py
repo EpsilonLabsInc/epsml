@@ -9,9 +9,10 @@ from tqdm import tqdm
 
 from epsutils.gcs import gcs_utils
 
-INPUT_LABELS = ["Cardiomegaly", "No Findings"]
-TARGET_LABELS = ["Cardiomegaly"]
-GCS_INPUT_FILE = "gs://epsilonlabs-filestore/cleaned_CRs/binary_classification_labels/GRADIENT_CR_22JUL2024_cardiomediastinum_cardiomegaly_labels_v4.csv"
+LABEL_COLUMN_NAME = "airspace_opacity_labels"
+INPUT_LABELS = ["Airspace Opacity", "No Findings"]
+TARGET_LABELS = ["Airspace Opacity"]
+GCS_INPUT_FILE = "gs://report_csvs/cleaned/CR/labels_for_binary_classification/GRADIENT_CR_22JUL2024_chest_with_image_paths_with_airspace_opacity_labels.csv"
 GCS_INPUT_IMAGES_DIR = "GRADIENT-DATABASE/CR/22JUL2024"
 GCS_CHEST_IMAGES_FILE = "gs://gradient-crs/archive/training/chest/chest_files_gradient_all_3_batches.csv"
 GCS_FRONTAL_PROJECTIONS_FILE = "gs://gradient-crs/archive/projections/gradient-crs-22JUL2024-chest-only-frontal-projections.csv"
@@ -23,10 +24,10 @@ SEED = 42
 SPLIT_RATIO = 0.98
 FILL_UP_VALIDATION_DATASET = False
 CREATE_VALIDATION_DATASET_FROM_SUSPECTED_ONLY = False
-CREATE_VALIDATION_DATASET_FROM_SUSPECTED_ONLY_FROM_LABEL = "Cardiomegaly (Suspected)"
-CREATE_VALIDATION_DATASET_FROM_SUSPECTED_ONLY_TO_LABEL = "Cardiomegaly"
-OUTPUT_TRAINING_FILE = "gradient-crs-22JUL2024-two-chest-image-studies-with-standard-cardiomegaly-label-training.jsonl"
-OUTPUT_VALIDATION_FILE = "gradient-crs-22JUL2024-two-chest-image-studies-with-standard-cardiomegaly-label-validation.jsonl"
+CREATE_VALIDATION_DATASET_FROM_SUSPECTED_ONLY_FROM_LABEL = "Airspace Opacity (Suspected)"
+CREATE_VALIDATION_DATASET_FROM_SUSPECTED_ONLY_TO_LABEL = "Airspace Opacity"
+OUTPUT_TRAINING_FILE = "gradient-crs-22JUL2024-two-chest-image-studies-with-obvious-airspace-opacity-label-training.jsonl"
+OUTPUT_VALIDATION_FILE = "gradient-crs-22JUL2024-two-chest-image-studies-with-obvious-airspace-opacity-label-validation.jsonl"
 
 
 def get_labels_distribution(images):
@@ -117,12 +118,12 @@ def main():
 
     elif GCS_INPUT_FILE.endswith(".csv"):
         df = pd.read_csv(StringIO(content))
-        df = df[["cardiomediastinum_cardiomegaly_labels", "image_paths"]]
+        df = df[[LABEL_COLUMN_NAME, "image_paths"]]
         for index, row in tqdm(df.iterrows(), total=len(df), desc="Processing"):
             try:
-                labels = [row["cardiomediastinum_cardiomegaly_labels"]]
+                labels = [row[LABEL_COLUMN_NAME]]
             except:
-                print(f"Error parsing cardiomediastinum/cardiomegaly labels {row['cardiomediastinum_cardiomegaly_labels']}")
+                print(f"Error parsing {row[LABEL_COLUMN_NAME]}")
                 continue
 
             try:
