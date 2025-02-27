@@ -395,13 +395,16 @@ class TorchTrainingHelper:
                     data, target = batch
                 elif len(batch) == 3:
                     data, target, file_names = batch
-                    all_file_names.extend(file_names)
                 else:
                     raise ValueError("Unexpected batch format")
 
                 # Skip step if data is None.
                 if data is None:
                     continue
+
+                # Add file names.
+                if len(batch) == 3:
+                    all_file_names.extend(file_names)
 
                 # Skip step if necessary.
                 batch_size = data.shape[0]
