@@ -302,6 +302,7 @@ class TorchTrainingHelper:
                 loss = outputs.loss
             else:
                 outputs = self.__parallel_model(data.to(self.__device))
+                outputs = outputs["output"] if isinstance(outputs, dict) else outputs
                 loss = self.__training_parameters.criterion(outputs, target.to(self.__device))
 
             # If loss is a vector, it needs to be averaged.
@@ -379,6 +380,7 @@ class TorchTrainingHelper:
 
         all_targets = torch.empty(0)
         all_outputs = torch.empty(0)
+        all_embeddings = torch.empty(0)
         all_file_names = []
 
         pause = True
@@ -410,9 +412,12 @@ class TorchTrainingHelper:
                 # Predict.
                 if self.__is_multi_parameter_model:
                     outputs = self.__parallel_model(data.to(self.__device), target.to(self.__device))
+                    embeddings = None
                     loss = outputs.loss
                 else:
                     outputs = self.__parallel_model(data.to(self.__device))
+                    embeddings = outputs["embeddings"] if isinstance(outputs, dict) else None
+                    outputs = outputs["output"] if isinstance(outputs, dict) else outputs
                     loss = self.__training_parameters.criterion(outputs, target.to(self.__device))
 
                 # Save visualization data.
@@ -429,6 +434,10 @@ class TorchTrainingHelper:
                 # Stack all targets and outputs.
                 all_targets = target if all_targets.numel() == 0 else torch.cat((all_targets, target), dim=0)
                 all_outputs = outputs if all_outputs.numel() == 0 else torch.cat((all_outputs, outputs), dim=0)
+
+                # Stack embeddings.
+                if embeddings is not None:
+                    all_embeddings = embeddings if all_embeddings.numel() == 0 else torch.cat((all_embeddings, embeddings), dim=0)
 
                 # If 'loss' is a vector, it needs to be averaged.
                 if loss.numel() > 1:
@@ -484,6 +493,9 @@ class TorchTrainingHelper:
                 if all_file_names:
                     self.__save_misclassified(epoch=step, file_names=all_file_names, targets=all_targets, outputs=all_outputs, probs=all_probs)
 
+                # Save embeddings.
+                self.__save_embeddings(embeddings=all_embeddings, epoch=step)
+
     def __save_checkpoint(self, epoch, step=None):
         checkpoint = {
             "epoch": epoch + 1,
@@ -520,6 +532,14 @@ class TorchTrainingHelper:
         with open(misclassified_file, "w") as jsonl_file:
             for item in misclassified:
                 jsonl_file.write(json.dumps(item) + "\n")
+
+    def __save_embeddings(self, embeddings, epoch):
+        if embeddings.numel() == 0:
+            return
+
+        timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S") + "_utc"
+        embeddings_file = os.path.join(self.__training_parameters.checkpoint_dir, f"embeddings_epoch_{epoch + 1}_{timestamp}.pt")
+        torch.save(embeddings, embeddings_file)
 
     def __connect_to_mlops(self):
         if self.__mlops_parameters.mlops_type == MlopsType.MLFLOW:
