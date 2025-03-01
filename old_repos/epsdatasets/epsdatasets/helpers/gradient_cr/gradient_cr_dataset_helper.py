@@ -23,6 +23,7 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
                  gcs_extra_filtering_file=None,
                  images_dir=None,
                  dir_prefix_to_remove=None,
+                 remove_deid=False,
                  convert_images_to_rgb=True,
                  custom_labels=None):
         """
@@ -35,6 +36,7 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
             gcs_extra_filtering_file (str, optional): GCS URI of the extra filtering file. Images in the training/validation/test list that are not present in this file are skipped.
             images_dir (str, optional): GCS URI or local path of the base folder where the images are located.
             dir_prefix_to_remove (str, optional): Dir prefix to be removed from the input image paths.
+            remove_deid (bool, optional): If True, '/deid/' subdir will be removed from the output paths.
             convert_images_to_rgb (bool, optional): If True, loaded images will be converted to RGB before being returned.
             custom_labels ((List[str], optional): Custom labels to be used. If None, default EXTENDED_CR_CHEST_LABELS will be used.
         """
@@ -44,6 +46,7 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
                          gcs_extra_filtering_file=gcs_extra_filtering_file,
                          images_dir=images_dir,
                          dir_prefix_to_remove=dir_prefix_to_remove,
+                         remove_deid=remove_deid,
                          convert_images_to_rgb=convert_images_to_rgb,
                          custom_labels=custom_labels)
 
@@ -55,6 +58,7 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
         self.__gcs_extra_filtering_file = kwargs["gcs_extra_filtering_file"] if "gcs_extra_filtering_file" in kwargs else next((arg for arg in args if arg == "gcs_extra_filtering_file"), None)
         self.__images_dir = kwargs["images_dir"] if "images_dir" in kwargs else next((arg for arg in args if arg == "images_dir"), None)
         self.__dir_prefix_to_remove = kwargs["dir_prefix_to_remove"] if "dir_prefix_to_remove" in kwargs else next((arg for arg in args if arg == "dir_prefix_to_remove"), None)
+        self.__remove_deid = kwargs["remove_deid"] if "remove_deid" in kwargs else next((arg for arg in args if arg == "remove_deid"), None)
         self.__convert_images_to_rgb = kwargs["convert_images_to_rgb"] if "convert_images_to_rgb" in kwargs else next((arg for arg in args if arg == "convert_images_to_rgb"), None)
         self.__custom_labels = kwargs["custom_labels"] if "custom_labels" in kwargs else next((arg for arg in args if arg == "custom_labels"), None)
 
@@ -98,6 +102,8 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
                 image_paths = row["image_path"]
                 image_paths = [os.path.relpath(image_path, self.__dir_prefix_to_remove) if self.__dir_prefix_to_remove else image_path for image_path in image_paths]
                 image_paths = [os.path.join(self.__images_dir, image_path) for image_path in image_paths]
+                if self.__remove_deid:
+                    image_paths = [image_path.replace("/deid/", "/") for image_path in image_paths]
                 data.append({"image_path": image_paths, "labels": row["labels"]})
 
         # Create traning dataset.
@@ -131,6 +137,8 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
                 image_paths = row["image_path"]
                 image_paths = [os.path.relpath(image_path, self.__dir_prefix_to_remove) if self.__dir_prefix_to_remove else image_path for image_path in image_paths]
                 image_paths = [os.path.join(self.__images_dir, image_path) for image_path in image_paths]
+                if self.__remove_deid:
+                    image_paths = [image_path.replace("/deid/", "/") for image_path in image_paths]
                 data.append({"image_path": image_paths, "labels": row["labels"]})
 
         # Create validation dataset.
@@ -165,6 +173,8 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
                     image_paths = row["image_path"]
                     image_paths = [os.path.relpath(image_path, self.__dir_prefix_to_remove) if self.__dir_prefix_to_remove else image_path for image_path in image_paths]
                     image_paths = [os.path.join(self.__images_dir, image_path) for image_path in image_paths]
+                    if self.__remove_deid:
+                        image_paths = [image_path.replace("/deid/", "/") for image_path in image_paths]
                     data.append({"image_path": image_paths, "labels": row["labels"]})
 
             # Create test dataset.
