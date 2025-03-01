@@ -30,7 +30,7 @@ def main(config_path):
     intern_vl_checkpoint_dir       = config["paths"].get("intern_vl_checkpoint_dir", "")
     gcs_train_file                 = config["paths"].get("gcs_train_file", "")
     gcs_validation_file            = config["paths"].get("gcs_validation_file", "")
-    gcs_extra_filtering_file       = config["paths"].get("gcs_extra_filtering_file", "")
+    gcs_extra_filtering_file       = convert_none(config["paths"].get("gcs_extra_filtering_file", None))
     images_dir                     = config["paths"].get("images_dir", "")
     dir_prefix_to_remove           = config["paths"].get("dir_prefix_to_remove", "")
     output_dir                     = config["paths"].get("output_dir", "")

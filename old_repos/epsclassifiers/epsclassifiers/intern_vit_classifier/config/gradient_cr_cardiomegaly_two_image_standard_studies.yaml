@@ -1,16 +1,16 @@
 general:
   model_name: "intern_vit_classifier"
-  dataset_name: "gradient_cr_airspace_opacity"
+  dataset_name: "gradient_cr_cardiomegaly"
   run_name: "26B with no labels (per-two-image-study training and validation on standard cases)"
   notes: "InternVL model: 26B with no labels, per-two-image-study training and validation on standard cases, loss=SampleBalancedBCEWithLogitsLoss"
-  custom_labels: ["Airspace Opacity"]
+  custom_labels: ["Cardiomegaly"]
   # custom_labels: None
   save_full_model: False
 
 paths:
   intern_vl_checkpoint_dir: "/workspace/models/old/internvl2.5_26b_finetune_lora_20241229_184000_1e-5_2.5_gradient_full_rm_sole_no_findings_rm_bad_dcm_no_label/checkpoint-58670"
-  gcs_train_file: "gs://gradient-crs/archive/training/individual-labels/airspace-opacity/gradient-crs-22JUL2024-two-chest-image-studies-with-obvious-airspace-opacity-label-training.jsonl"
-  gcs_validation_file: "gs://gradient-crs/archive/training/individual-labels/airspace-opacity/gradient-crs-22JUL2024-two-chest-image-studies-with-obvious-airspace-opacity-label-validation.jsonl"
+  gcs_train_file: "gs://gradient-crs/archive/training/individual-labels/cardiomegaly/temp-gradient-crs-all-batches-two-chest-image-studies-with-standard-cardiomegaly-label-training.jsonl"
+  gcs_validation_file: "gs://gradient-crs/archive/training/individual-labels/cardiomegaly/temp-gradient-crs-all-batches-two-chest-image-studies-with-standard-cardiomegaly-label-validation.jsonl"
   gcs_extra_filtering_file: None
   images_dir: "/workspace/CR"
   dir_prefix_to_remove: "GRADIENT-DATABASE/CR"
