@@ -9,25 +9,24 @@ from tqdm import tqdm
 
 from epsutils.gcs import gcs_utils
 
-LABEL_COLUMN_NAME = "airspace_opacity_labels"
-INPUT_LABELS = ["Airspace Opacity", "No Findings"]
-TARGET_LABELS = ["Airspace Opacity"]
-GCS_INPUT_FILE = "gs://report_csvs/cleaned/CR/labels_for_binary_classification/GRADIENT_CR_22JUL2024_chest_with_image_paths_with_airspace_opacity_labels.csv"
-GCS_INPUT_IMAGES_DIR = "GRADIENT-DATABASE/CR/22JUL2024"
+LABEL_COLUMN_NAME = "cardio_labels"
+INPUT_LABELS = ["Cardiomegaly", "No Findings"]
+TARGET_LABELS = ["Cardiomegaly"]
+GCS_INPUT_FILE = "gs://report_csvs/cleaned/CR/labels_for_binary_classification/GRADIENT_CR_ALL_CHEST_BATCHES_cleaned_cardio_labels.csv"
+GCS_INPUT_IMAGES_DIR = "GRADIENT-DATABASE/CR"
 GCS_CHEST_IMAGES_FILE = "gs://gradient-crs/archive/training/chest/chest_files_gradient_all_3_batches.csv"
 GCS_FRONTAL_PROJECTIONS_FILE = "gs://gradient-crs/archive/projections/gradient-crs-22JUL2024-chest-only-frontal-projections.csv"
 GCS_LATERAL_PROJECTIONS_FILE = "gs://gradient-crs/archive/projections/gradient-crs-22JUL2024-chest-only-lateral-projections.csv"
-USE_OLD_REPORT_FORMAT = True
 GENERATE_PER_NORMALIZED_STUDY = False
-GENERATE_PER_FRONTAL_LATERAL_STUDY = True
+GENERATE_PER_FRONTAL_LATERAL_STUDY = False
 SEED = 42
 SPLIT_RATIO = 0.98
 FILL_UP_VALIDATION_DATASET = False
 CREATE_VALIDATION_DATASET_FROM_SUSPECTED_ONLY = False
-CREATE_VALIDATION_DATASET_FROM_SUSPECTED_ONLY_FROM_LABEL = "Airspace Opacity (Suspected)"
-CREATE_VALIDATION_DATASET_FROM_SUSPECTED_ONLY_TO_LABEL = "Airspace Opacity"
-OUTPUT_TRAINING_FILE = "gradient-crs-22JUL2024-two-chest-image-studies-with-obvious-airspace-opacity-label-training.jsonl"
-OUTPUT_VALIDATION_FILE = "gradient-crs-22JUL2024-two-chest-image-studies-with-obvious-airspace-opacity-label-validation.jsonl"
+CREATE_VALIDATION_DATASET_FROM_SUSPECTED_ONLY_FROM_LABEL = "Cardiomegaly (Suspected)"
+CREATE_VALIDATION_DATASET_FROM_SUSPECTED_ONLY_TO_LABEL = "Cardiomegaly"
+OUTPUT_TRAINING_FILE = "gradient-crs-all-batches-chest-images-with-standard-cardiomegaly-label-training.jsonl"
+OUTPUT_VALIDATION_FILE = "gradient-crs-all-batches-chest-images-with-standard-cardiomegaly-label-validation.jsonl"
 
 
 def get_labels_distribution(images):
@@ -117,8 +116,8 @@ def main():
                 input_images.append({"image_path": image_path, "labels": labels})
 
     elif GCS_INPUT_FILE.endswith(".csv"):
-        df = pd.read_csv(StringIO(content))
-        df = df[[LABEL_COLUMN_NAME, "image_paths"]]
+        df = pd.read_csv(StringIO(content), low_memory=False)
+        df = df[[LABEL_COLUMN_NAME, "image_paths", "batch_id"]]
         for index, row in tqdm(df.iterrows(), total=len(df), desc="Processing"):
             try:
                 labels = [row[LABEL_COLUMN_NAME]]
@@ -128,16 +127,20 @@ def main():
 
             try:
                 image_paths = ast.literal_eval(row["image_paths"])
+                batch_id = row["batch_id"]
             except:
                 continue
 
-            if USE_OLD_REPORT_FORMAT:
+            if isinstance(image_paths, dict):
                 image_paths_dict = image_paths
                 image_paths = []
                 for value in image_paths_dict.values():
                     image_paths.extend(value["paths"])
 
-            image_paths = [os.path.join(GCS_INPUT_IMAGES_DIR, image_path) for image_path in image_paths]
+            if batch_id in ("20DEC2024", "09JAN2025"):
+                batch_id = os.path.join(batch_id, "deid")
+
+            image_paths = [os.path.join(GCS_INPUT_IMAGES_DIR, batch_id, image_path) for image_path in image_paths]
 
             if GENERATE_PER_NORMALIZED_STUDY:
                 image_paths = normalize_list(image_paths, num_elems=3)  # Take max 3 images per study. If less then 3, multiplicate last image to fill up the gap.
