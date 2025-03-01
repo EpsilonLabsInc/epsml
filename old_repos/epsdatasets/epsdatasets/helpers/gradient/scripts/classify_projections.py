@@ -15,10 +15,11 @@ from epsclassifiers.cr_projection_classifier import CrProjectionClassifier, LABE
 from epsutils.gcs import gcs_utils
 from epsutils.logging import logging_utils
 
-EPSILON_GCS_IMAGES_DIR = "gs://gradient-crs/22JUL2024"
-GRADIENT_GCS_IMAGES_DIR = "/workspace/CR/22JUL2024"
-GRADIENT_DIR_PREFIX_TO_REMOVE = "/workspace/CR"
-OUTPUT_FILE = "gradient-crs-22JUL2024-frontal-lateral.csv"
+EPSILON_GCS_IMAGES_DIR = "gs://gradient-crs/20DEC2024"
+GRADIENT_GCS_IMAGES_DIR = "/workspace/CR/20DEC2024"
+GRADIENT_DIR_PREFIX_TO_REMOVE = "/workspace/CR/20DEC2024"
+GRADIENT_DIR_PREFIX_TO_ADD = "GRADIENT-DATABASE/CR/20DEC2024/deid"
+OUTPUT_FILE = "gradient-crs-20DEC2024-all-projections.csv"
 MAX_BATCH_SIZE = 64
 EMPTY_QUEUE_WAIT_TIMEOUT_SEC = 60
 
@@ -66,14 +67,14 @@ def classification_task(progress_bar):
 
             # Write results.
             for dicom_file, label in zip(dicom_files, labels):
-                logging.info(f"{os.path.relpath(dicom_file, GRADIENT_DIR_PREFIX_TO_REMOVE)};{LABEL_TO_STRING[label]}")
+                logging.info(f"{os.path.join(GRADIENT_DIR_PREFIX_TO_ADD, os.path.relpath(dicom_file, GRADIENT_DIR_PREFIX_TO_REMOVE))};{LABEL_TO_STRING[label]}")
 
         except queue.Empty:
             # DICOM queue is empty. Classify the remaining DICOM files in the queue and exit the classification loop.
             if len(dicom_files) > 0:
                 labels = classifier.predict(images=images, device="cuda")
                 for dicom_file, label in zip(dicom_files, labels):
-                    logging.info(f"{os.path.relpath(dicom_file, GRADIENT_DIR_PREFIX_TO_REMOVE)};{LABEL_TO_STRING[label]}")
+                    logging.info(f"{os.path.join(GRADIENT_DIR_PREFIX_TO_ADD, os.path.relpath(dicom_file, GRADIENT_DIR_PREFIX_TO_REMOVE))};{LABEL_TO_STRING[label]}")
 
             break
 
