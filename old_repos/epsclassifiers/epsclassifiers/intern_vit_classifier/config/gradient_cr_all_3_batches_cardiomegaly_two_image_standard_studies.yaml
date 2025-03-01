@@ -1,8 +1,8 @@
 general:
   model_name: "intern_vit_classifier"
   dataset_name: "gradient_cr_cardiomegaly"
-  run_name: "26B with no labels (per-two-image-study training and validation on standard cases)"
-  notes: "InternVL model: 26B with no labels, per-two-image-study training and validation on standard cases, loss=SampleBalancedBCEWithLogitsLoss"
+  run_name: "26B with no labels (all 3 batches, per-two-image-study training and validation on standard cases)"
+  notes: "InternVL model: 26B with no labels, all 3 batches, per-two-image-study training and validation on standard cases, loss=SampleBalancedBCEWithLogitsLoss"
   custom_labels: ["Cardiomegaly"]
   # custom_labels: None
   save_full_model: False
