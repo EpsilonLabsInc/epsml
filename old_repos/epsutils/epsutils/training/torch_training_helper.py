@@ -284,6 +284,7 @@ class TorchTrainingHelper:
 
             # Skip step if data is None.
             if data is None:
+                print("WARNING: Received null batch during training")
                 continue
 
             # Skip step if batch size is less than min allowed batch size.
@@ -400,6 +401,7 @@ class TorchTrainingHelper:
 
                 # Skip step if data is None.
                 if data is None:
+                    print("WARNING: Received null batch during validation")
                     continue
 
                 # Skip step if batch size is less than min allowed batch size.
