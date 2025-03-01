@@ -33,6 +33,7 @@ def main(config_path):
     gcs_extra_filtering_file       = convert_none(config["paths"].get("gcs_extra_filtering_file", None))
     images_dir                     = config["paths"].get("images_dir", "")
     dir_prefix_to_remove           = config["paths"].get("dir_prefix_to_remove", "")
+    remove_deid                    = config["paths"].get("remove_deid", False)
     output_dir                     = config["paths"].get("output_dir", "")
     perform_intra_epoch_validation = config["training"].get("perform_intra_epoch_validation", False)
     intra_epoch_validation_step    = config["training"].get("intra_epoch_validation_step", 5000)
@@ -65,6 +66,7 @@ def main(config_path):
     print(f"+ gcs_extra_filtering_file: {gcs_extra_filtering_file}")
     print(f"+ images_dir: {images_dir}")
     print(f"+ dir_prefix_to_remove: {dir_prefix_to_remove}")
+    print(f"+ remove_deid: {remove_deid}")
     print(f"+ output_dir: {output_dir}")
     print(f"+ perform_intra_epoch_validation: {perform_intra_epoch_validation}")
     print(f"+ intra_epoch_validation_step: {intra_epoch_validation_step}")
@@ -99,6 +101,7 @@ def main(config_path):
         gcs_extra_filtering_file=gcs_extra_filtering_file,
         images_dir=images_dir,
         dir_prefix_to_remove=dir_prefix_to_remove,
+        remove_deid=remove_deid,
         custom_labels=custom_labels
     )
 

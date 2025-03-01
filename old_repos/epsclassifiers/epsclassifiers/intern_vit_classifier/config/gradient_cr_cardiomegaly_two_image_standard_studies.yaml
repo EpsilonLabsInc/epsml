@@ -14,6 +14,7 @@ paths:
   gcs_extra_filtering_file: None
   images_dir: "/workspace/CR"
   dir_prefix_to_remove: "GRADIENT-DATABASE/CR"
+  remove_deid: True
   output_dir: "./output"
 
 training:
