@@ -32,8 +32,8 @@ if __name__ == "__main__":
     learning_rate = 1e-3
     warmup_ratio = 1 / 20
     num_epochs = 10
-    training_batch_size = 32
-    validation_batch_size = 32
+    training_batch_size = 16
+    validation_batch_size = 16
 
     experiment_name = f"{model_name}-finetuning-on-{dataset_name}"
     mlops_experiment_name = f"{experiment_name}"
