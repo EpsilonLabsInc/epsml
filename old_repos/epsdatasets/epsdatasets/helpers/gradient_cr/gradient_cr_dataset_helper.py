@@ -97,6 +97,8 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
                 if files_to_keep and image_path not in files_to_keep:
                     continue
                 image_path = os.path.relpath(image_path, self.__dir_prefix_to_remove) if self.__dir_prefix_to_remove else image_path
+                if self.__remove_deid:
+                    image_path = image_path.replace("/deid/", "/")
                 data.append({"image_path": os.path.join(self.__images_dir, image_path), "labels": row["labels"]})
             else:
                 image_paths = row["image_path"]
@@ -132,6 +134,8 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
                 if files_to_keep and image_path not in files_to_keep:
                     continue
                 image_path = os.path.relpath(image_path, self.__dir_prefix_to_remove) if self.__dir_prefix_to_remove else image_path
+                if self.__remove_deid:
+                    image_path = image_path.replace("/deid/", "/")
                 data.append({"image_path": os.path.join(self.__images_dir, image_path), "labels": row["labels"]})
             else:
                 image_paths = row["image_path"]
