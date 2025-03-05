@@ -19,10 +19,7 @@ def show_visualization_data(visualization_data, num_view_grid_columns, label_to_
         inputs = inputs.to(torch.float32)
 
     # Apply label to string mapping.
-    if label_to_string_mapping:
-        labels = [label_to_string_mapping[label.item()] for label in labels]
-    else:
-        labels = [label.item() for label in labels]
+    labels = [label_to_string_mapping[label.item()] if label_to_string_mapping else label.item() for label in labels]
 
     # Display probabilities if they are available and only if they are scalars.
     if probabilities is not None and probabilities[0].numel() == 1:
