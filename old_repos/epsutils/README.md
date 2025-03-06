@@ -4,3 +4,6 @@ Welcome to the epsutils repository! This repository contains a collection of com
 
 In order to use epsutils in other Python projects add them to Python path:  
 `export PYTHONPATH="/path/to/epsutils/repo/:$PYTHONPATH"`
+
+To install dependencies run:  
+`pip install -r ./requirements.txt`
