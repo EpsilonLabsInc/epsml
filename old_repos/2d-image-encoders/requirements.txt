@@ -1,0 +1,9 @@
+xformers
+--extra-index-url https://download.pytorch.org/whl/cu121
+torch==2.5.1+cu121
+Pillow
+transformers
+einops
+timm
+peft
+flash-attn
