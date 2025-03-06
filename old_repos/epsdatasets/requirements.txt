@@ -1,0 +1,21 @@
+datasets
+dicom2nifti
+huggingface_hub
+ipython
+matplotlib
+natsort
+nibabel
+numpy
+pandas
+Pillow
+protobuf
+pydicom
+PyQt5
+scikit_learn
+SimpleITK
+--extra-index-url https://download.pytorch.org/whl/cu121
+torch==2.5.1+cu121
+torchvision
+tqdm
+google-cloud-storage
+opencv-python
