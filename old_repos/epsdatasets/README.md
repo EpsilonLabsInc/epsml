@@ -4,3 +4,6 @@ Welcome to the epsdatasets repository! This repository is dedicated to providing
 
 In order to use epsdatasets in other Python projects add them to Python path:  
 `export PYTHONPATH="/path/to/epsdatasets/repo/:$PYTHONPATH"`
+
+To install dependencies run:
+`pip install -r ./requirements.txt`
