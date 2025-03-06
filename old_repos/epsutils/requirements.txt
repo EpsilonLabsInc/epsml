@@ -1,0 +1,22 @@
+dicom2nifti
+ipython
+matplotlib
+mlflow
+numpy
+pandas
+Pillow
+protobuf
+pydicom
+pynvml
+python_dateutil
+scikit_learn
+scipy
+SimpleITK
+--extra-index-url https://download.pytorch.org/whl/cu121
+torch==2.5.1+cu121
+tqdm
+transformers
+wandb
+google-cloud-storage
+monai
+ipywidgets
