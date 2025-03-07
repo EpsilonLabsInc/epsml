@@ -9,10 +9,10 @@ from tqdm import tqdm
 
 from epsutils.gcs import gcs_utils
 
-LABEL_COLUMN_NAME = "cardio_labels"
-INPUT_LABELS = ["Cardiomegaly", "No Findings"]
-TARGET_LABELS = ["Cardiomegaly"]
-GCS_INPUT_FILE = "gs://report_csvs/cleaned/CR/labels_for_binary_classification/GRADIENT_CR_ALL_CHEST_BATCHES_cleaned_cardio_labels.csv"
+LABEL_COLUMN_NAME = "pneumonia_labels"
+INPUT_LABELS = ["Pneumonia", "No Findings"]  # Must have 2 elements.
+TARGET_LABELS = ["Pneumonia"]  # Must have 1 element.
+GCS_INPUT_FILE = "gs://report_csvs/cleaned/CR/labels_for_binary_classification/GRADIENT_CR_ALL_CHEST_BATCHES_cleaned_pneumonia_labels.csv"
 GCS_INPUT_IMAGES_DIR = "GRADIENT-DATABASE/CR"
 GCS_CHEST_IMAGES_FILE = "gs://gradient-crs/archive/training/chest/chest_files_gradient_all_3_batches.csv"
 GCS_FRONTAL_PROJECTIONS_FILE = "gs://gradient-crs/archive/projections/gradient-crs-22JUL2024-chest-only-frontal-projections.csv"
@@ -23,10 +23,10 @@ SEED = 42
 SPLIT_RATIO = 0.98
 FILL_UP_VALIDATION_DATASET = False
 CREATE_VALIDATION_DATASET_FROM_SUSPECTED_ONLY = False
-CREATE_VALIDATION_DATASET_FROM_SUSPECTED_ONLY_FROM_LABEL = "Cardiomegaly (Suspected)"
-CREATE_VALIDATION_DATASET_FROM_SUSPECTED_ONLY_TO_LABEL = "Cardiomegaly"
-OUTPUT_TRAINING_FILE = "gradient-crs-all-batches-chest-images-with-standard-cardiomegaly-label-training.jsonl"
-OUTPUT_VALIDATION_FILE = "gradient-crs-all-batches-chest-images-with-standard-cardiomegaly-label-validation.jsonl"
+CREATE_VALIDATION_DATASET_FROM_SUSPECTED_ONLY_FROM_LABEL = "Pneumonia (Suspected)"
+CREATE_VALIDATION_DATASET_FROM_SUSPECTED_ONLY_TO_LABEL = "Pneumonia"
+OUTPUT_TRAINING_FILE = "gradient-crs-all-batches-chest-images-with-obvious-pneumonia-label-training.jsonl"
+OUTPUT_VALIDATION_FILE = "gradient-crs-all-batches-chest-images-with-obvious-pneumonia-label-validation.jsonl"
 
 
 def get_labels_distribution(images):
@@ -56,6 +56,9 @@ def normalize_list(lst, num_elems):
 
 
 def main():
+    assert len(INPUT_LABELS) == 2
+    assert len(TARGET_LABELS) == 1
+
     print("Downloading chest images file")
 
     gcs_data = gcs_utils.split_gcs_uri(GCS_CHEST_IMAGES_FILE)
@@ -175,7 +178,11 @@ def main():
             if input_image["image_path"] not in chest_images:
                 continue
 
-        if not all(label in INPUT_LABELS for label in input_image["labels"]):
+        if INPUT_LABELS[0] in input_image["labels"]:
+            input_image["labels"] = [INPUT_LABELS[0]]
+        elif INPUT_LABELS[1] in input_image["labels"]:
+            input_image["labels"] = [INPUT_LABELS[1]]
+        else:
             continue
 
         filtered_images.append(input_image)
