@@ -10,6 +10,7 @@ from tqdm import tqdm
 from epsutils.gcs import gcs_utils
 
 LABEL_COLUMN_NAME = "pneumonia_labels"
+SPLIT_LABELS = False
 INPUT_LABELS = ["Pneumonia", "No Findings"]  # Must have 2 elements.
 TARGET_LABELS = ["Pneumonia"]  # Must have 1 element.
 GCS_INPUT_FILE = "gs://report_csvs/cleaned/CR/labels_for_binary_classification/GRADIENT_CR_ALL_CHEST_BATCHES_cleaned_pneumonia_labels.csv"
@@ -123,7 +124,10 @@ def main():
         df = df[[LABEL_COLUMN_NAME, "image_paths", "batch_id"]]
         for index, row in tqdm(df.iterrows(), total=len(df), desc="Processing"):
             try:
-                labels = [row[LABEL_COLUMN_NAME]]
+                if SPLIT_LABELS:
+                    labels = [label.strip() for label in row[LABEL_COLUMN_NAME].split(",")]
+                else:
+                    labels = [row[LABEL_COLUMN_NAME]]
             except:
                 print(f"Error parsing {row[LABEL_COLUMN_NAME]}")
                 continue
