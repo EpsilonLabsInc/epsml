@@ -136,13 +136,13 @@ class TorchTrainingHelper:
 
         # Create validation data loader.
         try:
-            self.__validatation_data_loader = self.__dataset_helper.get_torch_validation_data_loader(
+            self.__validation_data_loader = self.__dataset_helper.get_torch_validation_data_loader(
                 collate_function=collate_function_for_validation if collate_function_for_validation is not None else collate_function_for_training,
                 batch_size=self.__training_parameters.validation_batch_size,
                 num_workers=self.__training_parameters.num_validation_workers_per_gpu * len(self.__device_ids)
                     if self.__device_ids is not None else self.__training_parameters.num_validation_workers_per_gpu)
         except:
-            self.__validatation_data_loader = None
+            self.__validation_data_loader = None
 
         # Create parallel model.
         self.__parallel_model = torch.nn.DataParallel(self.__model, device_ids=self.__device_ids)
@@ -205,7 +205,7 @@ class TorchTrainingHelper:
             self.__save_checkpoint(epoch=epoch)
 
             # Per epoch validation.
-            if self.__validatation_data_loader is not None:
+            if self.__validation_data_loader is not None:
                 print("")
                 print("PER EPOCH VALIDATION")
                 self.__validate(step=epoch, validation_type="Validation")
@@ -217,7 +217,7 @@ class TorchTrainingHelper:
         torch.cuda.empty_cache()
 
         # Create validation data loader.
-        self.__validatation_data_loader = self.__dataset_helper.get_torch_validation_data_loader(
+        self.__validation_data_loader = self.__dataset_helper.get_torch_validation_data_loader(
             collate_function=collate_function_for_validation,
             batch_size=self.__training_parameters.validation_batch_size,
             num_workers=self.__training_parameters.num_validation_workers_per_gpu * len(self.__device_ids)
@@ -352,7 +352,7 @@ class TorchTrainingHelper:
 
             # Intra-epoch validation.
             if (self.__training_parameters.perform_intra_epoch_validation and
-                self.__validatation_data_loader is not None and
+                self.__validation_data_loader is not None and
                 idx > 0 and
                 idx % self.__training_parameters.intra_epoch_validation_step == 0):
 
@@ -377,7 +377,7 @@ class TorchTrainingHelper:
 
         validation_losses = AverageMeter(moving_average_window_width=self.__training_parameters.moving_average_window_width)
         evaluation_metrics_calculator = EvaluationMetricsCalculator()
-        tqdm_loader = tqdm(self.__validatation_data_loader)
+        tqdm_loader = tqdm(self.__validation_data_loader)
 
         all_targets = torch.empty(0)
         all_outputs = torch.empty(0)
@@ -564,14 +564,22 @@ class TorchTrainingHelper:
             raise ValueError(f"Unsupported MLOps type {self.__mlops_parameters.mlops_type}")
 
     def __log_params(self):
+        extra_params = {
+            "num_model_params": self.__num_model_params,
+            "model_size_in_mib": self.__model_size_in_mib,
+            "model_dtype": self.__model_dtype,
+            "training_dataset_size": len(self.__train_data_loader.dataset) if self.__train_data_loader is not None else None,
+            "validation_dataset_size": len(self.__validation_data_loader.dataset) if self.__validation_data_loader is not None else None
+        }
+
         if self.__mlops_parameters.mlops_type == MlopsType.MLFLOW:
             mlflow.log_params(self.__training_parameters.__dict__)
             mlflow.log_params(self.__mlops_parameters.__dict__)
-            mlflow.log_params({"num_model_params": self.__num_model_params, "model_size_in_mib": self.__model_size_in_mib, "model_dtype": self.__model_dtype})
+            mlflow.log_params(extra_params)
         elif self.__mlops_parameters.mlops_type == MlopsType.WANDB:
             wandb.config.update(self.__training_parameters.__dict__)
             wandb.config.update(self.__mlops_parameters.__dict__)
-            wandb.config.update({"num_model_params": self.__num_model_params, "model_size_in_mib": self.__model_size_in_mib, "model_dtype": self.__model_dtype})
+            wandb.config.update(extra_params)
         else:
             raise ValueError(f"Unsupported MLOps type {self.__mlops_parameters.mlops_type}")
 
