@@ -9,29 +9,25 @@ from tqdm import tqdm
 
 from epsutils.gcs import gcs_utils
 
-LABEL_COLUMN_NAME = "pneumonia_labels"
-SPLIT_LABELS = False
-INPUT_LABELS = ["Pneumonia", "No Findings"]  # Must have 2 elements.
-TARGET_LABELS = ["Pneumonia"]  # Must have 1 element.
-GCS_INPUT_FILE = "gs://report_csvs/cleaned/CR/labels_for_binary_classification/GRADIENT_CR_ALL_CHEST_BATCHES_cleaned_pneumonia_labels.csv"
+LABEL_COLUMN_NAME = "alveolar_expanded_labels"
+TARGET_LABELS = ["Airspace Opacity", "Edema", "Consolidation"]
+NO_FINDINGS_LABEL = "No Findings"
+LABEL_SUFFIX_TO_REJECT = "(Suspected)"
+GCS_INPUT_FILE = "gs://report_csvs/cleaned/CR/labels_for_binary_classification/GRADIENT_CR_ALL_CHEST_BATCHES_cleaned_alveolar_expanded_labels.csv"
 GCS_INPUT_IMAGES_DIR = "GRADIENT-DATABASE/CR"
 GCS_CHEST_IMAGES_FILE = "gs://gradient-crs/archive/training/chest/chest_files_gradient_all_3_batches.csv"
-GCS_FRONTAL_PROJECTIONS_FILE = "gs://gradient-crs/archive/projections/gradient-crs-22JUL2024-chest-only-frontal-projections.csv"
-GCS_LATERAL_PROJECTIONS_FILE = "gs://gradient-crs/archive/projections/gradient-crs-22JUL2024-chest-only-lateral-projections.csv"
+GCS_FRONTAL_PROJECTIONS_FILE = "gs://gradient-crs/archive/projections/gradient-crs-all-batches-chest-only-frontal-projections.csv"
+GCS_LATERAL_PROJECTIONS_FILE = "gs://gradient-crs/archive/projections/gradient-crs-all-batches-chest-only-lateral-projections.csv"
 GENERATE_PER_NORMALIZED_STUDY = False
-GENERATE_PER_FRONTAL_LATERAL_STUDY = False
+GENERATE_PER_FRONTAL_LATERAL_STUDY = True
 SEED = 42
 SPLIT_RATIO = 0.98
-FILL_UP_VALIDATION_DATASET = False
-CREATE_VALIDATION_DATASET_FROM_SUSPECTED_ONLY = False
-CREATE_VALIDATION_DATASET_FROM_SUSPECTED_ONLY_FROM_LABEL = "Pneumonia (Suspected)"
-CREATE_VALIDATION_DATASET_FROM_SUSPECTED_ONLY_TO_LABEL = "Pneumonia"
-OUTPUT_TRAINING_FILE = "gradient-crs-all-batches-chest-images-with-obvious-pneumonia-label-training.jsonl"
-OUTPUT_VALIDATION_FILE = "gradient-crs-all-batches-chest-images-with-obvious-pneumonia-label-validation.jsonl"
+OUTPUT_TRAINING_FILE = "gradient-crs-all-batches-chest-images-with-obvious-airspace-opacity-edema-consolidation-label-training.jsonl"
+OUTPUT_VALIDATION_FILE = "gradient-crs-all-batches-chest-images-with-obvious-airspace-opacity-edema-consolidation-label-validation.jsonl"
 
 
 def get_labels_distribution(images):
-    labels_dist = {item: 0 for item in INPUT_LABELS}
+    labels_dist = {item: 0 for item in TARGET_LABELS}
     newly_added_labels = set()
 
     for image in images:
@@ -57,19 +53,22 @@ def normalize_list(lst, num_elems):
 
 
 def main():
-    assert len(INPUT_LABELS) == 2
-    assert len(TARGET_LABELS) == 1
+    # Download chest images file.
 
     print("Downloading chest images file")
 
     gcs_data = gcs_utils.split_gcs_uri(GCS_CHEST_IMAGES_FILE)
     content = gcs_utils.download_file_as_string(gcs_bucket_name=gcs_data["gcs_bucket_name"], gcs_file_name=gcs_data["gcs_path"])
 
+    # Generate a list of chest images.
+
     print("")
     print("Generating a list of chest images")
 
     df = pd.read_csv(StringIO(content), header=None, sep=';')
     chest_images = set(df[0])
+
+    # Download projection files if necessary.
 
     if GENERATE_PER_FRONTAL_LATERAL_STUDY:
         print("")
@@ -96,11 +95,15 @@ def main():
         df = pd.read_csv(StringIO(content), header=None, sep=';')
         lateral_images = set(df[0])
 
+    # Download input file.
+
     print("")
     print("Downloading input file")
 
     gcs_data = gcs_utils.split_gcs_uri(GCS_INPUT_FILE)
     content = gcs_utils.download_file_as_string(gcs_bucket_name=gcs_data["gcs_bucket_name"], gcs_file_name=gcs_data["gcs_path"])
+
+    # Generate a list of input images.
 
     print("")
     print("Generating a list of input images")
@@ -124,12 +127,12 @@ def main():
         df = df[[LABEL_COLUMN_NAME, "image_paths", "batch_id"]]
         for index, row in tqdm(df.iterrows(), total=len(df), desc="Processing"):
             try:
-                if SPLIT_LABELS:
-                    labels = [label.strip() for label in row[LABEL_COLUMN_NAME].split(",")]
-                else:
-                    labels = [row[LABEL_COLUMN_NAME]]
+                labels = [label.strip() for label in row[LABEL_COLUMN_NAME].split(",")]
             except:
                 print(f"Error parsing {row[LABEL_COLUMN_NAME]}")
+                continue
+
+            if LABEL_SUFFIX_TO_REJECT is not None and any(label.endswith(LABEL_SUFFIX_TO_REJECT) for label in labels):
                 continue
 
             try:
@@ -170,6 +173,8 @@ def main():
 
     print(f"Number of input images: {len(input_images)}")
 
+    # Remove non-chest images.
+
     print("")
     print("Removing non-chest images from the input images")
 
@@ -182,13 +187,6 @@ def main():
             if input_image["image_path"] not in chest_images:
                 continue
 
-        if INPUT_LABELS[0] in input_image["labels"]:
-            input_image["labels"] = [INPUT_LABELS[0]]
-        elif INPUT_LABELS[1] in input_image["labels"]:
-            input_image["labels"] = [INPUT_LABELS[1]]
-        else:
-            continue
-
         filtered_images.append(input_image)
 
     print(f"Number of input images after non-chest removal: {len(filtered_images)}")
@@ -197,60 +195,47 @@ def main():
     print(f"Labels distribution: {labels_dist}")
     print(f"Newly added labels: {newly_added_labels}")
 
+    # Remove images with no target labels.
+
     print("")
-    print("Fixing labels: Renaming unknown labels to 'Other'")
+    print("Removing images with no target labels")
 
-    for image in filtered_images:
-        labels = image["labels"]
-        fixed_labels = []
+    input_images = filtered_images
+    filtered_images = []
 
-        for label in labels:
-            if label in INPUT_LABELS:
-                fixed_labels.append(label)
-            elif "Other" not in fixed_labels:
-                fixed_labels.append("Other")
+    for input_image in input_images:
+        labels = input_image["labels"]
+        if not any(label in TARGET_LABELS or label == NO_FINDINGS_LABEL for label in labels):
+            continue
 
-        image["labels"] = fixed_labels
+        input_image["labels"] = [label for label in labels if label in TARGET_LABELS]
+        filtered_images.append(input_image)
+
+    print(f"Number of input images after removing images with no target labels: {len(filtered_images)}")
 
     labels_dist, newly_added_labels = get_labels_distribution(filtered_images)
     print(f"Labels distribution: {labels_dist}")
     print(f"Newly added labels: {newly_added_labels}")
 
-    if TARGET_LABELS:
-        print("")
-        print(f"Fixing labels: Applying target labels {TARGET_LABELS}")
+    # Select image subset for better labels distribution.
 
-        for image in filtered_images:
-            labels = image["labels"]
-            fixed_labels = []
+    print("")
+    print(f"Fixing labels: Selecting image subset for better labels distribution")
 
-            for label in labels:
-                assert label in INPUT_LABELS
+    images_with_non_empty_labels = [image for image in filtered_images if image["labels"]]
+    images_with_empty_labels = [image for image in filtered_images if not image["labels"]]
+    selected_images_with_empty_labels = images_with_empty_labels[0:len(images_with_non_empty_labels)]
+    remaining_images_for_validation = images_with_empty_labels[len(images_with_non_empty_labels):]
+    filtered_images = images_with_non_empty_labels + selected_images_with_empty_labels
 
-                if label in TARGET_LABELS:
-                    fixed_labels.append(label)
+    print(f"Subset selected: {len(images_with_non_empty_labels)} images with non-empty labels, {len(selected_images_with_empty_labels)} images with empty labels")
+    print(f"Remaining images for validation: {len(remaining_images_for_validation)}")
 
-            image["labels"] = fixed_labels
+    labels_dist, newly_added_labels = get_labels_distribution(filtered_images)
+    print(f"Labels distribution: {labels_dist}")
+    print(f"Newly added labels: {newly_added_labels}")
 
-        labels_dist, newly_added_labels = get_labels_distribution(filtered_images)
-        print(f"Labels distribution: {labels_dist}")
-        print(f"Newly added labels: {newly_added_labels}")
-
-        print("")
-        print(f"Fixing labels: Selecting image subset for better labels distribution")
-
-        images_with_non_empty_labels = [image for image in filtered_images if image["labels"]]
-        images_with_empty_labels = [image for image in filtered_images if not image["labels"]]
-        selected_images_with_empty_labels = images_with_empty_labels[0:len(images_with_non_empty_labels)]
-        remaining_images_for_validation = images_with_empty_labels[len(images_with_non_empty_labels):]
-        filtered_images = images_with_non_empty_labels + selected_images_with_empty_labels
-
-        print(f"Subset selected: {len(images_with_non_empty_labels)} images with non-empty labels, {len(selected_images_with_empty_labels)} images with empty labels")
-        print(f"Remaining images for validation: {len(remaining_images_for_validation)}")
-
-        labels_dist, newly_added_labels = get_labels_distribution(filtered_images)
-        print(f"Labels distribution: {labels_dist}")
-        print(f"Newly added labels: {newly_added_labels}")
+    # Create splits.
 
     print("")
     print("Creating splits")
@@ -260,16 +245,6 @@ def main():
     split_index = int(SPLIT_RATIO * len(filtered_images))
     training_set = filtered_images[:split_index]
     validation_set = filtered_images[split_index:]
-
-    if TARGET_LABELS and FILL_UP_VALIDATION_DATASET:
-        validation_set.extend(remaining_images_for_validation)
-
-    if CREATE_VALIDATION_DATASET_FROM_SUSPECTED_ONLY:
-        validation_set = []
-        for input_image in input_images:
-            if input_image["labels"] == [CREATE_VALIDATION_DATASET_FROM_SUSPECTED_ONLY_FROM_LABEL]:
-                input_image["labels"] = [CREATE_VALIDATION_DATASET_FROM_SUSPECTED_ONLY_TO_LABEL]
-                validation_set.append(input_image)
 
     print("")
     print(f"Training set size: {len(training_set)}")
@@ -286,6 +261,8 @@ def main():
     labels_dist, newly_added_labels = get_labels_distribution(validation_set)
     print(f"Labels distribution: {labels_dist}")
     print(f"Newly added labels: {newly_added_labels}")
+
+    # Write output files.
 
     print("")
     print("Writing training and validation set to file")
