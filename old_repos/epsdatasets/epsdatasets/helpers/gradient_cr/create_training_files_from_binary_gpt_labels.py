@@ -10,9 +10,9 @@ from tqdm import tqdm
 from epsutils.gcs import gcs_utils
 
 LABEL_COLUMN_NAME = "alveolar_expanded_labels"
-TARGET_LABELS = ["Airspace Opacity", "Edema", "Consolidation"]
+TARGET_LABELS = ["Atelectasis"]
 NO_FINDINGS_LABEL = "No Findings"
-LABEL_SUFFIX_TO_REJECT = "(Suspected)"
+LABEL_SUFFIX_TO_REJECT = None # "(Suspected)"
 GCS_INPUT_FILE = "gs://report_csvs/cleaned/CR/labels_for_binary_classification/GRADIENT_CR_ALL_CHEST_BATCHES_cleaned_alveolar_expanded_labels.csv"
 GCS_INPUT_IMAGES_DIR = "GRADIENT-DATABASE/CR"
 GCS_CHEST_IMAGES_FILE = "gs://gradient-crs/archive/training/chest/chest_files_gradient_all_3_batches.csv"
@@ -22,8 +22,8 @@ GENERATE_PER_NORMALIZED_STUDY = False
 GENERATE_PER_FRONTAL_LATERAL_STUDY = True
 SEED = 42
 SPLIT_RATIO = 0.98
-OUTPUT_TRAINING_FILE = "gradient-crs-all-batches-chest-images-with-obvious-airspace-opacity-edema-consolidation-alveolar-label-training.jsonl"
-OUTPUT_VALIDATION_FILE = "gradient-crs-all-batches-chest-images-with-obvious-airspace-opacity-edema-consolidation-alveolar-label-validation.jsonl"
+OUTPUT_TRAINING_FILE = "gradient-crs-all-batches-two-image-study-chest-images-with-obvious-atelectasis-alveolar-label-training.jsonl"
+OUTPUT_VALIDATION_FILE = "gradient-crs-all-batches-two-image-study-chest-images-with-obvious-atelectasis-alveolar-label-validation.jsonl"
 
 
 def get_labels_distribution(images):
