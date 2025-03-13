@@ -11,7 +11,7 @@ paths:
   intern_vl_checkpoint_dir: "/workspace/models/old/internvl2.5_26b_finetune_lora_20241229_184000_1e-5_2.5_gradient_full_rm_sole_no_findings_rm_bad_dcm_no_label/checkpoint-58670"
   gcs_train_file: "gs://gradient-crs/archive/training/individual-labels/atelectasis/gradient-crs-all-batches-chest-images-with-obvious-atelectasis-alveolar-label-training.jsonl"
   gcs_validation_file: "gs://gradient-crs/archive/training/individual-labels/atelectasis/gradient-crs-all-batches-chest-images-with-obvious-atelectasis-alveolar-label-validation.jsonl"
-  gcs_extra_filtering_file: "gs://gradient-crs/archive/projections/gradient-crs-22JUL2024-chest-only-frontal-projections.csv"
+  gcs_extra_filtering_file: "gs://gradient-crs/archive/training/projections/gradient-crs-22JUL2024-chest-only-frontal-projections.csv"
   images_dir: "/workspace/CR"
   dir_prefix_to_remove: "GRADIENT-DATABASE/CR"
   remove_deid: True
