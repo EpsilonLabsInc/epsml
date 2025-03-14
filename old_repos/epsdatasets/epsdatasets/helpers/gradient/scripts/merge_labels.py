@@ -36,7 +36,9 @@ def main():
 
     # Merge labels.
     print("Merging labels")
+    merged_df[LABEL_COLUMN_NAME_2] = None
     merged_df["merged_labels"] = None
+
     for index, row in tqdm(merged_df.iterrows(), total=len(merged_df), desc="Processing"):
         try:
             curr_labels = [label.strip() for label in row[LABEL_COLUMN_NAME_1].split(",")]
@@ -54,7 +56,13 @@ def main():
 
         merged_labels = labels1 + labels2
         merged_labels = list(set(merged_labels))  # Remove duplicates.
-        merged_df.at[index, "merged_labels"] = merged_labels
+
+        # 'No Findings' in combination with any other pathology is not 'No Findings' anymore.
+        if len(merged_labels) > 1 and "No Findings" in merged_labels:
+            merged_labels.remove("No Findings")
+
+        merged_df.at[index, LABEL_COLUMN_NAME_2] = ", ".join(labels2)
+        merged_df.at[index, "merged_labels"] = ", ".join(merged_labels)
 
     # Save merged dataset.
     print("Saving merged dataset")
