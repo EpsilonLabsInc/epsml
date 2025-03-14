@@ -32,5 +32,5 @@ training:
   training_batch_size: 32
   validation_batch_size: 32
   min_allowed_batch_size: 2  # In order for batch norm in the InternVitClassifier model to work.
-  multi_image_input: True
-  num_multi_images: 2
+  multi_image_input: False
+  num_multi_images: None
