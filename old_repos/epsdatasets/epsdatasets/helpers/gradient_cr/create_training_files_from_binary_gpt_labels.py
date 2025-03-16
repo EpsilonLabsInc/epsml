@@ -272,6 +272,10 @@ def main():
                 else:
                     validation_set.append(filtered_image)
 
+        random.seed(SEED)
+        random.shuffle(training_set)
+        random.shuffle(validation_set)
+
         # Select subset of the training dataset for better labels distribution.
 
         print("")
@@ -281,10 +285,6 @@ def main():
         images_with_empty_labels = [image for image in training_set if not image["labels"]]
         selected_images_with_empty_labels = images_with_empty_labels[0:len(images_with_non_empty_labels)]
         training_set = images_with_non_empty_labels + selected_images_with_empty_labels
-
-        random.seed(SEED)
-        random.shuffle(training_set)
-        random.shuffle(validation_set)
 
         print(f"Subset selected: {len(images_with_non_empty_labels)} images with non-empty labels, {len(selected_images_with_empty_labels)} images with empty labels")
 
