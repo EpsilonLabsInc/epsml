@@ -222,21 +222,22 @@ def main():
 
     # Select image subset for better labels distribution.
 
-    print("")
-    print(f"Fixing labels: Selecting image subset for better labels distribution")
+    if IMAGE_PATH_SUBSTR_FOR_VALIDATION_DATASET is None:
+        print("")
+        print(f"Fixing labels: Selecting image subset for better labels distribution")
 
-    images_with_non_empty_labels = [image for image in filtered_images if image["labels"]]
-    images_with_empty_labels = [image for image in filtered_images if not image["labels"]]
-    selected_images_with_empty_labels = images_with_empty_labels[0:len(images_with_non_empty_labels)]
-    remaining_images_for_validation = images_with_empty_labels[len(images_with_non_empty_labels):]
-    filtered_images = images_with_non_empty_labels + selected_images_with_empty_labels
+        images_with_non_empty_labels = [image for image in filtered_images if image["labels"]]
+        images_with_empty_labels = [image for image in filtered_images if not image["labels"]]
+        selected_images_with_empty_labels = images_with_empty_labels[0:len(images_with_non_empty_labels)]
+        remaining_images_for_validation = images_with_empty_labels[len(images_with_non_empty_labels):]
+        filtered_images = images_with_non_empty_labels + selected_images_with_empty_labels
 
-    print(f"Subset selected: {len(images_with_non_empty_labels)} images with non-empty labels, {len(selected_images_with_empty_labels)} images with empty labels")
-    print(f"Remaining images for validation: {len(remaining_images_for_validation)}")
+        print(f"Subset selected: {len(images_with_non_empty_labels)} images with non-empty labels, {len(selected_images_with_empty_labels)} images with empty labels")
+        print(f"Remaining images for validation: {len(remaining_images_for_validation)}")
 
-    labels_dist, newly_added_labels = get_labels_distribution(filtered_images)
-    print(f"Labels distribution: {labels_dist}")
-    print(f"Newly added labels: {newly_added_labels}")
+        labels_dist, newly_added_labels = get_labels_distribution(filtered_images)
+        print(f"Labels distribution: {labels_dist}")
+        print(f"Newly added labels: {newly_added_labels}")
 
     # Create splits.
 
