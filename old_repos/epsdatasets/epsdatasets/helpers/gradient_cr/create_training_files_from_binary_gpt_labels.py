@@ -220,11 +220,11 @@ def main():
     print(f"Labels distribution: {labels_dist}")
     print(f"Newly added labels: {newly_added_labels}")
 
-    # Select image subset for better labels distribution.
-
     if IMAGE_PATH_SUBSTR_FOR_VALIDATION_DATASET is None:
+        # Select image subset for better labels distribution.
+
         print("")
-        print(f"Fixing labels: Selecting image subset for better labels distribution")
+        print(f"Selecting image subset for better labels distribution")
 
         images_with_non_empty_labels = [image for image in filtered_images if image["labels"]]
         images_with_empty_labels = [image for image in filtered_images if not image["labels"]]
@@ -239,15 +239,24 @@ def main():
         print(f"Labels distribution: {labels_dist}")
         print(f"Newly added labels: {newly_added_labels}")
 
-    # Create splits.
+        # Create splits.
 
-    print("")
-    print("Creating splits")
+        print("")
+        print("Creating splits")
 
-    random.seed(SEED)
-    random.shuffle(filtered_images)
+        random.seed(SEED)
+        random.shuffle(filtered_images)
 
-    if IMAGE_PATH_SUBSTR_FOR_VALIDATION_DATASET is not None:
+        split_index = int(SPLIT_RATIO * len(filtered_images))
+        training_set = filtered_images[:split_index]
+        validation_set = filtered_images[split_index:]
+
+    else:
+        # Create training and validation dataset split using IMAGE_PATH_SUBSTR_FOR_VALIDATION_DATASET.
+
+        print("")
+        print(f"Creating training and validation dataset split using image path substring '{IMAGE_PATH_SUBSTR_FOR_VALIDATION_DATASET}'")
+
         training_set = []
         validation_set = []
 
@@ -262,10 +271,22 @@ def main():
                     training_set.append(filtered_image)
                 else:
                     validation_set.append(filtered_image)
-    else:
-        split_index = int(SPLIT_RATIO * len(filtered_images))
-        training_set = filtered_images[:split_index]
-        validation_set = filtered_images[split_index:]
+
+        # Select subset of the training dataset for better labels distribution.
+
+        print("")
+        print(f"Selecting subset of the training dataset for better labels distribution")
+
+        images_with_non_empty_labels = [image for image in training_set if image["labels"]]
+        images_with_empty_labels = [image for image in training_set if not image["labels"]]
+        selected_images_with_empty_labels = images_with_empty_labels[0:len(images_with_non_empty_labels)]
+        training_set = images_with_non_empty_labels + selected_images_with_empty_labels
+
+        random.seed(SEED)
+        random.shuffle(training_set)
+        random.shuffle(validation_set)
+
+        print(f"Subset selected: {len(images_with_non_empty_labels)} images with non-empty labels, {len(selected_images_with_empty_labels)} images with empty labels")
 
     print("")
     print(f"Training set size: {len(training_set)}")
