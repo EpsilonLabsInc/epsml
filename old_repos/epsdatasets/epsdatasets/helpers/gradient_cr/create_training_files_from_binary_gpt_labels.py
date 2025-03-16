@@ -247,8 +247,20 @@ def main():
     random.shuffle(filtered_images)
 
     if IMAGE_PATH_SUBSTR_FOR_VALIDATION_DATASET is not None:
-        training_set = [filtered_image for filtered_image in filtered_images if IMAGE_PATH_SUBSTR_FOR_VALIDATION_DATASET not in filtered_image["image_path"]]
-        validation_set = [filtered_image for filtered_image in filtered_images if IMAGE_PATH_SUBSTR_FOR_VALIDATION_DATASET in filtered_image["image_path"]]
+        training_set = []
+        validation_set = []
+
+        for filtered_image in filtered_images:
+            if isinstance(filtered_image["image_path"], list):
+                if all(IMAGE_PATH_SUBSTR_FOR_VALIDATION_DATASET not in image_path for image_path in filtered_image["image_path"]):
+                    training_set.append(filtered_image)
+                elif all(IMAGE_PATH_SUBSTR_FOR_VALIDATION_DATASET in image_path for image_path in filtered_image["image_path"]):
+                    validation_set.append(filtered_image)
+            else:
+                if IMAGE_PATH_SUBSTR_FOR_VALIDATION_DATASET not in filtered_image["image_path"]:
+                    training_set.append(filtered_image)
+                else:
+                    validation_set.append(filtered_image)
     else:
         split_index = int(SPLIT_RATIO * len(filtered_images))
         training_set = filtered_images[:split_index]
