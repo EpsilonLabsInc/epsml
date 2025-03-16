@@ -10,9 +10,9 @@ from tqdm import tqdm
 from epsutils.gcs import gcs_utils
 
 LABEL_COLUMN_NAME = "alveolar_expanded_labels"
-TARGET_LABELS = ["Atelectasis"]
+TARGET_LABELS = ["Edema"]
 NO_FINDINGS_LABEL = "No Findings"
-LABEL_SUFFIX_TO_REJECT = None # "(Suspected)"
+TREAT_NON_TARGET_LABELS_AS_NO_FINDINGS = True
 GCS_INPUT_FILE = "gs://report_csvs/cleaned/CR/labels_for_binary_classification/GRADIENT_CR_ALL_CHEST_BATCHES_cleaned_alveolar_expanded_labels.csv"
 GCS_INPUT_IMAGES_DIR = "GRADIENT-DATABASE/CR"
 GCS_CHEST_IMAGES_FILE = "gs://gradient-crs/archive/training/chest/chest_files_gradient_all_3_batches.csv"
@@ -21,9 +21,10 @@ GCS_LATERAL_PROJECTIONS_FILE = "gs://gradient-crs/archive/training/projections/g
 GENERATE_PER_NORMALIZED_STUDY = False
 GENERATE_PER_FRONTAL_LATERAL_STUDY = True
 SEED = 42
+IMAGE_PATH_SUBSTR_FOR_VALIDATION_DATASET = "/09JAN2025/"
 SPLIT_RATIO = 0.98
-OUTPUT_TRAINING_FILE = "gradient-crs-all-batches-two-image-study-chest-images-with-obvious-atelectasis-alveolar-label-training.jsonl"
-OUTPUT_VALIDATION_FILE = "gradient-crs-all-batches-two-image-study-chest-images-with-obvious-atelectasis-alveolar-label-validation.jsonl"
+OUTPUT_TRAINING_FILE = "gradient-crs-1st-2nd-batch-two-image-study-chest-images-with-obvious-edema-alveolar-label-training.jsonl"
+OUTPUT_VALIDATION_FILE = "gradient-crs-3rd-batch-two-image-study-chest-images-with-obvious-edema-alveolar-label-validation.jsonl"
 
 
 def get_labels_distribution(images):
@@ -132,9 +133,6 @@ def main():
                 print(f"Error parsing {row[LABEL_COLUMN_NAME]}")
                 continue
 
-            if LABEL_SUFFIX_TO_REJECT is not None and any(label.endswith(LABEL_SUFFIX_TO_REJECT) for label in labels):
-                continue
-
             try:
                 image_paths = ast.literal_eval(row["image_paths"])
                 batch_id = row["batch_id"]
@@ -195,18 +193,23 @@ def main():
     print(f"Labels distribution: {labels_dist}")
     print(f"Newly added labels: {newly_added_labels}")
 
-    # Remove images with no target labels.
+    # Filter images.
 
     print("")
-    print("Removing images with no target labels")
+    print("Filtering images")
 
     input_images = filtered_images
     filtered_images = []
 
     for input_image in input_images:
         labels = input_image["labels"]
-        if not any(label in TARGET_LABELS or label == NO_FINDINGS_LABEL for label in labels):
-            continue
+
+        if TREAT_NON_TARGET_LABELS_AS_NO_FINDINGS:
+            if any(label.startswith(target_label) and label != target_label for label in labels for target_label in TARGET_LABELS):
+                continue
+        else:
+            if not any(label in TARGET_LABELS or label == NO_FINDINGS_LABEL for label in labels):
+                continue
 
         input_image["labels"] = [label for label in labels if label in TARGET_LABELS]
         filtered_images.append(input_image)
@@ -242,9 +245,14 @@ def main():
 
     random.seed(SEED)
     random.shuffle(filtered_images)
-    split_index = int(SPLIT_RATIO * len(filtered_images))
-    training_set = filtered_images[:split_index]
-    validation_set = filtered_images[split_index:]
+
+    if IMAGE_PATH_SUBSTR_FOR_VALIDATION_DATASET is not None:
+        training_set = [filtered_image for filtered_image in filtered_images if IMAGE_PATH_SUBSTR_FOR_VALIDATION_DATASET not in filtered_image["image_path"]]
+        validation_set = [filtered_image for filtered_image in filtered_images if IMAGE_PATH_SUBSTR_FOR_VALIDATION_DATASET in filtered_image["image_path"]]
+    else:
+        split_index = int(SPLIT_RATIO * len(filtered_images))
+        training_set = filtered_images[:split_index]
+        validation_set = filtered_images[split_index:]
 
     print("")
     print(f"Training set size: {len(training_set)}")
