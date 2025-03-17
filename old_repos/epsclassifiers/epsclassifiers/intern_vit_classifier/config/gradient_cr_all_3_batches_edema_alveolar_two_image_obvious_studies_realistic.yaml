@@ -12,9 +12,9 @@ paths:
   gcs_train_file: "gs://gradient-crs/archive/training/individual-labels/edema/gradient-crs-1st-2nd-batch-two-image-study-chest-images-with-obvious-edema-alveolar-label-training.jsonl"
   gcs_validation_file: "gs://gradient-crs/archive/training/individual-labels/edema/gradient-crs-3rd-batch-two-image-study-chest-images-with-obvious-edema-alveolar-label-validation.jsonl"
   gcs_extra_filtering_file: None
-  images_dir: "/workspace/CR"
+  images_dir: "/home/andrej/mnt/efs/all-cxr/gradient"
   dir_prefix_to_remove: "GRADIENT-DATABASE/CR"
-  remove_deid: True
+  remove_deid: False
   output_dir: "./output"
 
 training:
