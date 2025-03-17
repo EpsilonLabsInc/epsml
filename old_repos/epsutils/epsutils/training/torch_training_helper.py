@@ -494,9 +494,9 @@ class TorchTrainingHelper:
                     plot = gen.create_plot(scores=scores, title="Scores distribution")
                     self.__log_scores_distribution(plot, "Validation scores distribution")
 
-                # Save a list of misclassified samples.
+                # Save prediction probabilities.
                 if all_file_names:
-                    self.__save_misclassified(epoch=step, file_names=all_file_names, targets=all_targets, outputs=all_outputs, probs=all_probs)
+                    self.__save_prediction_probs(epoch=step, file_names=all_file_names, targets=all_targets, outputs=all_outputs, probs=all_probs)
 
                 # Save embeddings.
                 self.__save_embeddings(embeddings=all_embeddings, epoch=step)
@@ -519,23 +519,23 @@ class TorchTrainingHelper:
         else:
             torch.save(checkpoint, os.path.join(self.__training_parameters.checkpoint_dir, f"checkpoint_step_{step + 1}_{timestamp}.pt"))
 
-    def __save_misclassified(self, epoch, file_names, targets, outputs, probs):
+    def __save_prediction_probs(self, epoch, file_names, targets, outputs, probs):
         assert len(file_names) == len(targets) == len(outputs) == len(probs)
 
-        misclassified = [
+        prediction_probs_data = [
             {
                 "file_name": file_names[i],
                 "target": training_utils.convert_tensor(targets[i]),
                 "output": training_utils.convert_tensor(outputs[i]),
                 "probs": training_utils.convert_tensor(probs[i])
-            } for i in range(len(targets)) if targets[i] != outputs[i]
+            } for i in range(len(targets))
         ]
 
         timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S") + "_utc"
-        misclassified_file = os.path.join(self.__training_parameters.checkpoint_dir, f"misclassified_epoch_{epoch + 1}_{timestamp}.jsonl")
+        prediction_probs_filename = os.path.join(self.__training_parameters.checkpoint_dir, f"prediction_probs_epoch_{epoch + 1}_{timestamp}.jsonl")
 
-        with open(misclassified_file, "w") as jsonl_file:
-            for item in misclassified:
+        with open(prediction_probs_filename, "w") as jsonl_file:
+            for item in prediction_probs_data:
                 jsonl_file.write(json.dumps(item) + "\n")
 
     def __save_embeddings(self, embeddings, epoch):
