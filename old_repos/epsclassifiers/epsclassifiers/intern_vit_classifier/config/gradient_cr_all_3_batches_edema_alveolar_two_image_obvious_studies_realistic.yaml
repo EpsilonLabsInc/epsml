@@ -8,11 +8,11 @@ general:
   save_full_model: False
 
 paths:
-  intern_vl_checkpoint_dir: "/workspace/models/old/internvl2.5_26b_finetune_lora_20241229_184000_1e-5_2.5_gradient_full_rm_sole_no_findings_rm_bad_dcm_no_label/checkpoint-58670"
+  intern_vl_checkpoint_dir: "/mnt/efs/models/internvl/old/internvl2.5_26b_finetune_lora_20241229_184000_1e-5_2.5_gradient_full_rm_sole_no_findings_rm_bad_dcm_no_label/checkpoint-58670"
   gcs_train_file: "gs://gradient-crs/archive/training/individual-labels/edema/gradient-crs-1st-2nd-batch-two-image-study-chest-images-with-obvious-edema-alveolar-label-training.jsonl"
   gcs_validation_file: "gs://gradient-crs/archive/training/individual-labels/edema/gradient-crs-3rd-batch-two-image-study-chest-images-with-obvious-edema-alveolar-label-validation.jsonl"
   gcs_extra_filtering_file: None
-  images_dir: "/home/andrej/mnt/efs/all-cxr/gradient"
+  images_dir: "/mnt/efs/all-cxr/gradient"
   dir_prefix_to_remove: "GRADIENT-DATABASE/CR"
   remove_deid: False
   output_dir: "./output"
