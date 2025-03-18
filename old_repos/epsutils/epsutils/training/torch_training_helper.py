@@ -527,7 +527,8 @@ class TorchTrainingHelper:
                 "file_name": file_names[i],
                 "target": training_utils.convert_tensor(targets[i]),
                 "output": training_utils.convert_tensor(outputs[i]),
-                "probs": training_utils.convert_tensor(probs[i])
+                "prob": training_utils.convert_tensor(probs[i]),
+                "hit": targets[i] == outputs[i]
             } for i in range(len(targets))
         ]
 
