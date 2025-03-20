@@ -89,7 +89,10 @@ class TorchTrainingHelper:
     def __init__(self, model, dataset_helper, device, device_ids, training_parameters: TrainingParameters, mlops_parameters: MlopsParameters):
         self.__model = model
         self.__parallel_model = None
+        self.__optimizer = None
         self.__dataset_helper = dataset_helper
+        self.__train_data_loader = None
+        self.__validation_data_loader = None
         self.__device = device
         self.__device_ids = device_ids
         self.__training_parameters = training_parameters
