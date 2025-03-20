@@ -17,7 +17,8 @@ from epsutils.labels.cr_chest_labels import EXTENDED_CR_CHEST_LABELS
 
 
 class GradientCrDatasetHelper(BaseDatasetHelper):
-    def __init__(self, gcs_train_file,
+    def __init__(self,
+                 gcs_train_file,
                  gcs_validation_file,
                  gcs_test_file=None,
                  gcs_extra_filtering_file=None,
