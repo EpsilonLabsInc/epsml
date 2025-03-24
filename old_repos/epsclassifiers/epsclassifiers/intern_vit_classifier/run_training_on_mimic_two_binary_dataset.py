@@ -114,7 +114,7 @@ def main():
     def collate_function(samples):
         images = get_torch_images(samples)
         labels = get_torch_labels(samples)
-        return images, labels, [sample["image_path"] for sample in samples]
+        return images, labels, [sample["file_name"] for sample in samples]
 
     training_helper.start_training(collate_function_for_training=collate_function)
 
