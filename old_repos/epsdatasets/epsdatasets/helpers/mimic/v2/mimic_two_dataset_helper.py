@@ -86,7 +86,7 @@ class MimicTwoDatasetHelper(BaseDatasetHelper):
         return datasets.Dataset.from_pandas(self.__pandas_validation_dataset)
 
     def get_hugging_face_test_dataset(self):
-        return datasets.Dataset.from_pandas(self.__pandas_test_dataset)
+        return datasets.Dataset.from_pandas(self.__pandas_test_dataset) if self.__pandas_test_dataset else None
 
     def get_torch_train_dataset(self):
          return self.__torch_train_dataset
@@ -216,9 +216,41 @@ class MimicTwoDatasetHelper(BaseDatasetHelper):
     def __create_splits(self):
         print("Creating splits")
         if self.__binary_label:
-            seed = 42  # TODO: Parametrize.
-            self.__pandas_train_dataset, temp = train_test_split(self.__pandas_full_dataset, test_size=0.2, random_state=seed)
-            self.__pandas_validation_dataset, self.__pandas_test_dataset = train_test_split(temp, test_size=0.5, random_state=seed)
+            # TODO: Parametrize.
+            seed = 42
+            split_ratio = 0.9
+
+            # Create a dataset of positive samples and a dataset of negative samples.
+            pos_df = self.__pandas_full_dataset[self.__pandas_full_dataset["labels"].apply(lambda x: x == [self.__binary_label])]
+            neg_df = self.__pandas_full_dataset[self.__pandas_full_dataset["labels"].apply(lambda x: x == [])]
+            print(f"Number of positive samples: {len(pos_df)}")
+            print(f"Number of negative samples: {len(neg_df)}")
+
+            # Shuffle both datasets.
+            pos_df = pos_df.sample(frac=1, random_state=seed).reset_index(drop=True)
+            neg_df = neg_df.sample(frac=1, random_state=seed).reset_index(drop=True)
+            print(f"Number of positive samples after shuffling: {len(pos_df)}")
+            print(f"Number of negative samples after shuffling: {len(neg_df)}")
+
+            # Create split.
+            boundary = int(len(pos_df) * split_ratio)
+            pos_train = pos_df.iloc[:boundary]
+            pos_validation = pos_df.iloc[boundary:]
+            neg_train = neg_df.iloc[:boundary]
+            neg_validation = neg_df.iloc[boundary:]
+            print(f"Number of positive samples in training dataset: {len(pos_train)}")
+            print(f"Number of negative samples in training dataset: {len(neg_train)}")
+            print(f"Number of positive samples in validation dataset: {len(pos_validation)}")
+            print(f"Number of negative samples in validation dataset: {len(neg_validation)}")
+
+            # Merge splits.
+            self.__pandas_train_dataset = pd.concat([pos_train, neg_train]).reset_index(drop=True)
+            self.__pandas_validation_dataset = pd.concat([pos_validation, neg_validation]).reset_index(drop=True)
+            self.__pandas_test_dataset = None
+
+            # Perform shuffling.
+            self.__pandas_train_dataset = self.__pandas_train_dataset.sample(frac=1, random_state=seed).reset_index(drop=True)
+            self.__pandas_validation_dataset = self.__pandas_validation_dataset.sample(frac=1, random_state=seed).reset_index(drop=True)
         else:
             self.__pandas_train_dataset = self.__pandas_full_dataset.loc[self.__pandas_full_dataset["split"] == "train"]
             self.__pandas_validation_dataset = self.__pandas_full_dataset.loc[self.__pandas_full_dataset["split"] == "validate"]
@@ -226,13 +258,25 @@ class MimicTwoDatasetHelper(BaseDatasetHelper):
 
         print(f"Train dataset size: {len(self.__pandas_train_dataset)}")
         print(f"Validation dataset size: {len(self.__pandas_validation_dataset)}")
-        print(f"Test dataset size: {len(self.__pandas_test_dataset)}")
+        print(f"Test dataset size: {len(self.__pandas_test_dataset) if self.__pandas_test_dataset else 0}")
+
+        print("")
+        print("Train dataset:")
+        print(self.__pandas_train_dataset.head(10))
+
+        print("")
+        print("Validation dataset:")
+        print(self.__pandas_validation_dataset.head(10))
+
+        print("")
+        print("Test dataset:")
+        print(f"{self.__pandas_test_dataset.head(10) if self.__pandas_test_dataset else None}")
 
     def __create_torch_datasets(self):
         print("Creating Torch datasets")
         self.__torch_train_dataset = MimicTwoTorchDataset(pandas_dataframe=self.__pandas_train_dataset)
         self.__torch_validation_dataset = MimicTwoTorchDataset(pandas_dataframe=self.__pandas_validation_dataset)
-        self.__torch_test_dataset = MimicTwoTorchDataset(pandas_dataframe=self.__pandas_test_dataset)
+        self.__torch_test_dataset = MimicTwoTorchDataset(pandas_dataframe=self.__pandas_test_dataset) if self.__pandas_test_dataset else None
 
 
 class MimicTwoTorchDataset(Dataset):
