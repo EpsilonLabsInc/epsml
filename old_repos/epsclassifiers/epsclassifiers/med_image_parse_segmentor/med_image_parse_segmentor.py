@@ -86,7 +86,7 @@ if __name__ == "__main__":
 
     # image_path = "./samples/covid_1585.png"
     image_path = "./samples/1.dcm"
-    output_file_name = "segmentation_results.png"
+    output_file_name = "segmentation_result.png"
     prompt = "segment chest"
     endpoint_url = "https://epsilon-ml-eastus-medimageparse.eastus2.inference.ml.azure.com/score"
     auth_key = "B2CAKaGiUPuTEQ5oAUJq6sPO8uqDlChgONuZgm7XZGMW2o1ycTmwJQQJ99BCAAAAAAAAAAAAINFRAZML4PbT"
