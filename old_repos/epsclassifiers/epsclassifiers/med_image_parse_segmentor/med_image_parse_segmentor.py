@@ -16,15 +16,19 @@ class MedImageParseSegmentor:
         self.__endpoint_url = endpoint_url
         self.__auth_key = auth_key
         self.__transfer_image_size = transfer_image_size
+        self.__input_image = None
 
     def segment(self, image, prompt):
         return self.__segment_impl(image, prompt)
 
     def __segment_impl(self, image, prompt):
         if isinstance(image, str):
-            image = self.__dicom_to_bytes_stream(image) if image.endswith(".dcm") else open(image, "rb").read()
+            data = self.__dicom_to_bytes_stream(image) if image.endswith(".dcm") else open(image, "rb").read()
+        else:
+            data = image
 
-        encoded_image = self.__to_base64(image)
+        self.__input_image = Image.open(BytesIO(data))
+        encoded_image = self.__to_base64(data)
         request_data = self.__generate_request_data(encoded_image, prompt)
         response = self.__send_request(request_data)
         return response
@@ -65,7 +69,7 @@ class MedImageParseSegmentor:
         response = requests.post(self.__endpoint_url, headers=headers, data=data)
 
         if response.status_code != 200:
-            return {"image": None, "error_code": response.status_code, "error_text": response.text}
+            return {"input_image": self.__input_image, "segmentation_image": None, "error_code": response.status_code, "error_text": response.text}
 
         content = response.json()
         image_features = json.loads(content[0]["image_features"])
@@ -76,9 +80,9 @@ class MedImageParseSegmentor:
         image_bytes = self.__from_base64(image_data)
         image_array = np.frombuffer(image_bytes, dtype=image_dtype)
         image_array = image_array.reshape(image_shape)
-        image = Image.fromarray(image_array)
+        segmentation_image = Image.fromarray(image_array)
 
-        return {"image": image, "error_code": None, "error_message": None}
+        return {"input_image": self.__input_image, "segmentation_image": segmentation_image, "error_code": None, "error_message": None}
 
 
 if __name__ == "__main__":
@@ -86,7 +90,6 @@ if __name__ == "__main__":
 
     # image_path = "./samples/covid_1585.png"
     image_path = "./samples/1.dcm"
-    output_file_name = "segmentation_result.png"
     prompt = "segment chest"
     endpoint_url = "https://epsilon-ml-eastus-medimageparse.eastus2.inference.ml.azure.com/score"
     auth_key = "B2CAKaGiUPuTEQ5oAUJq6sPO8uqDlChgONuZgm7XZGMW2o1ycTmwJQQJ99BCAAAAAAAAAAAAINFRAZML4PbT"
@@ -100,6 +103,10 @@ if __name__ == "__main__":
         print(f"Error message: {result['error_message']}")
         exit()
 
-    image = result["image"]
-    image.save(output_file_name)
-    print(f"Image saved as {output_file_name}")
+    input_image = result["input_image"]
+    segmentation_image = result["segmentation_image"]
+
+    input_image.save("input_image.png")
+    segmentation_image.save("segmentation_image.png")
+
+    print("Input and segmentation images saved")
