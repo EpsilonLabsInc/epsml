@@ -2,6 +2,7 @@ from typing import Optional
 
 import numpy as np
 from PIL import Image
+from scipy.ndimage import label
 
 
 VALIDATE_IMAGE_HISTOGRAM_CONFIGURATIONS = {
@@ -71,6 +72,19 @@ def numpy_array_to_pil_image(image_array, convert_to_uint8=True, convert_to_rgb=
         image = image.convert("RGB")
 
     return image
+
+
+def remove_small_components(image_mask, min_size):
+    labeled_mask, num_features = label(image_mask)
+    output_mask = np.zeros_like(image_mask, dtype=bool)
+
+    for component_id in range(1, num_features + 1):
+        component = (labeled_mask == component_id)
+
+        if np.sum(component) >= min_size:
+            output_mask |= component
+
+    return output_mask
 
 
 def min_bounding_rectangle(image_mask, padding_ratio=0.0, return_relative_coordinates=False):
