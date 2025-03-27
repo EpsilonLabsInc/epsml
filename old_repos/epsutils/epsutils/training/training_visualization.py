@@ -39,13 +39,18 @@ def show_visualization_data(visualization_data, num_view_grid_columns, label_to_
         # Extract image from the batch.
         input = inputs[i]
 
-        # Handle single and 3 channel images.
-        if input.shape[0] == 1:
-            input = input[0, :, :].cpu().numpy()
-        elif input.shape[0] == 3:
-            input = input.cpu().numpy().transpose(1, 2, 0)
-        else:
-            raise ValueError(f"Input image has unsupported number of channels {input.shape[0]}")
+        # Only 3 element tensors (num_channels, height, width) and 4 element tensors (batch, num_channels, height, widht) are supported.
+        if len(input.shape) not in (3, 4):
+            raise ValueError(f"Input image has unsupported shape {input.shape}")
+
+        input = input.cpu().numpy()
+
+        # Concatenate batch horizontally into a single image.
+        if len(input.shape) == 4:
+            input = np.concatenate(input, axis=2)
+
+        # Regroup elements: (num_channels, height, width) --> (height, width, num_channels)
+        input = input.transpose(1, 2, 0)
 
         # Normalize image if necessary.
         if input.dtype != np.uint8:
