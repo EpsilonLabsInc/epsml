@@ -23,6 +23,9 @@ class MedImageParseSegmentor:
     def segment(self, images, prompt):
         return self.__segment_impl(images, prompt)
 
+    def segment_and_crop_images(self, images, prompt):
+        return self.__segment_and_crop_images_impl(images, prompt)
+
     def __segment_impl(self, images, prompt):
         assert len(images) > 0
 
@@ -58,6 +61,25 @@ class MedImageParseSegmentor:
         request_data = self.__generate_request_data(self.__encoded_images, prompt)
         response = self.__send_request(request_data)
         return response
+
+    def __segment_and_crop_images_impl(self, images, prompt):
+        result = self.__segment_impl(images, prompt)
+
+        if result["error_code"]:
+            return None
+
+        input_images = result["input_images"]
+        segmentation_masks = result["segmentation_masks"]
+        cropped_images = []
+
+        for i in range(len(segmentation_masks)):
+            segmentation_mask = image_utils.remove_small_components(segmentation_masks[i], 100)
+            rel_crop_coordinates = image_utils.min_bounding_rectangle(segmentation_mask, padding_ratio=0.0, return_relative_coordinates=True)
+            cropped_image = image_utils.crop_image(image=input_images[i], crop_coordinates=rel_crop_coordinates, use_relative_coordinates=True)
+            cropped_images.append(cropped_image)
+
+        assert len(cropped_images) == len(self.__input_images)
+        return cropped_images
 
     def __to_base64(self, data):
         return base64.b64encode(data).decode("utf-8")
@@ -112,6 +134,8 @@ class MedImageParseSegmentor:
             segmentation_masks.append(segmentation_mask)
             segmentation_image = Image.fromarray(image_array)
             segmentation_images.append(segmentation_image)
+
+            assert len(self.__input_images) == len(self.__preprocessed_images) == len(segmentation_images) == len(segmentation_masks)
 
         return {
             "input_images": self.__input_images,
