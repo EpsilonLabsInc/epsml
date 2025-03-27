@@ -78,7 +78,7 @@ class MedImageParseSegmentor:
             cropped_image = image_utils.crop_image(image=input_images[i], crop_coordinates=rel_crop_coordinates, use_relative_coordinates=True)
             cropped_images.append(cropped_image)
 
-        assert len(cropped_images) == len(self.__input_images)
+        assert len(cropped_images) == len(input_images)
         return cropped_images
 
     def __to_base64(self, data):
