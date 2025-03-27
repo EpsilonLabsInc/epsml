@@ -135,7 +135,7 @@ class MedImageParseSegmentor:
             segmentation_image = Image.fromarray(image_array)
             segmentation_images.append(segmentation_image)
 
-            assert len(self.__input_images) == len(self.__preprocessed_images) == len(segmentation_images) == len(segmentation_masks)
+        assert len(self.__input_images) == len(self.__preprocessed_images) == len(segmentation_images) == len(segmentation_masks)
 
         return {
             "input_images": self.__input_images,
