@@ -1,5 +1,6 @@
 import base64
 import json
+import logging
 import requests
 from io import BytesIO
 
@@ -108,6 +109,8 @@ class MedImageParseSegmentor:
         response = requests.post(self.__endpoint_url, headers=headers, data=data)
 
         if response.status_code != 200:
+            logging.error(f"Received {response.status_code} error response: {response.text}")
+
             return {
                 "input_images": self.__input_images,
                 "preprocessed_images": self.__preprocessed_images,
