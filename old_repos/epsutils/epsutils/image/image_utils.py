@@ -73,7 +73,7 @@ def numpy_array_to_pil_image(image_array, convert_to_uint8=True, convert_to_rgb=
     return image
 
 
-def min_bounding_rectangle(image_mask, padding_ratio=0.0, return_relative_coordinates=True):
+def min_bounding_rectangle(image_mask, padding_ratio=0.0, return_relative_coordinates=False):
     image_mask = np.asarray(image_mask)
 
     if not np.any(image_mask):
