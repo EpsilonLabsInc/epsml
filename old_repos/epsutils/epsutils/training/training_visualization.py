@@ -37,13 +37,11 @@ def show_visualization_data(visualization_data, num_view_grid_columns, label_to_
         plt.subplot(NUM_ROWS, num_view_grid_columns, i + 1)
 
         # Extract image from the batch.
-        input = inputs[i]
+        input = inputs[i].cpu().numpy()
 
         # Only 3 element tensors (num_channels, height, width) and 4 element tensors (batch, num_channels, height, widht) are supported.
         if len(input.shape) not in (3, 4):
             raise ValueError(f"Input image has unsupported shape {input.shape}")
-
-        input = input.cpu().numpy()
 
         # Concatenate batch horizontally into a single image.
         if len(input.shape) == 4:
