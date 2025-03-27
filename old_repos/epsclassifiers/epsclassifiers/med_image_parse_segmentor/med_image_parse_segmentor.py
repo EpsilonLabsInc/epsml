@@ -90,12 +90,14 @@ class MedImageParseSegmentor:
                 "input_images": self.__input_images,
                 "preprocessed_images": self.__preprocessed_images,
                 "segmentation_images": None,
+                "segmentation_masks": None,
                 "error_code": response.status_code,
                 "error_text": response.text
             }
 
         content = response.json()
         segmentation_images = []
+        segmentation_masks = []
 
         for item in content:
             image_features = json.loads(item["image_features"])
@@ -106,6 +108,8 @@ class MedImageParseSegmentor:
             image_bytes = self.__from_base64(image_data)
             image_array = np.frombuffer(image_bytes, dtype=image_dtype)
             image_array = image_array.reshape(image_shape)
+            segmentation_mask = image_array > 0
+            segmentation_masks.append(segmentation_mask)
             segmentation_image = Image.fromarray(image_array)
             segmentation_images.append(segmentation_image)
 
@@ -113,6 +117,7 @@ class MedImageParseSegmentor:
             "input_images": self.__input_images,
             "preprocessed_images": self.__preprocessed_images,
             "segmentation_images": segmentation_images,
+            "segmentation_masks": segmentation_masks,
             "error_code": None,
             "error_message": None
         }
