@@ -1,3 +1,4 @@
+from io import BytesIO
 from typing import Optional
 
 import numpy as np
@@ -72,6 +73,14 @@ def numpy_array_to_pil_image(image_array, convert_to_uint8=True, convert_to_rgb=
         image = image.convert("RGB")
 
     return image
+
+
+def pil_image_to_byte_stream(pil_image):
+    byte_stream = BytesIO()
+    pil_image.save(byte_stream, format="PNG")
+    data = byte_stream.getvalue()
+    byte_stream.close()
+    return data
 
 
 def remove_small_components(image_mask, min_size):
