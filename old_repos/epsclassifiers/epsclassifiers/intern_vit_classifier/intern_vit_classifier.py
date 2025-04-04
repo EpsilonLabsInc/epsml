@@ -5,8 +5,17 @@ from intern_vit import InternVit
 
 
 class InternVitClassifier(nn.Module):
-    def __init__(self, num_classes, intern_vl_checkpoint_dir, intern_vit_output_dim=1024, hidden_dim=1024,
-                 dropout_rate=0.2, multi_image_input=False, num_multi_images=None, use_tiles=False, num_tiles_x=None, num_tiles_y=None):
+    def __init__(self,
+                 num_classes,
+                 intern_vl_checkpoint_dir,
+                 intern_vit_output_dim=1024,  # 3200 for InternVL 26B model, 1024 for InternVL 8B model.
+                 hidden_dim=1024,
+                 dropout_rate=0.2,
+                 multi_image_input=False,
+                 num_multi_images=None,
+                 use_tiles=False,
+                 num_tiles_x=None,
+                 num_tiles_y=None):
         super().__init__()
 
         print("WARNING: Because of BatchNorm1d that doesn't work on single element batches, InternVitClassifier currently supports only batch sizes >= 2")
