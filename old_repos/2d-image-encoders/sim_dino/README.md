@@ -5,10 +5,10 @@ SimDINO code is copied from https://github.com/RobinWu218/SimDINO and modified s
 To start self supervised learning (SSL) training follow these steps:
 
 1. Default config  
-Make necessary changes to ./sim_dino/simdinov2/configs/ssl_default_config.yaml
+Make necessary changes to `./sim_dino/simdinov2/configs/ssl_default_config.yaml`
 
 2. Config  
-Make necessary changes to ./simdinov2/configs/simdino_config.yaml
+Make necessary changes to `./simdinov2/configs/simdino_config.yaml`
 
 3. Training  
 Run training by calling:  
