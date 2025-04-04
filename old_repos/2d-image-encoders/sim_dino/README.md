@@ -11,7 +11,7 @@ Make necessary changes to ./sim_dino/simdinov2/configs/ssl_default_config.yaml
 Make necessary changes to ./simdinov2/configs/simdino_config.yaml
 
 3. Training
-Run training by calling:
+Run training by calling:  
 '''bash
 torchrun --nnodes=1 --nproc_per_node=1 simdinov2/train/train.py --config-file simdinov2/configs/simdino_config.yaml --output-dir ./output
 
