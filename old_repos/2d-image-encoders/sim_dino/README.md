@@ -14,6 +14,7 @@ Make necessary changes to ./simdinov2/configs/simdino_config.yaml
 Run training by calling:  
 ```bash
 torchrun --nnodes=1 --nproc_per_node=1 simdinov2/train/train.py --config-file simdinov2/configs/simdino_config.yaml --output-dir ./output
+```
 
 # Simplifying DINO via Coding Rate Regularization
 
