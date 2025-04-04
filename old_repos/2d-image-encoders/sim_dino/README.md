@@ -4,13 +4,13 @@ SimDINO code is copied from https://github.com/RobinWu218/SimDINO and modified s
 
 To start self supervised learning (SSL) training follow these steps:
 
-1. Default config
+1. Default config  
 Make necessary changes to ./sim_dino/simdinov2/configs/ssl_default_config.yaml
 
-2. Config
+2. Config  
 Make necessary changes to ./simdinov2/configs/simdino_config.yaml
 
-3. Training
+3. Training  
 Run training by calling:  
 ```bash
 torchrun --nnodes=1 --nproc_per_node=1 simdinov2/train/train.py --config-file simdinov2/configs/simdino_config.yaml --output-dir ./output
