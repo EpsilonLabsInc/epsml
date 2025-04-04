@@ -1,3 +1,20 @@
+# SimDINO comments
+
+SimDINO code is copied from https://github.com/RobinWu218/SimDINO and modified so it can be used with Gradient dataset. Modifications are done for SimDINOv2 only.
+
+To start self supervised learning (SSL) training follow these steps:
+
+1. Default config
+Make necessary changes to ./sim_dino/simdinov2/configs/ssl_default_config.yaml
+
+2. Config
+Make necessary changes to ./simdinov2/configs/simdino_config.yaml
+
+3. Training
+Run training by calling:
+'''bash
+torchrun --nnodes=1 --nproc_per_node=1 simdinov2/train/train.py --config-file simdinov2/configs/simdino_config.yaml --output-dir ./output
+
 # Simplifying DINO via Coding Rate Regularization
 
 PyTorch implementation and pretrained models for SimDINO and SimDINOv2.
@@ -33,7 +50,7 @@ We provide checkpoints for both SimDINO and SimDINOv2 pretrained on ImageNet-1k 
       <td>ViT-B/16</td>
       <td align="right">86 M</td>
       <td align="center">SimDINO</td>
-      <td align="right">74.9%</td>  
+      <td align="right">74.9%</td>
       <td align="right">77.3%</td>
       <td><a href="https://drive.google.com/file/d/1nqcX0IgKQ8H3ZFJKaEx_O5wTVqdorLyQ/view?usp=drive_link">ckpt</a></td>
     </tr>
@@ -105,7 +122,7 @@ Below we also provide the checkpoints for the original DINO and DINOv2 models th
   </tbody>
 </table>
 
-Note: our compute resource is limited but we are working on scaling up our approach. Stay tuned for more model checkpoints in the future. Meanwhile, we always welcome and appreciate feedback and help from the community. 
+Note: our compute resource is limited but we are working on scaling up our approach. Stay tuned for more model checkpoints in the future. Meanwhile, we always welcome and appreciate feedback and help from the community.
 
 ## Installation
 
@@ -191,7 +208,7 @@ python simdinov2/run/train/train.py \
 
 **A:** Occasional spikes are normal and shouldn't impact final performance. If you notice too much instability, the following operations can help:
 - set `--expa_type=1`. Sometimes spikes are caused by sudden change in conditioning of the covariance matrix and this applies some "smoothing" by centering the student features and teacher features.
-- set a smaller `--eps`. 
+- set a smaller `--eps`.
 
 **Q: I can only use small batch sizes per gpu for training, what should I do?**
 
@@ -255,4 +272,4 @@ If you find this project useful, please consider giving us a star and citation:
 
 ## Acknowledgements
 
-This project is largely built upon the orignal [DINO](https://github.com/facebookresearch/dino) and [DINOv2](https://github.com/facebookresearch/dinov2) projects. 
+This project is largely built upon the orignal [DINO](https://github.com/facebookresearch/dino) and [DINOv2](https://github.com/facebookresearch/dinov2) projects.
