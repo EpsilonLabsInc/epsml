@@ -3,9 +3,14 @@ import torch
 import yaml
 
 from epsclassifiers.intern_vit_classifier import InternVitClassifier
+from epsclassifiers.med_image_parse_segmentor import MedImageParseSegmentor
 from epsdatasets.helpers.gradient_cr.gradient_cr_dataset_helper import GradientCrDatasetHelper
 from epsutils.training.sample_balanced_bce_with_logits_loss import SampleBalancedBCEWithLogitsLoss
 from epsutils.training.torch_training_helper import TorchTrainingHelper, TrainingParameters, MlopsType, MlopsParameters
+
+SEGMENTATION_PROMPT = "segment chest"
+SEGMENTATION_ENDPOINT_URL = "https://epsilon-ml-eastus-medimageparse.eastus2.inference.ml.azure.com/score"
+SEGMENTATION_AUTH_KEY = "B2CAKaGiUPuTEQ5oAUJq6sPO8uqDlChgONuZgm7XZGMW2o1ycTmwJQQJ99BCAAAAAAAAAAAAINFRAZML4PbT"
 
 
 def convert_none(value):
@@ -27,6 +32,7 @@ def main(config_path):
     notes                          = config["general"].get("notes", "")
     custom_labels                  = convert_none(config["general"].get("custom_labels", None))
     save_full_model                = config["general"].get("save_full_model", False)
+    do_cropping                    = config["general"].get("do_cropping", False)
     intern_vl_checkpoint_dir       = config["paths"].get("intern_vl_checkpoint_dir", "")
     gcs_train_file                 = config["paths"].get("gcs_train_file", "")
     gcs_validation_file            = config["paths"].get("gcs_validation_file", "")
@@ -60,6 +66,7 @@ def main(config_path):
     print(f"+ notes: {notes}")
     print(f"+ custom_labels: {custom_labels}")
     print(f"+ save_full_model: {save_full_model}")
+    print(f"+ do_cropping: {do_cropping}")
     print(f"+ intern_vl_checkpoint_dir: {intern_vl_checkpoint_dir}")
     print(f"+ gcs_train_file: {gcs_train_file}")
     print(f"+ gcs_validation_file: {gcs_validation_file}")
@@ -158,12 +165,21 @@ def main(config_path):
                                           mlops_parameters=mlops_parameters)
 
     def get_torch_images(samples):
+        if do_cropping:
+            segmentor = MedImageParseSegmentor(endpoint_url=SEGMENTATION_ENDPOINT_URL, auth_key=SEGMENTATION_AUTH_KEY)
+
         if multi_image_input:
             try:
                 stack = []
                 for item in samples:
                     images = dataset_helper.get_pil_image(item)
                     assert len(images) == num_multi_images
+
+                    if do_cropping:
+                        images = segmentor.segment_and_crop_images(images, SEGMENTATION_PROMPT)
+                        if images is None:
+                            print(f"Error cropping images: {result['error_code']}, {result['error_text']}")
+
                     pixel_values = image_processor(images=images, return_tensors="pt").pixel_values
                     stack.append(pixel_values)
 
@@ -175,6 +191,12 @@ def main(config_path):
         else:
             try:
                 images = [dataset_helper.get_pil_image(item) for item in samples]
+
+                if do_cropping:
+                    images = segmentor.segment_and_crop_images(images, SEGMENTATION_PROMPT)
+                    if images is None:
+                        print(f"Error cropping images: {result['error_code']}, {result['error_text']}")
+
                 pixel_values = image_processor(images=images, return_tensors="pt").pixel_values
                 pixel_values = pixel_values.to(torch.bfloat16)
                 return pixel_values
