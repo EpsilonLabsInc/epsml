@@ -99,12 +99,27 @@ if __name__ == "__main__":
     INTERN_VL_CHECKPOINT_DIR = "/mnt/efs/models/internvl/old/internvl2.5_26b_finetune_lora_20241229_184000_1e-5_2.5_gradient_full_rm_sole_no_findings_rm_bad_dcm_no_label/checkpoint-58670"
     BINARY_CLASSIFIER_CHECKPOINTS = [
         {"name": "consolidation", "path": "/home/andrej/tmp/binary_checkpoints/binary_consolidation_checkpoint.pt"},
-        {"name": "edema", "path": "/home/andrej/tmp/binary_checkpoints/binary_edema_checkpoint.pt"}
+        {"name": "edema", "path": "/home/andrej/tmp/binary_checkpoints/binary_edema_checkpoint.pt"},
+        {"name": "airspace opacity", "path": "/home/andrej/tmp/binary_checkpoints/binary_airspace_opacity_checkpoint.pt"},
     ]
+
+    # Edema.
     DICOM_FILES = [
         "/mnt/efs/all-cxr/gradient/22JUL2024/GRDN87VZUPS8K1XS/GRDNJ7GNGOQI87RV/studies/1.2.826.0.1.3680043.8.498.43077057944350341201820145574876698829/series/1.2.826.0.1.3680043.8.498.71619914322538516903099898284356295253/instances/1.2.826.0.1.3680043.8.498.13418427961977328036029752570867031541.dcm",
         "/mnt/efs/all-cxr/gradient/22JUL2024/GRDN87VZUPS8K1XS/GRDNJ7GNGOQI87RV/studies/1.2.826.0.1.3680043.8.498.43077057944350341201820145574876698829/series/1.2.826.0.1.3680043.8.498.96671321347557557720154152227531287229/instances/1.2.826.0.1.3680043.8.498.83519664942235257620802927312300077032.dcm"
     ]
+
+    # Consolidation.
+    # DICOM_FILES = [
+    #     "/mnt/efs/all-cxr/gradient/20DEC2024/deid/GRDN00SZ4W5JTK30/GRDNV9MCKLV7SYIM/studies/1.2.826.0.1.3680043.8.498.24776930674676137805272112279298177654/series/1.2.826.0.1.3680043.8.498.68343223226858939668117029668988077247/instances/1.2.826.0.1.3680043.8.498.38734824056281407652077901128530906919.dcm",
+    #     "/mnt/efs/all-cxr/gradient/20DEC2024/deid/GRDN00SZ4W5JTK30/GRDNV9MCKLV7SYIM/studies/1.2.826.0.1.3680043.8.498.24776930674676137805272112279298177654/series/1.2.826.0.1.3680043.8.498.33972695614151366813675462694932878085/instances/1.2.826.0.1.3680043.8.498.13892220803373546304991929643955934631.dcm"
+    # ]
+
+    # Airspace opacity.
+    # DICOM_FILES = [
+    #     "/mnt/efs/all-cxr/gradient/22JUL2024/GRDN56VW2AEIGSD3/GRDN8OLYZSVQH71V/studies/1.2.826.0.1.3680043.8.498.52927558507360759327732750959950731826/series/1.2.826.0.1.3680043.8.498.42596855183528922700105748925390838125/instances/1.2.826.0.1.3680043.8.498.30130378567856671404562122987382276294.dcm",
+    #     "/mnt/efs/all-cxr/gradient/22JUL2024/GRDN56VW2AEIGSD3/GRDN8OLYZSVQH71V/studies/1.2.826.0.1.3680043.8.498.52927558507360759327732750959950731826/series/1.2.826.0.1.3680043.8.498.55470003897800545694532330351011469070/instances/1.2.826.0.1.3680043.8.498.41286554462632571993772012924613327790.dcm"
+    # ]
 
     print("Running InternVitCompositeBinaryClassifier example")
 
