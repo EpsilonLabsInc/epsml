@@ -18,16 +18,22 @@ IMAGE_EXTENSION_TO_SAVE = "png"
 
 
 def save_image(image_path):
-    image = dicom_utils.get_dicom_image(image_path, custom_windowing_parameters={"window_center": 0, "window_width": 0})
-    image = image_utils.numpy_array_to_pil_image(image, convert_to_uint8=True, convert_to_rgb=True)
-    image = image.resize(TARGET_IMAGE_SIZE)
+    try:
+        new_image_path = os.path.relpath(image_path, DIR_PREFIX_TO_ADD)
+        new_image_path = os.path.join(DIR_PREFIX_TO_SAVE, new_image_path)
+        new_image_path = new_image_path.replace("dcm", IMAGE_EXTENSION_TO_SAVE)
 
-    new_image_path = os.path.relpath(image_path, DIR_PREFIX_TO_ADD)
-    new_image_path = os.path.join(DIR_PREFIX_TO_SAVE, new_image_path)
-    new_image_path = new_image_path.replace("dcm", IMAGE_EXTENSION_TO_SAVE)
+        if os.path.exists(new_image_path):
+            return
 
-    os.makedirs(os.path.dirname(new_image_path), exist_ok=True)
-    image.save(new_image_path)
+        image = dicom_utils.get_dicom_image(image_path, custom_windowing_parameters={"window_center": 0, "window_width": 0})
+        image = image_utils.numpy_array_to_pil_image(image, convert_to_uint8=True, convert_to_rgb=True)
+        image = image.resize(TARGET_IMAGE_SIZE)
+
+        os.makedirs(os.path.dirname(new_image_path), exist_ok=True)
+        image.save(new_image_path)
+    except Exception as e:
+        print(f"{str(e)}: error saving {image_path}")
 
 
 def main():
