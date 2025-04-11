@@ -9,16 +9,16 @@ from epsutils.dicom import dicom_utils
 from epsutils.gcs import gcs_utils
 from epsutils.image import image_utils
 
-GCS_INPUT_FILE = "gs://report_csvs/cleaned/CR/labels_for_binary_classification/GRADIENT_CR_ALL_CHEST_BATCHES_cleaned_alveolar_expanded_labels.csv"
+GCS_INPUT_FILE = "gs://report_csvs/cleaned/CR/labels_for_binary_classification/GRADIENT_CR_ALL_CHEST_BATCHES_cleaned_pleura_labels.csv"
 GCS_INPUT_IMAGES_DIR = "GRADIENT-DATABASE/CR"
 GCS_FRONTAL_PROJECTIONS_FILE = "gs://gradient-crs/archive/training/projections/gradient-crs-all-batches-chest-only-frontal-projections.csv"
 GCS_LATERAL_PROJECTIONS_FILE = "gs://gradient-crs/archive/training/projections/gradient-crs-all-batches-chest-only-lateral-projections.csv"
-LABELS_COLUMN_NAME = "alveolar_expanded_labels"
+LABELS_COLUMN_NAME = "pleura_labels"
 TARGET_BATCH_ID = "22JUL2024"
-TARGET_LABEL_NAME = "Atelectasis"
+TARGET_LABEL_NAME = "Pleural Effusion"
 TARGET_IMAGES_DIR = "/mnt/efs/all-cxr/gradient"
 TARGET_NUM_IMAGES = 250
-DESTINATION_DIR = "/home/andrej/tmp/atelectasis"
+DESTINATION_DIR = "/home/andrej/tmp/pleural_effusion"
 
 
 def check_row(row, frontal_images, lateral_images):
@@ -91,7 +91,7 @@ def main():
 
     print(f"Found {len(target_images)} target images")
 
-    os.makedirs(os.path.dirname(DESTINATION_DIR), exist_ok=True)
+    os.makedirs(DESTINATION_DIR, exist_ok=True)
 
     print(f"Copying {TARGET_NUM_IMAGES} frontal images to the destination folder")
     for target_image in target_images[:TARGET_NUM_IMAGES]:
