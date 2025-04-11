@@ -99,7 +99,7 @@ def main():
         image_path = image_path.replace(GCS_INPUT_IMAGES_DIR, TARGET_IMAGES_DIR)
         image = dicom_utils.get_dicom_image(image_path, custom_windowing_parameters={"window_center": 0, "window_width": 0})
         image = image_utils.numpy_array_to_pil_image(image, convert_to_uint8=True, convert_to_rgb=True)
-        new_image_path = os.path.join(DESTINATION_DIR, os.path.basename(image_path).replace(".dcm", ".png"))
+        new_image_path = os.path.join(DESTINATION_DIR, os.path.basename(image_path).replace(".dcm", ".jpg"))
         image.save(new_image_path)
 
 
