@@ -35,11 +35,14 @@ class XrvSegmentor:
         masks = []
         for body_part in body_parts:
             if body_part == BodyPart.LUNGS:
-                masks.append(np.logical_or(pred[0, 4], pred[0, 5]))
+                mask = np.logical_or(pred[0, 4], pred[0, 5])
             elif body_part == BodyPart.HEART:
-                masks.append(pred[0, 8])
+                mask = pred[0, 8]
             else:
                 raise ValueError(f"Unsupported body part {body_part}")
+
+            mask = image_utils.remove_small_components(mask, 100)
+            masks.append(mask.astype(np.uint8))
 
         return {"image": pil_image, "segmentation_masks": masks}
 
