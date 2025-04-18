@@ -14,6 +14,7 @@ from tqdm.auto import tqdm
 from epsutils.training import training_utils
 from epsutils.training.confusion_matrix_calculator import ConfusionMatrixCalculator
 from epsutils.training.evaluation_metrics_calculator import EvaluationMetricsCalculator
+from epsutils.training.performance_curve_calculator import PerformanceCurveCalculator, PerformanceCurveType
 from epsutils.training.scores_distribution_generator import ScoresDistributionGenerator
 
 
@@ -476,7 +477,7 @@ class TorchTrainingHelper:
 
             if validation_type == "Validation":
                 all_targets = all_targets.tolist()
-                all_probs = torch.sigmoid(all_outputs)
+                all_probs = torch.sigmoid(all_outputs).cpu().to(torch.float32)
                 all_outputs = (all_probs > 0.5).int().tolist()
 
                 # Log confusion matrix.
@@ -490,11 +491,31 @@ class TorchTrainingHelper:
                 plot = calc.create_plot(confusion_matrices=cms, titles=self.__mlops_parameters.label_names)
                 self.__log_confusion_matrix(plot, "Validation Per-Label CMs")
 
+                # Log ROC.
+                calc = PerformanceCurveCalculator()
+                roc = calc.compute_curve(curve_type=PerformanceCurveType.ROC, y_true=all_targets, y_prob=all_probs)
+                plot = calc.create_plot(curves=[roc], titles=["All labels"], grid_shape=(1, 1))
+                self.__log_performance_curve(plot, "Validation ROC")
+
+                # Log per-label ROCs.
+                rocs = calc.compute_per_class_curves(curve_type=PerformanceCurveType.ROC, y_true=all_targets, y_prob=all_probs)
+                plot = calc.create_plot(curves=rocs, titles=self.__mlops_parameters.label_names)
+                self.__log_performance_curve(plot, "Validation Per-Label ROCs")
+
+                # Log PRC.
+                prc = calc.compute_curve(curve_type=PerformanceCurveType.PRC, y_true=all_targets, y_prob=all_probs)
+                plot = calc.create_plot(curves=[prc], titles=["All labels"], grid_shape=(1, 1))
+                self.__log_performance_curve(plot, "Validation PRC")
+
+                # Log per-label PRCs.
+                prcs = calc.compute_per_class_curves(curve_type=PerformanceCurveType.PRC, y_true=all_targets, y_prob=all_probs)
+                plot = calc.create_plot(curves=prcs, titles=self.__mlops_parameters.label_names)
+                self.__log_performance_curve(plot, "Validation Per-Label PRCs")
+
                 # Log scores distribution.
                 if all_probs.shape[1] == 1:
                     gen = ScoresDistributionGenerator()
-                    scores = all_probs.cpu().to(torch.float32)
-                    plot = gen.create_plot(scores=scores, title="Scores distribution")
+                    plot = gen.create_plot(scores=all_probs, title="Scores distribution")
                     self.__log_scores_distribution(plot, "Validation scores distribution")
 
                 # Save prediction probabilities.
@@ -592,6 +613,14 @@ class TorchTrainingHelper:
             print("Logging confusion matrix is not supported for MLflow")
         elif self.__mlops_parameters.mlops_type == MlopsType.WANDB:
             wandb.log({title: wandb.Image(confusion_matrix_plot)})
+        else:
+            raise ValueError(f"Unsupported MLOps type {self.__mlops_parameters.mlops_type}")
+
+    def __log_performance_curve(self, performance_curve_plot, title):
+        if self.__mlops_parameters.mlops_type == MlopsType.MLFLOW:
+            print("Logging performance curve is not supported for MLflow")
+        elif self.__mlops_parameters.mlops_type == MlopsType.WANDB:
+            wandb.log({title: wandb.Image(performance_curve_plot)})
         else:
             raise ValueError(f"Unsupported MLOps type {self.__mlops_parameters.mlops_type}")
 
