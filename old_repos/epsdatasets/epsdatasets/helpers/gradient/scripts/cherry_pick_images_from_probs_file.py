@@ -21,6 +21,7 @@ NUM_IMAGES_TO_CHERRY_PICK = 40
 DESTINATION_DIR = "/home/andrej/tmp/pleural_effusion"
 NOTES = "False positives only"
 
+
 def main():
     # Load input file.
     print("Loading input file")
