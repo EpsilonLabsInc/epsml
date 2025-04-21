@@ -24,8 +24,8 @@ GENERATE_PER_FRONTAL_LATERAL_STUDY = True
 SEED = 42
 IMAGE_PATH_SUBSTR_FOR_VALIDATION_DATASET = None
 SPLIT_RATIO = 0.98
-OUTPUT_TRAINING_FILE = "gradient-crs-all-batches-two-image-study-with-text-chest-images-with-obvious-edema-alveolar-label-training.jsonl"
-OUTPUT_VALIDATION_FILE = "gradient-crs-all-batches-two-image-study-with-text-chest-images-with-obvious-edema-alveolar-label-validation.jsonl"
+OUTPUT_TRAINING_FILE = "gradient-crs-all-batches-two-image-study-chest-images-with-obvious-edema-alveolar-label-with-text-training.jsonl"
+OUTPUT_VALIDATION_FILE = "gradient-crs-all-batches-two-image-study-chest-images-with-obvious-edema-alveolar-label-with-text-validation.jsonl"
 
 
 def get_labels_distribution(images):
