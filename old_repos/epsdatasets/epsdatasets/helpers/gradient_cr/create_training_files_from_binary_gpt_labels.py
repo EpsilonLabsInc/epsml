@@ -126,7 +126,7 @@ def main():
 
     elif GCS_INPUT_FILE.endswith(".csv"):
         df = pd.read_csv(StringIO(content), low_memory=False)
-        df = df[[LABEL_COLUMN_NAME, "image_paths", "batch_id"]]
+        df = df[[LABEL_COLUMN_NAME, "cleaned_report_text", "image_paths", "batch_id"]]
         for index, row in tqdm(df.iterrows(), total=len(df), desc="Processing"):
             try:
                 labels = [label.strip() for label in row[LABEL_COLUMN_NAME].split(",")]
