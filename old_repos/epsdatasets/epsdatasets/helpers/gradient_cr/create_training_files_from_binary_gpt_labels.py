@@ -133,8 +133,8 @@ def main():
                 report_text = row["cleaned_report_text"].replace("\n", "\\n") if INCLUDE_REPORT_TEXT else None
                 image_paths = ast.literal_eval(row["image_paths"])
                 batch_id = row["batch_id"]
-            except:
-                print(f"Error parsing {row[LABEL_COLUMN_NAME]}")
+            except Exception as e:
+                print(f"{str(e)}: Error parsing {row[LABEL_COLUMN_NAME]}")
                 continue
 
             if isinstance(image_paths, dict):
