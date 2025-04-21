@@ -18,13 +18,14 @@ GCS_INPUT_IMAGES_DIR = "GRADIENT-DATABASE/CR"
 GCS_CHEST_IMAGES_FILE = "gs://gradient-crs/archive/training/chest/chest_files_gradient_all_3_batches.csv"
 GCS_FRONTAL_PROJECTIONS_FILE = "gs://gradient-crs/archive/training/projections/gradient-crs-all-batches-chest-only-frontal-projections.csv"
 GCS_LATERAL_PROJECTIONS_FILE = "gs://gradient-crs/archive/training/projections/gradient-crs-all-batches-chest-only-lateral-projections.csv"
+INCLUDE_REPORT_TEXT = True
 GENERATE_PER_NORMALIZED_STUDY = False
 GENERATE_PER_FRONTAL_LATERAL_STUDY = True
 SEED = 42
-IMAGE_PATH_SUBSTR_FOR_VALIDATION_DATASET = "/09JAN2025/"
+IMAGE_PATH_SUBSTR_FOR_VALIDATION_DATASET = None
 SPLIT_RATIO = 0.98
-OUTPUT_TRAINING_FILE = "gradient-crs-1st-2nd-batch-two-image-study-chest-images-with-obvious-edema-alveolar-label-training.jsonl"
-OUTPUT_VALIDATION_FILE = "gradient-crs-3rd-batch-two-image-study-chest-images-with-obvious-edema-alveolar-label-validation.jsonl"
+OUTPUT_TRAINING_FILE = "gradient-crs-all-batches-two-image-study-with-text-chest-images-with-obvious-edema-alveolar-label-training.jsonl"
+OUTPUT_VALIDATION_FILE = "gradient-crs-all-batches-two-image-study-with-text-chest-images-with-obvious-edema-alveolar-label-validation.jsonl"
 
 
 def get_labels_distribution(images):
@@ -129,14 +130,11 @@ def main():
         for index, row in tqdm(df.iterrows(), total=len(df), desc="Processing"):
             try:
                 labels = [label.strip() for label in row[LABEL_COLUMN_NAME].split(",")]
-            except:
-                print(f"Error parsing {row[LABEL_COLUMN_NAME]}")
-                continue
-
-            try:
+                report_text = row["cleaned_report_text"].replace("\n", "\\n") if INCLUDE_REPORT_TEXT else None
                 image_paths = ast.literal_eval(row["image_paths"])
                 batch_id = row["batch_id"]
             except:
+                print(f"Error parsing {row[LABEL_COLUMN_NAME]}")
                 continue
 
             if isinstance(image_paths, dict):
@@ -152,7 +150,7 @@ def main():
 
             if GENERATE_PER_NORMALIZED_STUDY:
                 image_paths = normalize_list(image_paths, num_elems=3)  # Take max 3 images per study. If less then 3, multiplicate last image to fill up the gap.
-                input_images.append({"image_path": image_paths, "labels": labels})
+                input_images.append({"image_path": image_paths, "report_text": report_text, "labels": labels})
             elif GENERATE_PER_FRONTAL_LATERAL_STUDY:
                 if len(image_paths) != 2:
                     continue
@@ -161,10 +159,10 @@ def main():
                     continue
 
                 sorted_image_paths = [image_path for image_path in image_paths if image_path in frontal_images] + [image_path for image_path in image_paths if image_path in lateral_images]
-                input_images.append({"image_path": sorted_image_paths, "labels": labels})
+                input_images.append({"image_path": sorted_image_paths, "report_text": report_text, "labels": labels})
             else:
                 for image_path in image_paths:
-                    input_images.append({"image_path": image_path, "labels": labels})
+                    input_images.append({"image_path": image_path, "report_text": report_text, "labels": labels})
 
     else:
         raise ValueError("Input file type not supported")
