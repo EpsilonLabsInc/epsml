@@ -2,6 +2,8 @@ import argparse
 import torch
 import yaml
 
+from transformers import DistilBertTokenizer
+
 from epsclassifiers.intern_vit_classifier import InternVitClassifier
 from epsclassifiers.med_image_parse_segmentor import MedImageParseSegmentor
 from epsdatasets.helpers.gradient_cr.gradient_cr_dataset_helper import GradientCrDatasetHelper
@@ -33,6 +35,7 @@ def main(config_path):
     custom_labels                  = convert_none(config["general"].get("custom_labels", None))
     save_full_model                = config["general"].get("save_full_model", False)
     do_cropping                    = config["general"].get("do_cropping", False)
+    use_report_text                = config["general"].get("use_report_text", False)
     intern_vl_checkpoint_dir       = config["paths"].get("intern_vl_checkpoint_dir", "")
     gcs_train_file                 = config["paths"].get("gcs_train_file", "")
     gcs_validation_file            = config["paths"].get("gcs_validation_file", "")
@@ -67,6 +70,7 @@ def main(config_path):
     print(f"+ custom_labels: {custom_labels}")
     print(f"+ save_full_model: {save_full_model}")
     print(f"+ do_cropping: {do_cropping}")
+    print(f"+ use_report_text: {use_report_text}")
     print(f"+ intern_vl_checkpoint_dir: {intern_vl_checkpoint_dir}")
     print(f"+ gcs_train_file: {gcs_train_file}")
     print(f"+ gcs_validation_file: {gcs_validation_file}")
@@ -114,13 +118,17 @@ def main(config_path):
 
     print(f"Using the following labels: {dataset_helper.get_labels()}")
 
+    # Create the tokenizer.
+    tokenizer = DistilBertTokenizer.from_pretrained("distilbert-base-uncased")
+
     # Create the model.
     print("Creating the model")
     model = InternVitClassifier(num_classes=len(dataset_helper.get_labels()),
                                 intern_vl_checkpoint_dir=intern_vl_checkpoint_dir,
                                 intern_vit_output_dim=3200,  # 3200 for InternVL 26B model, 1024 for InternVL 8B model.
                                 multi_image_input=multi_image_input,
-                                num_multi_images=num_multi_images)
+                                num_multi_images=num_multi_images,
+                                use_text_encodings=use_report_text)
     model = model.to("cuda")
     image_processor = model.get_image_processor()
 
@@ -203,14 +211,31 @@ def main(config_path):
             except:
                 return None
 
+    def get_text_encodings(samples):
+        report_texts = [dataset_helper.get_report_text(item) for item in samples]
+        text_encodings = tokenizer(report_texts, padding=True, truncation=True, max_length=128, return_tensors="pt")
+        return text_encodings
+
     def get_torch_labels(samples):
         labels = torch.stack([dataset_helper.get_torch_label(item).to(torch.bfloat16) for item in samples])
         return labels
 
     def collate_function(samples):
         images = get_torch_images(samples)
+
+        if images is None:
+            return None
+
+        text_encodings = get_text_encodings(samples) if use_report_text else None
         labels = get_torch_labels(samples)
-        return images, labels, [sample["image_path"] for sample in samples]
+
+        data = {
+            "images": images,
+            "text_encodings": text_encodings,
+            "file_names": [sample["image_path"] for sample in samples]
+        }
+
+        return data, labels
 
     training_helper.start_training(collate_function_for_training=collate_function)
 
