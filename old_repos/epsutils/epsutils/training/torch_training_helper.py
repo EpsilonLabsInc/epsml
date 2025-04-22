@@ -2,6 +2,7 @@ import inspect
 import json
 import math
 import os
+from collections.abc import Mapping
 from datetime import datetime
 from enum import Enum
 
@@ -86,6 +87,49 @@ class MlopsParameters:
         self.uri = uri
 
 
+class DataWrapper:
+    def __init__(self, data):
+        self.__data = data
+        self.__primary_tensor = self.__extract_primary_tensor(data)
+
+    @property
+    def shape(self):
+        return self.__primary_tensor.shape if self.__primary_tensor is not None else None
+
+    def size(self, dim):
+        return self.__primary_tensor.size(dim) if self.__primary_tensor is not None else None
+
+    def to(self, device):
+        if isinstance(self.__data, torch.Tensor):
+            return self.__data.to(device)
+        elif isinstance(self.__data, dict):
+            return {
+                key: (
+                    {sub_key: sub_value.to(device) if isinstance(sub_value, torch.Tensor) else sub_value
+                    for sub_key, sub_value in value.items()} if isinstance(value, dict) or isinstance(value, Mapping)
+                    else value.to(device) if isinstance(value, torch.Tensor)
+                    else value
+                )
+                for key, value in self.__data.items()
+            }
+        return None
+
+    def get_primary_tensor(self):
+        return self.__primary_tensor
+
+    def __extract_primary_tensor(self, data):
+        if isinstance(data, torch.Tensor):
+            return data
+        elif isinstance(data, dict):
+            if "images" in data and isinstance(data["images"], torch.Tensor):
+                return data["images"]
+            else:
+                for value in data.values():
+                    if isinstance(value, torch.Tensor):
+                        return value
+        return None
+
+
 class TorchTrainingHelper:
     def __init__(self, model, dataset_helper, device, device_ids, training_parameters: TrainingParameters, mlops_parameters: MlopsParameters):
         self.__model = model
@@ -110,12 +154,6 @@ class TorchTrainingHelper:
             print(f"{self.__mlops_parameters.__dict__}")
         else:
             print("None")
-
-        # Determine whether the model is single- or multi-parameter.
-        forward_method = self.__model.forward
-        signature = inspect.signature(forward_method)
-        parameters = list(signature.parameters.keys())
-        self.__is_multi_parameter_model = len(parameters) > 1
 
         # Connect to MLOps.
         if self.__mlops_parameters is not None:
@@ -276,20 +314,17 @@ class TorchTrainingHelper:
         num_batches = len(self.__train_data_loader)
 
         for idx, batch in enumerate(tqdm_loader):
+            # Skip step if batch is None.
+            if batch is None:
+                print("WARNING: Received null batch during training")
+                continue
+
+            # Compute step.
             step = epoch * num_batches + idx
 
             # Get the inputs.
-            if len(batch) == 2:
-                data, target = batch
-            elif len(batch) == 3:
-                data, target, _ = batch
-            else:
-                raise ValueError("Unexpected batch format")
-
-            # Skip step if data is None.
-            if data is None:
-                print("WARNING: Received null batch during training")
-                continue
+            data, target = batch
+            data = DataWrapper(data)
 
             # Skip step if batch size is less than min allowed batch size.
             batch_size = data.shape[0]
@@ -299,16 +334,20 @@ class TorchTrainingHelper:
 
             # Save visualization data.
             if self.__training_parameters.save_visualizaton_data_during_training:
-                torch.save({"inputs": data, "labels": target}, "visualization_data.pt")
+                torch.save({"inputs": data.get_primary_tensor(), "labels": target}, "visualization_data.pt")
 
             # Forward pass.
-            if self.__is_multi_parameter_model:
-                outputs = self.__parallel_model(data.to(self.__device), target.to(self.__device))
-                loss = outputs.loss
+            device_data = data.to(self.__device)
+            if isinstance(device_data, dict):
+                outputs = self.__parallel_model(**device_data)
             else:
-                outputs = self.__parallel_model(data.to(self.__device))
-                outputs = outputs["output"] if isinstance(outputs, dict) else outputs
-                loss = self.__training_parameters.criterion(outputs, target.to(self.__device))
+                outputs = self.__parallel_model(device_data)
+
+            # Get output.
+            outputs = outputs["output"] if isinstance(outputs, dict) else outputs
+
+            # Compute loss.
+            loss = self.__training_parameters.criterion(outputs, target.to(self.__device))
 
             # If loss is a vector, it needs to be averaged.
             if loss.numel() > 1:
@@ -392,21 +431,18 @@ class TorchTrainingHelper:
 
         with torch.no_grad():
             for idx, batch in enumerate(tqdm_loader):
+                # Skip step if batch is None.
+                if batch is None:
+                    print("WARNING: Received null batch during validation")
+                    continue
+
+                # Break earlier if necessary.
                 if num_batches is not None and idx >= num_batches:
                     break
 
                 # Get the inputs.
-                if len(batch) == 2:
-                    data, target = batch
-                elif len(batch) == 3:
-                    data, target, file_names = batch
-                else:
-                    raise ValueError("Unexpected batch format")
-
-                # Skip step if data is None.
-                if data is None:
-                    print("WARNING: Received null batch during validation")
-                    continue
+                data, target = batch
+                data = DataWrapper(data)
 
                 # Skip step if batch size is less than min allowed batch size.
                 batch_size = data.shape[0]
@@ -415,21 +451,24 @@ class TorchTrainingHelper:
                     continue
 
                 # Predict.
-                if self.__is_multi_parameter_model:
-                    outputs = self.__parallel_model(data.to(self.__device), target.to(self.__device))
-                    embeddings = None
-                    loss = outputs.loss
+                device_data = data.to(self.__device)
+                if isinstance(device_data, dict):
+                    outputs = self.__parallel_model(**device_data)
                 else:
-                    outputs = self.__parallel_model(data.to(self.__device))
-                    embeddings = outputs["embeddings"] if isinstance(outputs, dict) and "embeddings" in outputs else None
-                    outputs = outputs["output"] if isinstance(outputs, dict) else outputs
-                    loss = self.__training_parameters.criterion(outputs, target.to(self.__device))
+                    outputs = self.__parallel_model(device_data)
+
+                # Get embeddings and the output.
+                embeddings = outputs["embeddings"] if isinstance(outputs, dict) and "embeddings" in outputs else None
+                outputs = outputs["output"] if isinstance(outputs, dict) else outputs
+
+                # Compute loss.
+                loss = self.__training_parameters.criterion(outputs, target.to(self.__device))
 
                 # Save visualization data.
                 if self.__training_parameters.save_visualizaton_data_during_validation:
                     probabilities = torch.sigmoid(outputs)
                     predictions = (probabilities > 0.5).float()
-                    torch.save({"inputs": data, "labels": predictions, "probabilities": probabilities}, "visualization_data.pt")
+                    torch.save({"inputs": data.get_primary_tensor(), "labels": predictions, "probabilities": probabilities}, "visualization_data.pt")
 
                     if self.__training_parameters.pause_on_validation_visualization and pause:
                         key = input("Press 'q' to skip pause or any other key to continue")
@@ -533,7 +572,7 @@ class TorchTrainingHelper:
             "model_state_dict": self.__parallel_model.module.state_dict(),
             "optimizer_state_dict": self.__optimizer.state_dict(),
             "training_parameters_dict": self.__training_parameters.__dict__,
-            "mlops_parameters_dict": self.__mlops_parameters.__dict__
+            "mlops_parameters_dict": self.__mlops_parameters.__dict__ if self.__mlops_parameters is not None else None
         }
 
         timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S") + "_utc"
