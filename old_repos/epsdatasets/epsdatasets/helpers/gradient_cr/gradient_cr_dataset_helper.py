@@ -100,14 +100,26 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
                 image_path = os.path.relpath(image_path, self.__dir_prefix_to_remove) if self.__dir_prefix_to_remove else image_path
                 if self.__remove_deid:
                     image_path = image_path.replace("/deid/", "/")
-                data.append({"image_path": os.path.join(self.__images_dir, image_path), "labels": row["labels"]})
+                data.append(
+                    {
+                        "image_path": os.path.join(self.__images_dir, image_path),
+                        "report_text": row["report_text"] if "report_text" in row else None,
+                        "labels": row["labels"]
+                    }
+                )
             else:
                 image_paths = row["image_path"]
                 image_paths = [os.path.relpath(image_path, self.__dir_prefix_to_remove) if self.__dir_prefix_to_remove else image_path for image_path in image_paths]
                 image_paths = [os.path.join(self.__images_dir, image_path) for image_path in image_paths]
                 if self.__remove_deid:
                     image_paths = [image_path.replace("/deid/", "/") for image_path in image_paths]
-                data.append({"image_path": image_paths, "labels": row["labels"]})
+                data.append(
+                    {
+                        "image_path": image_paths,
+                        "report_text": row["report_text"] if "report_text" in row else None,
+                        "labels": row["labels"]
+                    }
+                )
 
         # Create traning dataset.
         print("Creating the training dataset")
@@ -137,14 +149,26 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
                 image_path = os.path.relpath(image_path, self.__dir_prefix_to_remove) if self.__dir_prefix_to_remove else image_path
                 if self.__remove_deid:
                     image_path = image_path.replace("/deid/", "/")
-                data.append({"image_path": os.path.join(self.__images_dir, image_path), "labels": row["labels"]})
+                data.append(
+                    {
+                        "image_path": os.path.join(self.__images_dir, image_path),
+                        "report_text": row["report_text"] if "report_text" in row else None,
+                        "labels": row["labels"]
+                    }
+                )
             else:
                 image_paths = row["image_path"]
                 image_paths = [os.path.relpath(image_path, self.__dir_prefix_to_remove) if self.__dir_prefix_to_remove else image_path for image_path in image_paths]
                 image_paths = [os.path.join(self.__images_dir, image_path) for image_path in image_paths]
                 if self.__remove_deid:
                     image_paths = [image_path.replace("/deid/", "/") for image_path in image_paths]
-                data.append({"image_path": image_paths, "labels": row["labels"]})
+                data.append(
+                    {
+                        "image_path": image_paths,
+                        "report_text": row["report_text"] if "report_text" in row else None,
+                        "labels": row["labels"]
+                    }
+                )
 
         # Create validation dataset.
         print("Creating the validation dataset")
@@ -173,14 +197,26 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
                     if files_to_keep and image_path not in files_to_keep:
                         continue
                     image_path = os.path.relpath(image_path, self.__dir_prefix_to_remove) if self.__dir_prefix_to_remove else image_path
-                    data.append({"image_path": os.path.join(self.__images_dir, image_path), "labels": row["labels"]})
+                    data.append(
+                        {
+                            "image_path": os.path.join(self.__images_dir, image_path),
+                            "report_text": row["report_text"] if "report_text" in row else None,
+                            "labels": row["labels"]
+                        }
+                    )
                 else:
                     image_paths = row["image_path"]
                     image_paths = [os.path.relpath(image_path, self.__dir_prefix_to_remove) if self.__dir_prefix_to_remove else image_path for image_path in image_paths]
                     image_paths = [os.path.join(self.__images_dir, image_path) for image_path in image_paths]
                     if self.__remove_deid:
                         image_paths = [image_path.replace("/deid/", "/") for image_path in image_paths]
-                    data.append({"image_path": image_paths, "labels": row["labels"]})
+                    data.append(
+                        {
+                            "image_path": image_paths,
+                            "report_text": row["report_text"] if "report_text" in row else None,
+                            "labels": row["labels"]
+                        }
+                    )
 
             # Create test dataset.
             print("Creating the test dataset")
@@ -265,6 +301,9 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
 
     def get_torch_image(self, item, processor):
         raise NotImplementedError("Not implemented")
+
+    def get_report_text(self, item):
+        return item["report_text"].replace("\\n", "\n") if item["report_text"] is not None else None
 
     def get_labels(self):
         if self.__custom_labels:
