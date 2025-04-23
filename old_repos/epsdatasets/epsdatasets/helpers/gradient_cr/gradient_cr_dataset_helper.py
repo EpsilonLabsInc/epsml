@@ -12,6 +12,7 @@ from torch.utils.data import Dataset, DataLoader
 from epsdatasets.helpers.base.base_dataset_helper import BaseDatasetHelper
 from epsutils.dicom import dicom_utils
 from epsutils.gcs import gcs_utils
+from epsutils.image import image_utils
 from epsutils.labels import labels_utils
 from epsutils.labels.cr_chest_labels import EXTENDED_CR_CHEST_LABELS
 
@@ -249,19 +250,11 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
                     gcs_data = gcs_utils.split_gcs_uri(image_path)
                     image_path = BytesIO(gcs_utils.download_file_as_bytes(gcs_bucket_name=gcs_data["gcs_bucket_name"], gcs_file_name=gcs_data["gcs_path"]))
 
-                image = dicom_utils.get_dicom_image(image_path, custom_windowing_parameters={"window_center": 0, "window_width": 0})
-                image = image.astype(np.float32)
-                eps = 1e-10
-                image = (image - image.min()) / (image.max() - image.min() + eps)
-
-                if self.__convert_images_to_rgb:
-                    image = image * 255
-                    image = image.astype(np.uint8)
-
-                image = Image.fromarray(image)
-
-                if self.__convert_images_to_rgb:
-                    image = image.convert("RGB")
+                if image_path.endswith(".dcm"):
+                    image = dicom_utils.get_dicom_image(dicom_file, custom_windowing_parameters={"window_center": 0, "window_width": 0})
+                    image = image_utils.numpy_array_to_pil_image(image, convert_to_rgb=self.__convert_images_to_rgb)
+                else:
+                    image = Image.open(image_path)
 
                 images.append(image)
 
@@ -279,19 +272,11 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
                 gcs_data = gcs_utils.split_gcs_uri(image_path)
                 image_path = BytesIO(gcs_utils.download_file_as_bytes(gcs_bucket_name=gcs_data["gcs_bucket_name"], gcs_file_name=gcs_data["gcs_path"]))
 
-            image = dicom_utils.get_dicom_image(image_path, custom_windowing_parameters={"window_center": 0, "window_width": 0})
-            image = image.astype(np.float32)
-            eps = 1e-10
-            image = (image - image.min()) / (image.max() - image.min() + eps)
-
-            if self.__convert_images_to_rgb:
-                image = image * 255
-                image = image.astype(np.uint8)
-
-            image = Image.fromarray(image)
-
-            if self.__convert_images_to_rgb:
-                image = image.convert("RGB")
+            if image_path.endswith(".dcm"):
+                image = dicom_utils.get_dicom_image(dicom_file, custom_windowing_parameters={"window_center": 0, "window_width": 0})
+                image = image_utils.numpy_array_to_pil_image(image, convert_to_rgb=self.__convert_images_to_rgb)
+            else:
+                image = Image.open(image_path)
 
             return image
 
