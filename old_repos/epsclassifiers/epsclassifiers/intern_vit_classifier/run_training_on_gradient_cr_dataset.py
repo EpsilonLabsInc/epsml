@@ -214,7 +214,7 @@ def main(config_path):
     def get_text_encodings(samples):
         report_texts = [dataset_helper.get_report_text(item) for item in samples]
         text_encodings = tokenizer(report_texts, padding=True, truncation=True, max_length=128, return_tensors="pt")
-        return text_encodings
+        return report_texts, text_encodings
 
     def get_torch_labels(samples):
         labels = torch.stack([dataset_helper.get_torch_label(item).to(torch.bfloat16) for item in samples])
@@ -226,11 +226,12 @@ def main(config_path):
         if images is None:
             return None
 
-        text_encodings = get_text_encodings(samples) if use_report_text else None
+        report_texts, text_encodings = get_text_encodings(samples) if use_report_text else (None, None)
         labels = get_torch_labels(samples)
 
         data = {
             "images": images,
+            "report_texts": report_texts,
             "text_encodings": text_encodings,
             "file_names": [sample["image_path"] for sample in samples]
         }
