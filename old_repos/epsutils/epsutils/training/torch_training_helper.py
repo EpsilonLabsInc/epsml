@@ -117,6 +117,12 @@ class DataWrapper:
     def get_primary_tensor(self):
         return self.__primary_tensor
 
+    def get_value(self, name):
+        if isinstance(self.__data, dict) and name in self.__data:
+            return self.__data[name]
+        else:
+            return None
+
     def __extract_primary_tensor(self, data):
         if isinstance(data, torch.Tensor):
             return data
@@ -484,7 +490,8 @@ class TorchTrainingHelper:
                     all_embeddings = embeddings if all_embeddings.numel() == 0 else torch.cat((all_embeddings, embeddings), dim=0)
 
                 # Add file names.
-                if len(batch) == 3:
+                file_names = data.get_value("file_names")
+                if file_names is not None:
                     all_file_names.extend(file_names)
 
                 # If 'loss' is a vector, it needs to be averaged.
