@@ -41,7 +41,7 @@ def main(config_path):
     gcs_validation_file            = config["paths"].get("gcs_validation_file", "")
     gcs_extra_filtering_file       = convert_none(config["paths"].get("gcs_extra_filtering_file", None))
     images_dir                     = config["paths"].get("images_dir", "")
-    dir_prefix_to_remove           = config["paths"].get("dir_prefix_to_remove", "")
+    dir_prefix_to_remove           = convert_none(config["paths"].get("dir_prefix_to_remove", None))
     remove_deid                    = config["paths"].get("remove_deid", False)
     output_dir                     = config["paths"].get("output_dir", "")
     perform_intra_epoch_validation = config["training"].get("perform_intra_epoch_validation", False)

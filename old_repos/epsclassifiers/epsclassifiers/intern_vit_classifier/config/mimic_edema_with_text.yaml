@@ -13,7 +13,7 @@ paths:
   gcs_train_file: "gs://aikica/mimic/mimic-edema-training.jsonl"
   gcs_validation_file: "gs://aikica/mimic/mimic-edema-validation.jsonl"
   gcs_extra_filtering_file: None
-  images_dir: "/mnt/efs/all-cxr/mimic-final"
+  images_dir: "/mnt/efs/all-cxr/mimic2-jpg/mimic-cxr-jpg-2.1.0.physionet.org"
   dir_prefix_to_remove: None
   remove_deid: False
   output_dir: "./output"
