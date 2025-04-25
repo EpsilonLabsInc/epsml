@@ -8,9 +8,9 @@ from tqdm import tqdm
 from epsutils.gcs import gcs_utils
 
 GCS_REPORTS_FILE = "gs://report_csvs/cleaned/CR/MIMIC2_filtered.csv"
-TARGET_LABEL = "Edema"
-OUTPUT_TRAINING_FILE = "mimic-edema-training-rui-split.jsonl"
-OUTPUT_VALIDATION_FILE = "mimic-edema-validation-rui-split.jsonl"
+TARGET_LABEL = None
+OUTPUT_TRAINING_FILE = "mimic-all-labels-training-rui-split.jsonl"
+OUTPUT_VALIDATION_FILE = "mimic-all-labels-validation-rui-split.jsonl"
 
 
 def main():
@@ -36,7 +36,10 @@ def main():
         pathologies = ast.literal_eval(row["pathologies"])
         split = row["split"]
 
-        label = [TARGET_LABEL] if TARGET_LABEL in pathologies else []
+        if TARGET_LABEL is not None:
+            label = [TARGET_LABEL] if TARGET_LABEL in pathologies else []
+        else:
+            label = pathologies
 
         assert split in ("train", "test")
 
@@ -48,25 +51,22 @@ def main():
 
     # Print statistics.
 
-    num_positive = num_negative = 0
+    if TARGET_LABEL is not None:
+        num_positive = 0
 
-    for sample in output_training_data:
-        if sample["labels"] == [TARGET_LABEL]:
-            num_positive += 1
-        else:
-            num_negative += 1
+        for sample in output_training_data:
+            if sample["labels"] == [TARGET_LABEL]:
+                num_positive += 1
 
-    print(f"Num {TARGET_LABEL} labels in output training data = {num_positive} / {len(output_training_data)}")
+        print(f"Num {TARGET_LABEL} labels in output training data = {num_positive} / {len(output_training_data)}")
 
-    num_positive = num_negative = 0
+        num_positive = 0
 
-    for sample in output_validation_data:
-        if sample["labels"] == [TARGET_LABEL]:
-            num_positive += 1
-        else:
-            num_negative += 1
+        for sample in output_validation_data:
+            if sample["labels"] == [TARGET_LABEL]:
+                num_positive += 1
 
-    print(f"Num {TARGET_LABEL} labels in output validation data = {num_positive} / {len(output_validation_data)}")
+        print(f"Num {TARGET_LABEL} labels in output validation data = {num_positive} / {len(output_validation_data)}")
 
     # Save output files.
 
