@@ -1,31 +1,15 @@
 general:
   model_name: "intern_vit_classifier"
   dataset_name: "mimic_two_all_labels"
-  run_name: "Chimera (Mimic without text training and validation)"
-  notes: "Chimera, Mimic without text training and validation, loss=SampleBalancedBCEWithLogitsLoss"
-  custom_labels:
-  [
-    "Atelectasis",
-    "Cardiomegaly",
-    "Consolidation",
-    "Edema",
-    "Enlarged Cardiomediastinum",
-    "Fracture",
-    "Lung Lesion",
-    "Lung Opacity",
-    "No Finding",
-    "Pleural Effusion",
-    "Pleural Other",
-    "Pneumonia",
-    "Pneumothorax",
-    "Support Devices"
-  ]
+  run_name: "Chimera (Mimic, single image, no frontal enforce, without text - training and validation)"
+  notes: "Chimera, Mimic, single image, no frontal enforce, without text - training and validation, loss=SampleBalancedBCEWithLogitsLoss"
+  custom_labels: ["Atelectasis", "Cardiomegaly", "Consolidation", "Edema", "Enlarged Cardiomediastinum", "Fracture", "Lung Lesion", "Lung Opacity", "No Finding", "Pleural Effusion", "Pleural Other", "Pneumonia", "Pneumothorax", "Support Devices"]
   do_cropping: False
   use_report_text: False
   save_full_model: False
 
 paths:
-  intern_vl_checkpoint_dir: "/mnt/efs/models/internvl/old/internvl2.5_26b_finetune_lora_20241229_184000_1e-5_2.5_gradient_full_rm_sole_no_findings_rm_bad_dcm_no_label/checkpoint-58670"
+  intern_vl_checkpoint_dir: "/mnt/efs/models/internvl/chimera_26b-2b_20250423_013125_1e-5_2.5_mimic2_6_for_dinotest_label/checkpoint-6320"
   gcs_train_file: "gs://aikica/mimic/mimic-all-labels-training-rui-split.jsonl"
   gcs_validation_file: "gs://aikica/mimic/mimic-all-labels-validation-rui-split.jsonl"
   gcs_extra_filtering_file: None
