@@ -4,7 +4,7 @@ import yaml
 
 from transformers import DistilBertTokenizer
 
-from epsclassifiers.intern_vit_classifier import InternVitClassifier
+from epsclassifiers.intern_vit_classifier import InternVitClassifier, MultiImageInternVitClassifier
 from epsclassifiers.med_image_parse_segmentor import MedImageParseSegmentor
 from epsdatasets.helpers.gradient_cr.gradient_cr_dataset_helper import GradientCrDatasetHelper
 from epsutils.training.sample_balanced_bce_with_logits_loss import SampleBalancedBCEWithLogitsLoss
@@ -36,6 +36,7 @@ def main(config_path):
     save_full_model                = config["general"].get("save_full_model", False)
     do_cropping                    = config["general"].get("do_cropping", False)
     use_report_text                = config["general"].get("use_report_text", False)
+    use_multi_image_model          = config["general"].get("use_multi_image_model", False)
     intern_vl_checkpoint_dir       = config["paths"].get("intern_vl_checkpoint_dir", "")
     gcs_train_file                 = config["paths"].get("gcs_train_file", "")
     gcs_validation_file            = config["paths"].get("gcs_validation_file", "")
@@ -71,6 +72,7 @@ def main(config_path):
     print(f"+ save_full_model: {save_full_model}")
     print(f"+ do_cropping: {do_cropping}")
     print(f"+ use_report_text: {use_report_text}")
+    print(f"+ use_multi_image_model: {use_multi_image_model}")
     print(f"+ intern_vl_checkpoint_dir: {intern_vl_checkpoint_dir}")
     print(f"+ gcs_train_file: {gcs_train_file}")
     print(f"+ gcs_validation_file: {gcs_validation_file}")
@@ -123,12 +125,19 @@ def main(config_path):
 
     # Create the model.
     print("Creating the model")
-    model = InternVitClassifier(num_classes=len(dataset_helper.get_labels()),
-                                intern_vl_checkpoint_dir=intern_vl_checkpoint_dir,
-                                intern_vit_output_dim=3200,  # 3200 for InternVL 26B model, 1024 for InternVL 8B model.
-                                multi_image_input=multi_image_input,
-                                num_multi_images=num_multi_images,
-                                use_text_encodings=use_report_text)
+
+    if use_multi_image_model:
+        model = MultiImageInternVitClassifier(num_classes=len(dataset_helper.get_labels()),
+                                              intern_vl_checkpoint_dir=intern_vl_checkpoint_dir,
+                                              intern_vit_output_dim=3200)  # 3200 for InternVL 26B model, 1024 for InternVL 8B model.
+    else:
+        model = InternVitClassifier(num_classes=len(dataset_helper.get_labels()),
+                                    intern_vl_checkpoint_dir=intern_vl_checkpoint_dir,
+                                    intern_vit_output_dim=3200,  # 3200 for InternVL 26B model, 1024 for InternVL 8B model.
+                                    multi_image_input=multi_image_input,
+                                    num_multi_images=num_multi_images,
+                                    use_text_encodings=use_report_text)
+
     model = model.to("cuda")
     image_processor = model.get_image_processor()
 
@@ -136,8 +145,12 @@ def main(config_path):
         param.requires_grad = True
 
     # Freeze the InternViT.
-    for param in model.intern_vit.parameters():
-        param.requires_grad = False
+    if use_multi_image_model:
+        model.freeze_all_layers()
+        model.unfreeze_classifier()
+    else:
+        for param in model.intern_vit.parameters():
+            param.requires_grad = False
 
     # Prepare the training data.
     print("Preparing the training data")
@@ -176,7 +189,22 @@ def main(config_path):
         if do_cropping:
             segmentor = MedImageParseSegmentor(endpoint_url=SEGMENTATION_ENDPOINT_URL, auth_key=SEGMENTATION_AUTH_KEY)
 
-        if multi_image_input:
+        if use_multi_image_model:
+            try:
+                all_images = []
+
+                for item in samples:
+                    images = dataset_helper.get_pil_image(item)
+                    pixel_values = image_processor(images=images, return_tensors="pt").pixel_values
+                    pixel_values = pixel_values.to(torch.bfloat16)
+                    pixel_values = [torch.unsqueeze(item, dim=0) for item in torch.unbind(pixel_values, dim=0)]  # Unpack tensor to a list of tensors and add batch dim to each one of them.
+                    all_images.append(pixel_values)
+
+                return all_images
+            except Exception as e:
+                return None
+
+        elif multi_image_input:
             try:
                 stack = []
                 for item in samples:
@@ -196,6 +224,7 @@ def main(config_path):
                 return pixel_values
             except:
                 return None
+
         else:
             try:
                 images = [dataset_helper.get_pil_image(item) for item in samples]

@@ -38,7 +38,7 @@ class MultiImageInternVitClassifier(nn.Module):
         dtype = next(self.multi_image_intern_vit.parameters()).dtype
         self.classifier = self.classifier.to(dtype)
 
-    def forward(self, images):
+    def forward(self, images, **kwargs):
         if len(images) < 2:
             raise ValueError("Because of BatchNorm1d that doesn't work on single element batches, MultiImageInternVitClassifier currently supports only batch sizes >= 2")
 
@@ -49,3 +49,11 @@ class MultiImageInternVitClassifier(nn.Module):
 
     def get_image_processor(self):
         return self.__image_processor
+
+    def freeze_all_layers(self):
+        for param in self.parameters():
+            param.requires_grad = False
+
+    def unfreeze_classifier(self):
+        for param in self.classifier.parameters():
+            param.requires_grad = True
