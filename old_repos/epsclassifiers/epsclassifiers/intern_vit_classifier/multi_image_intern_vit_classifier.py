@@ -58,3 +58,7 @@ class MultiImageInternVitClassifier(nn.Module):
     def unfreeze_classifier(self):
         for param in self.classifier.parameters():
             param.requires_grad = True
+
+    def unfreeze_fusion_convolution(self):
+        for param in self.multi_image_intern_vit.fusion_convolution.parameters():
+            param.requires_grad = True

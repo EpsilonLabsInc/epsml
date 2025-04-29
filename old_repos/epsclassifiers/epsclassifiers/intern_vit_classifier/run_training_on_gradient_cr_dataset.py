@@ -130,7 +130,7 @@ def main(config_path):
         model = MultiImageInternVitClassifier(num_classes=len(dataset_helper.get_labels()),
                                               intern_vl_checkpoint_dir=intern_vl_checkpoint_dir,
                                               intern_vit_output_dim=3200,  # 3200 for InternVL 26B model, 1024 for InternVL 8B model.
-                                              encoder_layer_split_number=44)
+                                              encoder_layer_split_number=None)
     else:
         model = InternVitClassifier(num_classes=len(dataset_helper.get_labels()),
                                     intern_vl_checkpoint_dir=intern_vl_checkpoint_dir,
@@ -149,6 +149,7 @@ def main(config_path):
     if use_multi_image_model:
         model.freeze_all_layers()
         model.unfreeze_classifier()
+        model.unfreeze_fusion_convolution()
     else:
         for param in model.intern_vit.parameters():
             param.requires_grad = False
