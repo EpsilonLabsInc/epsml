@@ -108,6 +108,7 @@ class DataWrapper:
                     {sub_key: sub_value.to(device) if isinstance(sub_value, torch.Tensor) else sub_value
                     for sub_key, sub_value in value.items()} if isinstance(value, dict) or isinstance(value, Mapping)
                     else value.to(device) if isinstance(value, torch.Tensor)
+                    else [[item.to(device) for item in sublist if isinstance(item, torch.Tensor)] for sublist in value] if isinstance(value, list)
                     else value
                 )
                 for key, value in self.__data.items()
@@ -129,6 +130,8 @@ class DataWrapper:
         elif isinstance(data, dict):
             if "images" in data and isinstance(data["images"], torch.Tensor):
                 return data["images"]
+            elif "images" in data and isinstance(data["images"], list):
+                return torch.zeros(len(data["images"]))
             else:
                 for value in data.values():
                     if isinstance(value, torch.Tensor):
