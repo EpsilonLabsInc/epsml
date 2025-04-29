@@ -118,3 +118,7 @@ class MultiImageInternVit(nn.Module):
 
     def get_image_processor(self):
         return self.__image_processor
+
+    @property
+    def fusion_convolution(self):
+        return self.__fusion_convolution
