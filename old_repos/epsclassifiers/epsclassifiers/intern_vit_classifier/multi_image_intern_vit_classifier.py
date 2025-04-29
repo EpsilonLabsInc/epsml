@@ -10,13 +10,14 @@ class MultiImageInternVitClassifier(nn.Module):
                  intern_vl_checkpoint_dir,
                  intern_vit_output_dim=1024,  # 3200 for InternVL 26B model, 1024 for InternVL 8B model.
                  hidden_dim=1024,
-                 dropout_rate=0.2):
+                 dropout_rate=0.2,
+                 encoder_layer_split_number=44):
         super().__init__()
 
         print("WARNING: Because of BatchNorm1d that doesn't work on single element batches, MultiImageInternVitClassifier currently supports only batch sizes >= 2")
 
         # MultiImageInternVit model.
-        self.multi_image_intern_vit = MultiImageInternVit(intern_vl_checkpoint_dir=intern_vl_checkpoint_dir)
+        self.multi_image_intern_vit = MultiImageInternVit(intern_vl_checkpoint_dir=intern_vl_checkpoint_dir, encoder_layer_split_number=encoder_layer_split_number)
 
         # Get image processor.
         self.__image_processor = self.multi_image_intern_vit.get_image_processor()
