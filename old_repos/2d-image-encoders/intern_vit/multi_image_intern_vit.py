@@ -6,7 +6,7 @@ from internvl.model.internvl_chat import InternVLChatModel
 
 
 class MultiImageInternVit(nn.Module):
-    def __init__(self, intern_vl_checkpoint_dir, encoder_layer_split_number=22):
+    def __init__(self, intern_vl_checkpoint_dir, encoder_layer_split_number=44):
         super().__init__()
 
         # Create VLM.
@@ -20,6 +20,10 @@ class MultiImageInternVit(nn.Module):
 
         # Extract ViT.
         vit = vlm_model.vision_model
+
+        # Make sure encoder layer split number is valid.
+        num_encoder_layers = len(vit.encoder.layers)
+        assert(encoder_layer_split_number > 0 and encoder_layer_split_number < num_encoder_layers)
 
         # Split the model.
         self.__embeddings = vit.embeddings
