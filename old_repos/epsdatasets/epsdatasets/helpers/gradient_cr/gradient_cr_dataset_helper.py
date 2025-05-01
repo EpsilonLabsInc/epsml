@@ -12,6 +12,7 @@ from torch.utils.data import Dataset, DataLoader
 from epsdatasets.helpers.base.base_dataset_helper import BaseDatasetHelper
 from epsutils.dicom import dicom_utils
 from epsutils.gcs import gcs_utils
+from epsutils.image import image_augmentation
 from epsutils.image import image_utils
 from epsutils.labels import labels_utils
 from epsutils.labels.cr_chest_labels import EXTENDED_CR_CHEST_LABELS
@@ -27,7 +28,8 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
                  dir_prefix_to_remove=None,
                  remove_deid=False,
                  convert_images_to_rgb=True,
-                 custom_labels=None):
+                 custom_labels=None,
+                 apply_data_augmentation=False):
         """
         Initializes the GradientCrDatasetHelper with the specified parameters.
 
@@ -41,6 +43,7 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
             remove_deid (bool, optional): If True, '/deid/' subdir will be removed from the output paths.
             convert_images_to_rgb (bool, optional): If True, loaded images will be converted to RGB before being returned.
             custom_labels ((List[str], optional): Custom labels to be used. If None, default EXTENDED_CR_CHEST_LABELS will be used.
+            apply_data_augmentation (bool, optional): If True, loaded images will augmented.
         """
         super().__init__(gcs_train_file=gcs_train_file,
                          gcs_validation_file=gcs_validation_file,
@@ -50,7 +53,8 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
                          dir_prefix_to_remove=dir_prefix_to_remove,
                          remove_deid=remove_deid,
                          convert_images_to_rgb=convert_images_to_rgb,
-                         custom_labels=custom_labels)
+                         custom_labels=custom_labels,
+                         apply_data_augmentation=apply_data_augmentation)
 
     def _load_dataset(self, *args, **kwargs):
         # Store params.
@@ -63,6 +67,7 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
         self.__remove_deid = kwargs["remove_deid"] if "remove_deid" in kwargs else next((arg for arg in args if arg == "remove_deid"), None)
         self.__convert_images_to_rgb = kwargs["convert_images_to_rgb"] if "convert_images_to_rgb" in kwargs else next((arg for arg in args if arg == "convert_images_to_rgb"), None)
         self.__custom_labels = kwargs["custom_labels"] if "custom_labels" in kwargs else next((arg for arg in args if arg == "custom_labels"), None)
+        self.__apply_data_augmentation = kwargs["apply_data_augmentation"] if "apply_data_augmentation" in kwargs else next((arg for arg in args if arg == "apply_data_augmentation"), None)
 
         self.__pandas_full_dataset = None
         self.__pandas_train_dataset = None
@@ -125,11 +130,40 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
         # Create traning dataset.
         print("Creating the training dataset")
         self.__pandas_train_dataset = pd.DataFrame(data)
+        self.__pandas_train_dataset["augmentation_params"] = None
 
         # Print training dataset.
         print(f"The training dataset has {len(self.__pandas_train_dataset)} rows")
         print("Training dataset head:")
         print(self.__pandas_train_dataset.head())
+
+        # Data augmentation.
+        if self.__apply_data_augmentation:
+            print("Applying data augmentation")
+
+            num_augmentations = 5
+            seed = 42
+
+            num_augmented_images = len(self.__pandas_train_dataset) * num_augmentations
+            augmentation_params = image_augmentation.generate_augmentation_parameters(num_images=num_augmented_images, seed=seed)
+            augmented_dataset = pd.concat([self.__pandas_train_dataset] * num_augmentations, ignore_index=True)
+            assert len(augmentation_params) == len(augmented_dataset)
+            augmented_dataset["augmentation_params"] = augmentation_params
+
+            org_size = len(self.__pandas_train_dataset)
+            self.__pandas_train_dataset = pd.concat([self.__pandas_train_dataset, augmented_dataset], ignore_index=True)
+
+            print(f"Data augmented training dataset has {len(self.__pandas_train_dataset)} rows")
+            print("Data augmented training dataset head:")
+            print(self.__pandas_train_dataset.head())
+
+            print("Sanity check")
+            for index in range(3):
+                for i in range(num_augmentations):
+                    row = self.__pandas_train_dataset.iloc[index + i * org_size]
+                    print(f"{row['image_path']}: {row['augmentation_params']}")
+        else:
+            print("No data augmentation will be applied")
 
         # Download validation file.
         print("Downloading the validation file")
@@ -256,6 +290,12 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
                 else:
                     image = Image.open(image_path)
 
+                if "augmentation_params" in item and item["augmentation_params"] is not None:
+                    image = image_augmentation.augment_image(image=image,
+                                                             rotation_in_degrees=item["augmentation_params"]["rotation_in_degrees"],
+                                                             scaling=item["augmentation_params"]["scaling"],
+                                                             translation=item["augmentation_params"]["translation"])
+
                 images.append(image)
 
             except Exception as e:
@@ -277,6 +317,12 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
                 image = image_utils.numpy_array_to_pil_image(image, convert_to_rgb=self.__convert_images_to_rgb)
             else:
                 image = Image.open(image_path)
+
+            if "augmentation_params" in item and item["augmentation_params"] is not None:
+                image = image_augmentation.augment_image(image=image,
+                                                         rotation_in_degrees=item["augmentation_params"]["rotation_in_degrees"],
+                                                         scaling=item["augmentation_params"]["scaling"],
+                                                         translation=item["augmentation_params"]["translation"])
 
             return image
 
