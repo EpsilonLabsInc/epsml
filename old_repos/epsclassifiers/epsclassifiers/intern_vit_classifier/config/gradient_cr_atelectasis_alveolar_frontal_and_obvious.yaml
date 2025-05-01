@@ -4,17 +4,16 @@ general:
   run_name: "26B with no labels (training and validation on frontal obvious alveolar cases)"
   notes: "InternVL model: 26B with no labels, training and validation on frontal obvious alveolar cases, loss=SampleBalancedBCEWithLogitsLoss"
   custom_labels: ["Atelectasis"]
-  # custom_labels: None
   save_full_model: False
 
 paths:
-  intern_vl_checkpoint_dir: "/workspace/models/old/internvl2.5_26b_finetune_lora_20241229_184000_1e-5_2.5_gradient_full_rm_sole_no_findings_rm_bad_dcm_no_label/checkpoint-58670"
+  intern_vl_checkpoint_dir: "/mnt/efs/models/internvl/old/internvl2.5_26b_finetune_lora_20241229_184000_1e-5_2.5_gradient_full_rm_sole_no_findings_rm_bad_dcm_no_label/checkpoint-58670"
   gcs_train_file: "gs://gradient-crs/archive/training/individual-labels/atelectasis/gradient-crs-all-batches-chest-images-with-obvious-atelectasis-alveolar-label-training.jsonl"
   gcs_validation_file: "gs://gradient-crs/archive/training/individual-labels/atelectasis/gradient-crs-all-batches-chest-images-with-obvious-atelectasis-alveolar-label-validation.jsonl"
   gcs_extra_filtering_file: "gs://gradient-crs/archive/training/projections/gradient-crs-22JUL2024-chest-only-frontal-projections.csv"
-  images_dir: "/workspace/CR"
+  images_dir: "/mnt/efs/all-cxr/gradient"
   dir_prefix_to_remove: "GRADIENT-DATABASE/CR"
-  remove_deid: True
+  remove_deid: False
   output_dir: "./output"
 
 training:
