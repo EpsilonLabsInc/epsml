@@ -4,11 +4,8 @@ import random
 
 def augment_image(image, rotation_in_degrees, scaling, translation):
     """
-    Applies data augmentation to a given PIL image, using given rotation, scaling and translation.
+    Applies data augmentation to a given PIL image using given rotation, scaling and translation.
     """
-
-    if seed is not None:
-        random.seed(seed)
 
     width, height = image.size
 
@@ -38,7 +35,7 @@ def random_augment_image(image,
                          max_translation=0.15,
                          seed=None):
     """
-    Applies random data augmentation to a given PIL image, using random rotation, random scaling and random translation.
+    Applies random data augmentation to a given PIL image using random rotation, random scaling and random translation.
     """
 
     if seed is not None:
