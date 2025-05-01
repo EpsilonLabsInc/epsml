@@ -37,6 +37,7 @@ def main(config_path):
     do_cropping                    = config["general"].get("do_cropping", False)
     use_report_text                = config["general"].get("use_report_text", False)
     use_multi_image_model          = config["general"].get("use_multi_image_model", False)
+    apply_data_augmentation        = config["general"].get("apply_data_augmentation", False)
     intern_vl_checkpoint_dir       = config["paths"].get("intern_vl_checkpoint_dir", "")
     gcs_train_file                 = config["paths"].get("gcs_train_file", "")
     gcs_validation_file            = config["paths"].get("gcs_validation_file", "")
@@ -73,6 +74,7 @@ def main(config_path):
     print(f"+ do_cropping: {do_cropping}")
     print(f"+ use_report_text: {use_report_text}")
     print(f"+ use_multi_image_model: {use_multi_image_model}")
+    print(f"+ apply_data_augmentation: {apply_data_augmentation}")
     print(f"+ intern_vl_checkpoint_dir: {intern_vl_checkpoint_dir}")
     print(f"+ gcs_train_file: {gcs_train_file}")
     print(f"+ gcs_validation_file: {gcs_validation_file}")
@@ -115,7 +117,8 @@ def main(config_path):
         images_dir=images_dir,
         dir_prefix_to_remove=dir_prefix_to_remove,
         remove_deid=remove_deid,
-        custom_labels=custom_labels
+        custom_labels=custom_labels,
+        apply_data_augmentation=apply_data_augmentation
     )
 
     print(f"Using the following labels: {dataset_helper.get_labels()}")
