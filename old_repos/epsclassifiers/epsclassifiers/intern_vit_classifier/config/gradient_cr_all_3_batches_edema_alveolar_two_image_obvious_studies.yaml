@@ -1,20 +1,21 @@
 general:
   model_name: "intern_vit_classifier"
   dataset_name: "gradient_cr_edema"
-  run_name: "26B with no labels (all 3 batches, per-two-image-study training and validation on obvious alveolar cases)"
-  notes: "InternVL model: 26B with no labels, all 3 batches, per-two-image-study training and validation on obvious alveolar cases, loss=SampleBalancedBCEWithLogitsLoss"
+  run_name: "26B with no labels (all 3 batches, per-two-image-study data augmentation training and validation on obvious alveolar cases)"
+  notes: "InternVL model: 26B with no labels, all 3 batches, per-two-image-study data augmentation training and validation on obvious alveolar cases, loss=SampleBalancedBCEWithLogitsLoss"
   custom_labels: ["Edema"]
   # custom_labels: None
   save_full_model: False
+  apply_data_augmentation: True
 
 paths:
-  intern_vl_checkpoint_dir: "/workspace/models/old/internvl2.5_26b_finetune_lora_20241229_184000_1e-5_2.5_gradient_full_rm_sole_no_findings_rm_bad_dcm_no_label/checkpoint-58670"
+  intern_vl_checkpoint_dir: "/mnt/efs/models/internvl/old/internvl2.5_26b_finetune_lora_20241229_184000_1e-5_2.5_gradient_full_rm_sole_no_findings_rm_bad_dcm_no_label/checkpoint-58670"
   gcs_train_file: "gs://gradient-crs/archive/training/individual-labels/edema/gradient-crs-all-batches-two-image-study-chest-images-with-obvious-edema-alveolar-label-training.jsonl"
   gcs_validation_file: "gs://gradient-crs/archive/training/individual-labels/edema/gradient-crs-all-batches-two-image-study-chest-images-with-obvious-edema-alveolar-label-validation.jsonl"
   gcs_extra_filtering_file: None
-  images_dir: "/workspace/CR"
+  images_dir: "/mnt/efs/all-cxr/gradient"
   dir_prefix_to_remove: "GRADIENT-DATABASE/CR"
-  remove_deid: True
+  remove_deid: False
   output_dir: "./output"
 
 training:
