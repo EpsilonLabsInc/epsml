@@ -16,13 +16,12 @@ OUTPUT_ANNOTATION_FILE = "/home/andrej/tmp/pleural_effusion_20250418_tmaung_with
 def main():
     print("Downloading reports file")
 
-    # gcs_data = gcs_utils.split_gcs_uri(GCS_REPORTS_FILE)
-    # content = gcs_utils.download_file_as_string(gcs_bucket_name=gcs_data["gcs_bucket_name"], gcs_file_name=gcs_data["gcs_path"])
+    gcs_data = gcs_utils.split_gcs_uri(GCS_REPORTS_FILE)
+    content = gcs_utils.download_file_as_string(gcs_bucket_name=gcs_data["gcs_bucket_name"], gcs_file_name=gcs_data["gcs_path"])
 
     print("Loading reports file")
 
-    # df = pd.read_csv(StringIO(content), low_memory=False)
-    df = pd.read_csv("/home/andrej/tmp/GRADIENT_CR_ALL_CHEST_BATCHES_cleaned.csv", low_memory=False)
+    df = pd.read_csv(StringIO(content), low_memory=False)
     df = df[["report_text", "cleaned_report_text", "image_paths"]]
 
     print("Creating reports dictionary")
