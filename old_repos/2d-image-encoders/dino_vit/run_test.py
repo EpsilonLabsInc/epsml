@@ -11,6 +11,7 @@ IMAGE_PATH = "./samples/sample.dcm"
 def main():
     # Create model.
     model = DinoVit(dino_vit_type=DinoVitType.LARGE, dino_vit_checkpoint=CHECKPOINT)
+    model.eval()
     model = model.to("cuda")
 
     # Get image processor.
@@ -23,7 +24,8 @@ def main():
     pixel_values = pixel_values.cuda()
 
     # Run inference.
-    output = model(pixel_values)
+    with torch.no_grad():
+        output = model(pixel_values)
 
     print(f"Input tensor size: {pixel_values.shape}")
     print("Output:")

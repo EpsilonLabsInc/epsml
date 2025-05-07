@@ -1,3 +1,4 @@
+import torch
 from PIL import Image
 
 from epsutils.dicom import dicom_utils
@@ -9,6 +10,7 @@ IMAGE_PATH = "./samples/sample.dcm"
 def main():
     # Create model.
     model = RadDinoVit()
+    model.eval()
     model = model.to("cuda")
 
     # Get image processor.
@@ -21,7 +23,8 @@ def main():
     pixel_values = pixel_values.cuda()
 
     # Run inference.
-    output = model(pixel_values)
+    with torch.no_grad():
+        output = model(pixel_values)
 
     print(f"Input tensor size: {pixel_values.shape}")
     print("Output:")
