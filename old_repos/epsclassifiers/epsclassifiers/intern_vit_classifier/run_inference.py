@@ -6,11 +6,11 @@ from PIL import Image
 
 from epsutils.dicom import dicom_utils
 from epsutils.gcs import gcs_utils
-from epsutils.labels.cr_chest_labels import EXTENDED_CR_CHEST_LABELS
+from epsutils.image import image_utils
 from epsclassifiers.intern_vit_classifier import InternVitClassifier
 
-INITIAL_CHECKPOINT_DIR = "/home/andrej/mnt/models/training/internvl2.5_26b_finetune_lora_20241229_184000_1e-5_2.5_gradient_full_rm_sole_no_findings_rm_bad_dcm_no_label/checkpoint-58670"
-TRAINING_CHECKPOINT = "/home/andrej/mnt/models/output/intern_vit_classifier-finetuning-on-gradient_cr/checkpoint/internvit_classifier_26b_no_labels_checkpoint.pt"
+INITIAL_CHECKPOINT_DIR = "/mnt/efs/models/internvl/old/internvl2.5_26b_finetune_lora_20241229_184000_1e-5_2.5_gradient_full_rm_sole_no_findings_rm_bad_dcm_no_label/checkpoint-58670"
+TRAINING_CHECKPOINT = "/home/andrej/tmp/checkpoint/pneumonia/checkpoint_epoch_4_20250307_040022_utc.pt"
 SHOW_CONDENSED_RESULTS = True
 IMAGE_GCS_URI_LIST = [
     "gs://epsilon-data-us-central1/GRADIENT-DATABASE/CR/22JUL2024/GRDNDAVUSE39U08F/GRDN4FFS5ZTYB14G/studies/1.2.826.0.1.3680043.8.498.78181900056882406186628082793731723194/series/1.2.826.0.1.3680043.8.498.50034729269282488548399764152887492003/instances/1.2.826.0.1.3680043.8.498.55440357540027523193668070801511156312.dcm",
@@ -30,7 +30,7 @@ IMAGE_GCS_URI_LIST = [
 
 
 def main():
-    classifier = InternVitClassifier(num_classes=len(EXTENDED_CR_CHEST_LABELS), intern_vl_checkpoint_dir=INITIAL_CHECKPOINT_DIR, intern_vit_output_dim=3200)
+    classifier = InternVitClassifier(num_classes=1, intern_vl_checkpoint_dir=INITIAL_CHECKPOINT_DIR, intern_vit_output_dim=3200)
     training_checkpoint = torch.load(TRAINING_CHECKPOINT)
     classifier.load_state_dict(training_checkpoint["model_state_dict"])
     classifier = classifier.to("cuda")
@@ -42,38 +42,28 @@ def main():
         data = gcs_utils.download_file_as_bytes(gcs_bucket_name=gcs_data["gcs_bucket_name"], gcs_file_name=gcs_data["gcs_path"])
 
         image = dicom_utils.get_dicom_image(BytesIO(data), custom_windowing_parameters={"window_center": 0, "window_width": 0})
-        image = image.astype(np.float32)
-        eps = 1e-10
-        image = (image - image.min()) / (image.max() - image.min() + eps) * 255
-        image = image.astype(np.uint8)
-        image = Image.fromarray(image)
-        image = image.convert("RGB")
+        image = image_utils.numpy_array_to_pil_image(image, convert_to_uint8=True, convert_to_rgb=True)
 
         pixel_values = image_processor(images=[image, image], return_tensors="pt").pixel_values
         pixel_values = pixel_values.to(torch.bfloat16).cuda()
 
         # Run inference.
-        output = classifier(pixel_values)[0]
-        probabilities = torch.sigmoid(output)
-        indices = torch.where(probabilities >= 0.5)[0]
-        labels = [EXTENDED_CR_CHEST_LABELS[i.item()] for i in indices]
+        output = classifier(pixel_values)
+        output = output["output"][0]
+        prob = torch.sigmoid(output)
 
         if SHOW_CONDENSED_RESULTS:
-            print(labels)
+            print(prob)
         else:
             print("--------------------------------------------------------")
             print("")
             print(f"GCS URI: {image_path}")
-            print(f"Labels: {labels}")
-            print(f"All labels: {EXTENDED_CR_CHEST_LABELS}")
-            print(f"Probabilities: {probabilities}")
+            print(f"Probability: {prob}")
             print("")
 
         del pixel_values
         del output
-        del probabilities
-        del indices
-        del labels
+        del prob
         torch.cuda.empty_cache()
 
 
