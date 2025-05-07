@@ -4,10 +4,10 @@ from PIL import Image
 from epsutils.dicom import dicom_utils
 from epsclassifiers.intern_vit_classifier import InternVitClassifier
 
-CHECKPOINT_DIR = "/workspace/models/internvl2.5_26b_finetune_lora_20241229_184000_1e-5_2.5_gradient_full_rm_sole_no_findings_rm_bad_dcm_no_label/checkpoint-58670"
+CHECKPOINT_DIR = "/mnt/efs/models/internvl/old/internvl2.5_26b_finetune_lora_20241229_184000_1e-5_2.5_gradient_full_rm_sole_no_findings_rm_bad_dcm_no_label/checkpoint-58670"
 IMAGE_PATH = "./samples/sample.dcm"
 USE_LARGER_MODEL = True
-USE_TILES = True
+USE_TILES = False
 
 
 def main():

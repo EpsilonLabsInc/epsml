@@ -10,6 +10,7 @@ IMAGE_PATH = "./samples/sample.dcm"
 
 def main():
     classifier = DinoVitClassifier(num_classes=14, dino_vit_checkpoint=CHECKPOINT)
+    classifier.eval()
     classifier = classifier.to("cuda")
     image_processor = classifier.get_image_processor()
 
@@ -20,7 +21,8 @@ def main():
     pixel_values = pixel_values.cuda()
 
     # Run inference.
-    output = classifier(pixel_values)
+    with torch.no_grad():
+        output = classifier(pixel_values)
 
     print(f"Input tensor size: {pixel_values.shape}")
     print("Output:")
