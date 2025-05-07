@@ -34,6 +34,7 @@ def main():
     print(f"Input tensor size: {pixel_values.shape}")
     print("Output:")
     print(output)
+    output = output["output"]
     print(f"Output type: {type(output)}")
     print(f"Output size: {output.shape}")
 
