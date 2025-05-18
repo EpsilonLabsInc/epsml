@@ -1,8 +1,8 @@
 import matplotlib.pyplot as plt
 
 
-def generate_histogram(data, title=None, x_label=None, y_label=None, x_labels_rotation_angle=None, add_values_to_x_labels=False):
-    if add_values_to_x_labels:
+def generate_histogram(data, title=None, x_label=None, y_label=None, x_labels_rotation_angle=None, show_x_labels_with_values=False):
+    if show_x_labels_with_values:
         data = {f"{key} ({value:,})": value for key, value in data.items()}
 
     categories = list(data.keys())
