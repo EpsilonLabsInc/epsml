@@ -4,7 +4,17 @@ import random
 
 def augment_image(image, rotation_in_degrees, scaling, translation):
     """
-    Applies data augmentation to a given PIL image using given rotation, scaling and translation.
+    Applies data augmentation to a given PIL image using given rotation, scaling, and translation.
+
+    Parameters:
+        image (PIL.Image.Image): The input image to be augmented.
+        rotation_in_degrees (float): The angle in degrees by which the image is rotated.
+        scaling (float): The scaling factor applied to the image. Values > 1.0 enlarge the image,
+                         while values < 1.0 shrink it.
+        translation (float): The fraction of the image's width and height by which it is translated.
+
+    Returns:
+        PIL.Image.Image: The augmented image after applying rotation, scaling, and translation.
     """
 
     width, height = image.size
