@@ -64,7 +64,7 @@ def get_unique_report_text_keys(aws_s3_reports_file):
     unique_keys = merged_keys
 
     # Compute percentage.
-    unique_keys = {key: f"{value} ({round((value / (index + 1)) * 100, 2)}%)" for key, value in unique_keys.items()}
+    unique_keys = {key: f"{value} ({round((value / len(df)) * 100, 2)}%)" for key, value in unique_keys.items()}
 
     print("Unique keys:")
     for key, value in unique_keys.items():
