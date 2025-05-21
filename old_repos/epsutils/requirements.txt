@@ -20,3 +20,4 @@ wandb
 google-cloud-storage
 monai
 ipywidgets
+boto3
