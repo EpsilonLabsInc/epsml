@@ -1,5 +1,6 @@
 import argparse
 import re
+from collections import defaultdict
 from enum import Enum
 from io import BytesIO
 
@@ -39,6 +40,7 @@ def get_unique_report_text_keys(aws_s3_reports_file):
 
     for index, row in tqdm(df.iterrows(), total=len(df), desc="Processing"):
         keys = re.findall(pattern, row["report"])
+        keys = [key.upper() for key in keys]
 
         for key in keys:
             if key in unique_keys:
@@ -46,8 +48,27 @@ def get_unique_report_text_keys(aws_s3_reports_file):
             else:
                 unique_keys[key] = 1
 
+    # Sort unique keys.
+    unique_keys = dict(sorted(unique_keys.items(), key=lambda item: item[1], reverse=True))
+
+    # Merge singular and plural.
+    merged_keys = defaultdict(int)
+    for key, value in unique_keys.items():
+        if (key.endswith("S") and key.rstrip("S") in unique_keys) or (not key.endswith("S") and (key + "S") in unique_keys):
+            singular_key = key.rstrip("S")
+            base_key = f"{singular_key}(S)"
+        else:
+            base_key = key
+        merged_keys[base_key] += value
+
+    unique_keys = merged_keys
+
+    # Compute percentage.
+    unique_keys = {key: f"{value} ({round((value / (index + 1)) * 100, 2)}%)" for key, value in unique_keys.items()}
+
     print("Unique keys:")
-    print(unique_keys)
+    for key, value in unique_keys.items():
+        print(f"{key}: {value}")
 
 
 def main(args):
