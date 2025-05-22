@@ -37,21 +37,6 @@ PARTIAL_REPORTS_FILE_COLUMNS_MAPPING = {
 }
 
 
-def delete_zip_archives(dataset_root_dir):
-    zip_paths = []
-
-    print("Searching for ZIP archives")
-
-    for foldername, _, filenames in os.walk(dataset_root_dir):
-        zip_paths.extend(os.path.join(foldername, f) for f in filenames if f.endswith(".zip"))
-
-    print("Deleting ZIP archives")
-
-    for zip_path in tqdm(zip_paths, total=len(zip_paths), desc="Processing", unit="file"):
-        if os.path.exists(zip_path):
-            os.remove(zip_path)
-
-
 def merge_reports_files(dataset_root_dir, master_reports_file_path, output_reports_file_path):
     # Load master reports file.
 
@@ -140,28 +125,23 @@ def main(args):
 
     # Extract ZIP archives.
     if args.extract_zip_archives:
-        zip_utils.extract_zip_archives(args.dataset_root_dir)
+        zip_utils.extract_zip_archives(root_dir=args.dataset_root_dir,
+                                       delete_after_extraction=args.delete_zip_archives_after_extraction)
     else:
         print("Skipping extraction of ZIP archives")
-
-    # Delete ZIP archives.
-    if args.delete_zip_archives_when_finished:
-        delete_zip_archives(args.dataset_root_dir)
-    else:
-        print("Skipping deletion of ZIP archives")
 
 
 if __name__ == "__main__":
     DATASET_ROOT_DIR = "/mnt/efs/all-cxr/segmed/batch1"
     MASTER_REPORTS_FILE_PATH = "/mnt/efs/all-cxr/segmed/batch1/CO2_354/CO2_588_Batch_1_Part_1_delivered_studies.csv"
     EXTRACT_ZIP_ARCHIVES = True
-    DELETE_ZIP_ARCHIVES_WHEN_FINISHED = True
+    DELETE_ZIP_ARCHIVES_AFTER_EXTRACTION = True
     OUTPUT_REPORTS_FILE_PATH = "/mnt/efs/all-cxr/segmed/batch1/segmed_batch_1_merged_reports.csv"
 
     args = argparse.Namespace(dataset_root_dir=DATASET_ROOT_DIR,
                               master_reports_file_path=MASTER_REPORTS_FILE_PATH,
                               extract_zip_archives=EXTRACT_ZIP_ARCHIVES,
-                              delete_zip_archives_when_finished=DELETE_ZIP_ARCHIVES_WHEN_FINISHED,
+                              delete_zip_archives_after_extraction=DELETE_ZIP_ARCHIVES_AFTER_EXTRACTION,
                               output_reports_file_path=OUTPUT_REPORTS_FILE_PATH)
 
     main(args)
