@@ -1,16 +1,20 @@
 import os
 import zipfile
 from concurrent.futures import ThreadPoolExecutor
+from functools import partial
 
 from tqdm import tqdm
 
 
-def extract_zip_archive(zip_path):
+def extract_zip_archive(zip_path, delete_after_extraction=False):
     with zipfile.ZipFile(zip_path, "r") as zip_ref:
         zip_ref.extractall(os.path.dirname(zip_path))
 
+    if delete_after_extraction and os.path.exists(zip_path):
+        os.remove(zip_path)
 
-def extract_zip_archives(root_dir, max_workers=8):
+
+def extract_zip_archives(root_dir, max_workers=8, delete_after_extraction=False):
     zip_paths = []
 
     print("Searching for ZIP archives")
@@ -20,5 +24,7 @@ def extract_zip_archives(root_dir, max_workers=8):
 
     print("Extracting ZIP archives")
 
+    extract_with_delete = partial(extract_zip_archive, delete_after_extraction=delete_after_extraction)
+
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        list(tqdm(executor.map(extract_zip_archive, zip_paths), total=len(zip_paths), desc="Processing", unit="file"))
+        list(tqdm(executor.map(extract_with_delete, zip_paths), total=len(zip_paths), desc="Processing", unit="file"))
