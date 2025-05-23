@@ -78,9 +78,11 @@ class InternVitClassifier(nn.Module):
             images_reshaped = images.view(batch * group, num_channels, height, width)
             output = self.intern_vit(images_reshaped)
             embeddings = output.pooler_output.reshape(batch, -1)
+            last_hidden_state = output.last_hidden_state.reshape(batch, -1)
         else:
             output = self.intern_vit(images)
             embeddings = output.pooler_output
+            last_hidden_state = output.last_hidden_state
 
         if self.__use_text_encodings:
             text_output = self.__text_embeddings_generator(**text_encodings)
@@ -94,7 +96,7 @@ class InternVitClassifier(nn.Module):
 
         output = self.classifier(embeddings)
 
-        return {"output": output, "embeddings": embeddings}
+        return {"output": output, "embeddings": embeddings, "last_hidden_state": last_hidden_state}
 
     def get_image_processor(self):
         return self.__image_processor
