@@ -126,9 +126,9 @@ def find_study_images(dataset_root_dir, df_row):
     # indicating that study images were spread across multiple ZIP files.
 
     if not isinstance(zip_file_index, tuple):
-        zip_file_index = [zip_file_index]
+        zip_file_index = (zip_file_index,)
 
-    # Generate base dir by joining dataset root dir and dataset ID od the current study.
+    # Generate base dir by joining dataset root dir and dataset ID of the current study.
 
     base_dir = os.path.join(dataset_root_dir, dataset_id)
 
