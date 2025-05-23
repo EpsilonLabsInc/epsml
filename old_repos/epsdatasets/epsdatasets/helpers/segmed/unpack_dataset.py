@@ -158,7 +158,7 @@ def find_study_images(dataset_root_dir, df_row):
     return image_paths
 
 
-def map_image_paths(reports_df, dataset_root_dir):
+def map_image_paths(reports_df, dataset_root_dir, images_base_path):
     print("Mapping image paths")
 
     df_rows = reports_df.to_dict(orient="records")
@@ -168,6 +168,7 @@ def map_image_paths(reports_df, dataset_root_dir):
 
     mapped_df = reports_df.copy()
     mapped_df["image_paths"] = image_paths
+    mapped_df["image_paths"] = mapped_df["image_paths"].apply(lambda paths: [str(Path(path).relative_to(images_base_path)) for path in paths])
 
     return mapped_df
 
@@ -189,7 +190,8 @@ def main(args):
 
     # Map image paths.
     reports_df = map_image_paths(reports_df=reports_df,
-                                 dataset_root_dir=args.dataset_root_dir)
+                                 dataset_root_dir=args.dataset_root_dir,
+                                 images_base_path=args.output_base_path)
 
     # Save reports.
     save_reports(reports_df=reports_df,
@@ -202,11 +204,13 @@ if __name__ == "__main__":
     EXTRACT_ZIP_ARCHIVES = True
     DELETE_ZIP_ARCHIVES_AFTER_EXTRACTION = True
     OUTPUT_REPORTS_FILE_PATH = "/mnt/efs/all-cxr/segmed/batch1/segmed_batch_1_merged_reports_with_image_paths.csv"
+    OUTPUT_BASE_PATH = "/mnt/efs/all-cxr/segmed/batch1"
 
     args = argparse.Namespace(dataset_root_dir=DATASET_ROOT_DIR,
                               master_reports_file_path=MASTER_REPORTS_FILE_PATH,
                               extract_zip_archives=EXTRACT_ZIP_ARCHIVES,
                               delete_zip_archives_after_extraction=DELETE_ZIP_ARCHIVES_AFTER_EXTRACTION,
-                              output_reports_file_path=OUTPUT_REPORTS_FILE_PATH)
+                              output_reports_file_path=OUTPUT_REPORTS_FILE_PATH,
+                              output_base_path=OUTPUT_BASE_PATH)
 
     main(args)
