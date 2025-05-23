@@ -43,9 +43,20 @@ def compare_dates(date_str1, date_str2, allow_empty_dates=True):
         if date_str1.strip() == date_str2.strip():
             return True
 
-    date1 = parse(date_str1)
-    date2 = parse(date_str2)
+    date1 = parse(date_str1).strftime("%Y%m%d")
+    date2 = parse(date_str2).strftime("%Y%m%d")
     return date1 == date2
+
+
+def age_to_years(age):
+    age = str(age)
+
+    if age.upper().endswith("M"):
+        return 0
+    elif age.upper().endswith("Y"):
+        return int(age[:-1])
+    else:
+        return int(age)
 
 
 def read_dicom_tags_from_dataset(dataset: pydicom.dataset.FileDataset, tags):
