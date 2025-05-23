@@ -1,5 +1,8 @@
 import argparse
+import ast
 import os
+from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
 
 import pandas as pd
 from tqdm import tqdm
@@ -37,7 +40,7 @@ PARTIAL_REPORTS_FILE_COLUMNS_MAPPING = {
 }
 
 
-def merge_reports_files(dataset_root_dir, master_reports_file_path, output_reports_file_path):
+def merge_reports_files(master_reports_file_path, dataset_root_dir):
     # Load master reports file.
 
     print("Loading master reports file")
@@ -110,25 +113,87 @@ def merge_reports_files(dataset_root_dir, master_reports_file_path, output_repor
         for col in missing_cols:
             master_df.loc[master_index, col] = merged_row[col]
 
-    # Save the output file.
+    return master_df
 
-    print("Saving the output file")
 
-    master_df.to_csv(output_reports_file_path, index=False)
+def find_study_images(dataset_root_dir, df_row):
+    dataset_id = str(df_row["dataset_id"])
+    patient_id = df_row["patient_id"]
+    study_id = str(df_row["study_id"])
+    zip_file_index = ast.literal_eval(df_row["zip_file_index"])
+
+    # ZIP file index can be either a single integer or a tuple,
+    # indicating that study images were spread across multiple ZIP files.
+
+    if not isinstance(zip_file_index, tuple):
+        zip_file_index = [zip_file_index]
+
+    # Generate base dir by joining dataset root dir and dataset ID od the current study.
+
+    base_dir = os.path.join(dataset_root_dir, dataset_id)
+
+    # Find all subdirs of the base dir ending with "-{zip_file_index}"
+
+    sub_dirs = []
+
+    for index in zip_file_index:
+        suffix = f"-{index}"
+        sub_dirs.extend([str(d) for d in Path(base_dir).iterdir() if d.is_dir() and d.name.endswith(suffix)])
+
+    # Append study_id to each of the subdirs.
+
+    study_dirs = [os.path.join(sub_dir, study_id) for sub_dir in sub_dirs if os.path.exists(os.path.join(sub_dir, study_id))]
+
+    if len(study_dirs) == 0:
+        print(f"WARNING: No study dirs found in {base_dir} (patient ID: {patient_id}, study ID: {study_id}, ZIP file index: {zip_file_index})")
+        return []
+
+    # Find all the images in the study dirs.
+
+    image_paths = []
+
+    for study_dir in study_dirs:
+        image_paths.extend([str(image_path) for image_path in Path(study_dir).rglob("*.dcm")])
+
+    return image_paths
+
+
+def map_image_paths(reports_df, dataset_root_dir):
+    print("Mapping image paths")
+
+    df_rows = reports_df.to_dict(orient="records")
+
+    with ThreadPoolExecutor() as executor:
+        image_paths = list(tqdm(executor.map(lambda row: find_study_images(dataset_root_dir, row), df_rows), total=len(df_rows), desc="Processing"))
+
+    mapped_df = reports_df.copy()
+    mapped_df["image_paths"] = image_paths
+
+    return mapped_df
+
+
+def save_reports(reports_df, output_reports_file_path):
+    print(f"Saving reports to {output_reports_file_path}")
+    reports_df.to_csv(output_reports_file_path, index=False)
 
 
 def main(args):
-    # Merge reports files.
-    merge_reports_files(dataset_root_dir=args.dataset_root_dir,
-                        master_reports_file_path=args.master_reports_file_path,
-                        output_reports_file_path=args.output_reports_file_path)
-
     # Extract ZIP archives.
     if args.extract_zip_archives:
         zip_utils.extract_zip_archives(root_dir=args.dataset_root_dir,
                                        delete_after_extraction=args.delete_zip_archives_after_extraction)
-    else:
-        print("Skipping extraction of ZIP archives")
+
+    # Merge reports files.
+    reports_df = merge_reports_files(master_reports_file_path=args.master_reports_file_path,
+                                     dataset_root_dir=args.dataset_root_dir)
+
+    # Map image paths.
+    reports_df = map_image_paths(reports_df=reports_df,
+                                 dataset_root_dir=args.dataset_root_dir)
+
+    # Save reports.
+    save_reports(reports_df=reports_df,
+                 output_reports_file_path=args.output_reports_file_path)
 
 
 if __name__ == "__main__":
@@ -136,7 +201,7 @@ if __name__ == "__main__":
     MASTER_REPORTS_FILE_PATH = "/mnt/efs/all-cxr/segmed/batch1/CO2_354/CO2_588_Batch_1_Part_1_delivered_studies.csv"
     EXTRACT_ZIP_ARCHIVES = True
     DELETE_ZIP_ARCHIVES_AFTER_EXTRACTION = True
-    OUTPUT_REPORTS_FILE_PATH = "/mnt/efs/all-cxr/segmed/batch1/segmed_batch_1_merged_reports.csv"
+    OUTPUT_REPORTS_FILE_PATH = "/mnt/efs/all-cxr/segmed/batch1/segmed_batch_1_merged_reports_with_image_paths.csv"
 
     args = argparse.Namespace(dataset_root_dir=DATASET_ROOT_DIR,
                               master_reports_file_path=MASTER_REPORTS_FILE_PATH,
