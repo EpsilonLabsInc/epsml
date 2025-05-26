@@ -25,8 +25,9 @@ def filter_study_images(study_id, studies_dir, allowed_dicom_tag_values, reports
     for image_path in image_paths:
         try:
             dicom_file = pydicom.dcmread(image_path, force=True)
+            accession_number = int(dicom_file.AccessionNumber)
 
-            if dicom_file.AccessionNumber not in reports_dict:
+            if accession_number not in reports_dict:
                 return {}
 
             # Check modality.
@@ -91,7 +92,7 @@ def filter_study_images(study_id, studies_dir, allowed_dicom_tag_values, reports
                  "body_part": dicom_file.BodyPartExamined,
                  "manufacturer": dicom_file.Manufacturer if hasattr(dicom_file, "Manufacturer") else "",
                  "model_name": dicom_file.ManufacturerModelName if hasattr(dicom_file, "ManufacturerModelName") else "",
-                 "report": reports_dict[dicom_file.AccessionNumber]
+                 "report": reports_dict[accession_number]
             }
 
             images.append(image)
