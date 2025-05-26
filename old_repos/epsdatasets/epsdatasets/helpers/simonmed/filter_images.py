@@ -193,7 +193,6 @@ def filter_images(reports_file, studies_dir, allowed_dicom_tag_values):
     print("Searching for all the studies within the studies directory")
 
     study_ids = [f.name for f in Path(studies_dir).iterdir() if f.is_dir()]
-    study_ids = study_ids[:1300]
 
     print("Image filtering started")
 
