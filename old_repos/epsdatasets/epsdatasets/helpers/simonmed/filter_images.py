@@ -164,20 +164,21 @@ def filter_study_images(study_id, studies_dir, allowed_dicom_tag_values, reports
     # Combine study data.
 
     study = {
-        "modality": images[0]["modality"],
         "accession_number": images[0]["accession_number"],
-        "instance_ids": [image["instance_id"] for image in images],
         "study_id": images[0]["study_id"],
-        "series_ids": [image["series_id"] for image in images],
         "study_date": images[0]["study_date"],
         "study_description": images[0]["study_description"],
+        "modality": images[0]["modality"],
         "patient_id": images[0]["patient_id"],
         "age": images[0]["age"],
         "gender": images[0]["gender"],
         "body_part": images[0]["body_part"],
         "manufacturer": images[0]["manufacturer"],
         "model_name": images[0]["model_name"],
-        "image_paths": [image["image_path"] for image in images]
+        "instance_ids": [image["instance_id"] for image in images],
+        "series_ids": [image["series_id"] for image in images],
+        "image_paths": [image["image_path"] for image in images],
+        "report": images[0]["report"]
     }
 
     return study
@@ -192,6 +193,7 @@ def filter_images(reports_file, studies_dir, allowed_dicom_tag_values):
     print("Searching for all the studies within the studies directory")
 
     study_ids = [f.name for f in Path(studies_dir).iterdir() if f.is_dir()]
+    study_ids = study_ids[:1300]
 
     print("Image filtering started")
 
