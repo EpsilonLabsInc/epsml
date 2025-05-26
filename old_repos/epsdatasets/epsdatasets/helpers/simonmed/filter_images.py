@@ -15,7 +15,7 @@ from epsutils.image import image_utils
 from epsutils.logging import logging_utils
 
 
-def filter_study_images(study_id, studies_dir, allowed_dicom_tag_values):
+def filter_study_images(study_id, studies_dir, allowed_dicom_tag_values, reports_dict):
 
     study_dir = os.path.join(studies_dir, study_id)
     image_paths = list(Path(study_dir).rglob("*.dcm"))
@@ -25,6 +25,9 @@ def filter_study_images(study_id, studies_dir, allowed_dicom_tag_values):
     for image_path in image_paths:
         try:
             dicom_file = pydicom.dcmread(image_path, force=True)
+
+            if dicom_file.AccessionNumber not in reports_dict:
+                return {}
 
             # Check modality.
 
@@ -87,7 +90,8 @@ def filter_study_images(study_id, studies_dir, allowed_dicom_tag_values):
                  "gender": dicom_file.PatientSex,
                  "body_part": dicom_file.BodyPartExamined,
                  "manufacturer": dicom_file.Manufacturer if hasattr(dicom_file, "Manufacturer") else "",
-                 "model_name": dicom_file.ManufacturerModelName if hasattr(dicom_file, "ManufacturerModelName") else ""
+                 "model_name": dicom_file.ManufacturerModelName if hasattr(dicom_file, "ManufacturerModelName") else "",
+                 "report": reports_dict[dicom_file.AccessionNumber]
             }
 
             images.append(image)
@@ -191,31 +195,16 @@ def filter_images(reports_file, studies_dir, allowed_dicom_tag_values):
     print("Image filtering started")
 
     with ThreadPoolExecutor() as executor:
-        studies = list(tqdm(executor.map(lambda study_id: filter_study_images(study_id, studies_dir, allowed_dicom_tag_values), study_ids),
+        studies = list(tqdm(executor.map(lambda study_id: filter_study_images(study_id, studies_dir, allowed_dicom_tag_values, reports_dict), study_ids),
                             total=len(study_ids),
                             desc="Processing"))
 
     assert len(studies) == len(study_ids)
 
-    print("Matching studies to accession numbers")
-
-    matched_studies = []
-
-    for study in tqdm(studies, total=len(studies), desc="Processing"):
-        if study == {}:
-            continue
-
-        accession_number = study["accession_number"]
-
-        if accession_number not in reports_dict:
-            continue
-
-        study["report"] = reports_dict[accession_number]
-        matched_studies.append(study)
-
     print("Generating filtered reports file")
 
-    filtered_df = pd.DataFrame(matched_studies)
+    filtered_studies = [study for study in studies if study != {}]
+    filtered_df = pd.DataFrame(filtered_studies)
 
     print(f"Filtered reports file contains {len(filtered_df)} out of {len(reports_df)} original studies")
 
