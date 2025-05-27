@@ -221,7 +221,7 @@ def save_reports(reports_df, output_reports_file_path):
 def main(args):
     # Configure logger.
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    logging_utils.configure_logger(logger_file_name=f"filter_images_{timestamp}.log")
+    logging_utils.configure_logger(logger_file_name=f"{args.output_reports_file_path}_{timestamp}.log")
 
     # Suppress validation warnings.
     pydicom.config.settings.reading_validation_mode = pydicom.config.IGNORE
