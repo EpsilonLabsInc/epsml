@@ -150,10 +150,15 @@ def find_study_images(dataset_root_dir, df_row):
     dataset_id = str(df_row["dataset_id"])
     patient_id = df_row["patient_id"]
     study_id = str(df_row["study_id"])
-    zip_file_index = ast.literal_eval(df_row["zip_file_index"])
 
     # ZIP file index can be either a single integer or a tuple,
     # indicating that study images were spread across multiple ZIP files.
+
+    value = df_row["zip_file_index"]
+    if isinstance(value, str):
+        zip_file_index = ast.literal_eval(value)
+    else:
+        zip_file_index = value
 
     if not isinstance(zip_file_index, tuple):
         zip_file_index = (zip_file_index,)
