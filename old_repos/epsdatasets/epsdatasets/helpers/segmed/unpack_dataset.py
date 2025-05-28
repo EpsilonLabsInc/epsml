@@ -232,7 +232,7 @@ def main(args):
 if __name__ == "__main__":
     DATASET_ROOT_DIR = "/mnt/efs/all-cxr/segmed/batch2"
     MASTER_REPORTS_FILE_PATH = "/mnt/efs/all-cxr/segmed/batch2/CO2-658_part2.csv"
-    EXTRACT_ZIP_ARCHIVES = False
+    EXTRACT_ZIP_ARCHIVES = True
     DELETE_ZIP_ARCHIVES_AFTER_EXTRACTION = True
     HANDLE_MISSING_STUDIES = True
     OUTPUT_REPORTS_FILE_PATH = "/mnt/efs/all-cxr/segmed/batch2/segmed_batch_2_merged_reports_with_image_paths.csv"
