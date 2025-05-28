@@ -10,6 +10,7 @@ import pydicom
 from PIL import Image
 from tqdm import tqdm
 
+from epsutils.dicom import dicom_compression_utils
 from epsutils.dicom import dicom_utils
 from epsutils.image import image_utils
 from epsutils.logging import logging_utils
@@ -24,7 +25,12 @@ def filter_study_images(study_id, studies_dir, allowed_dicom_tag_values, reports
 
     for image_path in image_paths:
         try:
-            dicom_file = pydicom.dcmread(image_path, force=True)
+            try:
+                dicom_file = pydicom.dcmread(image_path)
+            except:
+                dicom_file = pydicom.dcmread(image_path, force=True)
+                dicom_file = dicom_compression_utils.handle_dicom_compression(dicom_file)
+
             accession_number = int(dicom_file.AccessionNumber)
 
             if accession_number not in reports_dict:

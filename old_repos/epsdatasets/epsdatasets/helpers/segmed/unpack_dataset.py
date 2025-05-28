@@ -40,7 +40,7 @@ PARTIAL_REPORTS_FILE_COLUMNS_MAPPING = {
 }
 
 
-def merge_reports_files(master_reports_file_path, dataset_root_dir):
+def merge_reports_files(master_reports_file_path, dataset_root_dir, handle_missing_studies):
     # Load master reports file.
 
     print("Loading master reports file")
@@ -95,6 +95,35 @@ def merge_reports_files(master_reports_file_path, dataset_root_dir):
         master_df[col] = pd.NA
 
     print (f"Added the following missing columns to the master reports file: {missing_cols}")
+
+    # Handle missing studies.
+
+    if len(master_df) != len(merged_df):
+        print(f"WARNING: Lengths of master dataset ({len(master_df)}) and merged dataset ({len(merged_df)}) differ")
+
+        master_dataset_ids = set(master_df["dataset_id"])
+        partial_dataset_ids = set([int(os.path.basename(os.path.dirname(f))) for f in partial_reports_files])
+
+        diff = master_dataset_ids - partial_dataset_ids
+        print(f"Dataset IDs in the master dataset but missing in the merged dataset: {len(diff)}")
+
+        diff = partial_dataset_ids- master_dataset_ids
+        print(f"Dataset IDs in the merged dataset but missing in the master dataset: {len(diff)}")
+
+        master_study_ids = set(master_df["study_id"])
+        merged_study_ids = set(merged_df["study_id"])
+
+        diff = master_study_ids - merged_study_ids
+        print(f"Study IDs in the master dataset but missing in the merged dataset: {len(diff)}")
+
+        diff = merged_study_ids - master_study_ids
+        print(f"Study IDs in the merged dataset but missing in the master dataset: {len(diff)}")
+
+        if handle_missing_studies:
+            master_df = master_df[master_df["study_id"].isin(merged_study_ids)]
+            merged_df = merged_df[merged_df["study_id"].isin(master_study_ids)]
+        else:
+            raise ValueError(f"Lengths of master and merged dataset differ")
 
     # Sort by Study ID.
 
@@ -186,7 +215,8 @@ def main(args):
 
     # Merge reports files.
     reports_df = merge_reports_files(master_reports_file_path=args.master_reports_file_path,
-                                     dataset_root_dir=args.dataset_root_dir)
+                                     dataset_root_dir=args.dataset_root_dir,
+                                     handle_missing_studies=args.handle_missing_studies)
 
     # Map image paths.
     reports_df = map_image_paths(reports_df=reports_df,
@@ -199,17 +229,19 @@ def main(args):
 
 
 if __name__ == "__main__":
-    DATASET_ROOT_DIR = "/mnt/efs/all-cxr/segmed/batch1"
-    MASTER_REPORTS_FILE_PATH = "/mnt/efs/all-cxr/segmed/batch1/CO2_354/CO2_588_Batch_1_Part_1_delivered_studies.csv"
+    DATASET_ROOT_DIR = "/mnt/efs/all-cxr/segmed/batch2"
+    MASTER_REPORTS_FILE_PATH = "/mnt/efs/all-cxr/segmed/batch2/CO2-658_part2.csv"
     EXTRACT_ZIP_ARCHIVES = True
     DELETE_ZIP_ARCHIVES_AFTER_EXTRACTION = True
-    OUTPUT_REPORTS_FILE_PATH = "/mnt/efs/all-cxr/segmed/batch1/segmed_batch_1_merged_reports_with_image_paths.csv"
-    OUTPUT_BASE_PATH = "/mnt/efs/all-cxr/segmed/batch1"
+    HANDLE_MISSING_STUDIES = True
+    OUTPUT_REPORTS_FILE_PATH = "/mnt/efs/all-cxr/segmed/batch2/segmed_batch_2_merged_reports_with_image_paths.csv"
+    OUTPUT_BASE_PATH = "/mnt/efs/all-cxr/segmed/batch2"
 
     args = argparse.Namespace(dataset_root_dir=DATASET_ROOT_DIR,
                               master_reports_file_path=MASTER_REPORTS_FILE_PATH,
                               extract_zip_archives=EXTRACT_ZIP_ARCHIVES,
                               delete_zip_archives_after_extraction=DELETE_ZIP_ARCHIVES_AFTER_EXTRACTION,
+                              handle_missing_studies=HANDLE_MISSING_STUDIES,
                               output_reports_file_path=OUTPUT_REPORTS_FILE_PATH,
                               output_base_path=OUTPUT_BASE_PATH)
 
