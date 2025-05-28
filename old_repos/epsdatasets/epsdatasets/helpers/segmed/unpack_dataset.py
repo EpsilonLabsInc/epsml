@@ -120,6 +120,7 @@ def merge_reports_files(master_reports_file_path, dataset_root_dir, handle_missi
         print(f"Study IDs in the merged dataset but missing in the master dataset: {len(diff)}")
 
         if handle_missing_studies:
+            print("Fixing inconsistency")
             master_df = master_df[master_df["study_id"].isin(merged_study_ids)]
             merged_df = merged_df[merged_df["study_id"].isin(master_study_ids)]
         else:
@@ -231,7 +232,7 @@ def main(args):
 if __name__ == "__main__":
     DATASET_ROOT_DIR = "/mnt/efs/all-cxr/segmed/batch2"
     MASTER_REPORTS_FILE_PATH = "/mnt/efs/all-cxr/segmed/batch2/CO2-658_part2.csv"
-    EXTRACT_ZIP_ARCHIVES = True
+    EXTRACT_ZIP_ARCHIVES = False
     DELETE_ZIP_ARCHIVES_AFTER_EXTRACTION = True
     HANDLE_MISSING_STUDIES = True
     OUTPUT_REPORTS_FILE_PATH = "/mnt/efs/all-cxr/segmed/batch2/segmed_batch_2_merged_reports_with_image_paths.csv"
