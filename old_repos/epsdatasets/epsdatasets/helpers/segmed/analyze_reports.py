@@ -12,6 +12,7 @@ from epsutils.aws import aws_s3_utils
 
 class ProgramMode(Enum):
     GET_UNIQUE_REPORT_TEXT_KEYS = 1
+    GET_REPORT_TEXT_EXAMPLES = 2
 
 
 def get_reports_file(aws_s3_reports_file):
@@ -71,9 +72,20 @@ def get_unique_report_text_keys(aws_s3_reports_file):
         print(f"{key}: {value}")
 
 
+def get_report_text_examples(aws_s3_reports_file):
+    df = get_reports_file(aws_s3_reports_file)
+    df = df.iloc[:100]["report"]
+    out_file = "report_text_examples.csv"
+    print(f"Saving report text examples to {out_file}")
+    df.to_csv(out_file, index=False)
+
+
 def main(args):
     if args.program_mode == ProgramMode.GET_UNIQUE_REPORT_TEXT_KEYS:
         get_unique_report_text_keys(args.aws_s3_reports_file)
+
+    elif args.program_mode == ProgramMode.GET_REPORT_TEXT_EXAMPLES:
+        get_report_text_examples(args.aws_s3_reports_file)
 
     else:
         raise ValueError("Not implemented")
@@ -81,7 +93,7 @@ def main(args):
 
 if __name__ == "__main__":
     AWS_S3_REPORTS_FILE = "s3://epsilonlabs-segmed/batches/batch1/CO2_588_Batch_1_Part_1_delivered_studies.csv"
-    PROGRAM_MODE = ProgramMode.GET_UNIQUE_REPORT_TEXT_KEYS
+    PROGRAM_MODE = ProgramMode.GET_REPORT_TEXT_EXAMPLES
 
     args = argparse.Namespace(aws_s3_reports_file=AWS_S3_REPORTS_FILE,
                               program_mode=PROGRAM_MODE)
