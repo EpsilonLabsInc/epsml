@@ -6,7 +6,7 @@ from tqdm import tqdm
 
 BUCKET_NAME = "epsilonlabs-dicom-store-main"
 SUBFOLDER = "422ca224-a9f2-4c64-bf7c-bb122ae2a7bb/"  # Ensure the trailing slash.
-LOCAL_FOLDER = "/mnt/efs/all-cxr/simonmed/batch1/422ca224-a9f2-4c64-bf7c-bb122ae2a7bb"
+LOCAL_FOLDER = "/mnt/efs/all-cxr/simonmed/images/422ca224-a9f2-4c64-bf7c-bb122ae2a7bb"
 SKIP_EXISTING_FILES = True
 MAX_WORKERS = 8
 
