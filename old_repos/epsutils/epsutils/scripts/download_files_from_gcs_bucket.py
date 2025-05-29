@@ -7,6 +7,7 @@ from tqdm import tqdm
 BUCKET_NAME = "epsilonlabs-dicom-store-main"
 SUBFOLDER = "422ca224-a9f2-4c64-bf7c-bb122ae2a7bb/"  # Ensure the trailing slash.
 LOCAL_FOLDER = "/mnt/efs/all-cxr/simonmed/batch1/422ca224-a9f2-4c64-bf7c-bb122ae2a7bb"
+SKIP_EXISTING_FILES = True
 MAX_WORKERS = 8
 
 
@@ -15,6 +16,10 @@ def download_blob(blob):
         return
 
     local_path = os.path.join(LOCAL_FOLDER, blob.name[len(SUBFOLDER):])  # Remove subfolder prefix.
+
+    if os.path.exists(local_path) and SKIP_EXISTING_FILES:
+        return
+
     os.makedirs(os.path.dirname(local_path), exist_ok=True)  # Ensure subdirectories exist.
     blob.download_to_filename(local_path)
     return blob.name
