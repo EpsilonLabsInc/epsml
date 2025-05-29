@@ -190,10 +190,14 @@ def filter_study_images(study_id, studies_dir, allowed_dicom_tag_values, reports
     return study
 
 
-def filter_images(reports_file, studies_dir, allowed_dicom_tag_values):
-    print("Loading reports file")
+def filter_images(reports_files, studies_dir, allowed_dicom_tag_values):
+    if len(reports_files) < 1:
+        raise ValueError(f"At least one reports file required, got {len(reports_files)}")
 
-    reports_df = pd.read_csv(reports_file)
+    print("Loading reports file(s)")
+
+    dfs = [pd.read_csv(f) for f in tqdm(reports_files, desc="Processing", unit="file")]
+    reports_df = pd.concat(dfs, ignore_index=True)
     reports_dict = dict(zip(reports_df.iloc[:, 0], reports_df.iloc[:, 1]))
 
     print("Searching for all the studies within the studies directory")
@@ -233,7 +237,7 @@ def main(args):
     pydicom.config.settings.reading_validation_mode = pydicom.config.IGNORE
 
     # Filter images.
-    reports_df = filter_images(reports_file=args.reports_file,
+    reports_df = filter_images(reports_files=args.reports_files,
                                studies_dir=args.studies_dir,
                                allowed_dicom_tag_values=args.allowed_dicom_tag_values)
 
@@ -242,7 +246,7 @@ def main(args):
 
 
 if __name__ == "__main__":
-    REPORTS_FILE = "/mnt/efs/all-cxr/simonmed/batch1/Steinberg_2020_20110_CR.csv"
+    REPORTS_FILES = ["/mnt/efs/all-cxr/simonmed/batch1/Steinberg_2020_20110_CR.csv"]
     STUDIES_DIR = "/mnt/efs/all-cxr/simonmed/batch1/422ca224-a9f2-4c64-bf7c-bb122ae2a7bb"
     OUTPUT_REPORTS_FILE_PATH = "/mnt/efs/all-cxr/simonmed/batch1/simonmed_batch_1_reports_with_image_paths_filtered.csv"
 
@@ -258,7 +262,7 @@ if __name__ == "__main__":
         ]
     }
 
-    args = argparse.Namespace(reports_file=REPORTS_FILE,
+    args = argparse.Namespace(reports_files=REPORTS_FILES,
                               studies_dir=STUDIES_DIR,
                               allowed_dicom_tag_values=ALLOWED_DICOM_TAG_VALUES,
                               output_reports_file_path=OUTPUT_REPORTS_FILE_PATH)
