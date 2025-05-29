@@ -200,9 +200,9 @@ def main(args):
 
 
 if __name__ == "__main__":
-    REPORTS_FILE_WITH_IMAGE_PATHS = "/mnt/efs/all-cxr/segmed/batch1/segmed_batch_1_merged_reports_with_image_paths.csv"
-    IMAGES_BASE_PATH = "/mnt/efs/all-cxr/segmed/batch1"
-    OUTPUT_REPORTS_FILE_PATH = "/mnt/efs/all-cxr/segmed/batch1/segmed_batch_1_merged_reports_with_image_paths_filtered.csv"
+    REPORTS_FILE_WITH_IMAGE_PATHS = "/mnt/efs/all-cxr/segmed/batch2/segmed_batch_2_merged_reports_with_image_paths.csv"
+    IMAGES_BASE_PATH = "/mnt/efs/all-cxr/segmed/batch2"
+    OUTPUT_REPORTS_FILE_PATH = "/mnt/efs/all-cxr/segmed/batch2/segmed_batch_2_merged_reports_with_image_paths_filtered.csv"
 
     ALLOWED_DICOM_TAG_VALUES = {
         "modalities": [
