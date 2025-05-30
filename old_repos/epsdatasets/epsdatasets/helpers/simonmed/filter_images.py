@@ -60,7 +60,7 @@ def filter_study_images(study_id, studies_dir, allowed_dicom_tag_values, reports
                 dicom_file = pydicom.dcmread(image_path, force=True)
                 dicom_file = dicom_compression_utils.handle_dicom_compression(dicom_file)
 
-            accession_number = int(dicom_file.AccessionNumber)
+            accession_number = str(dicom_file.AccessionNumber)
 
             if accession_number not in reports_dict:
                 return {}
