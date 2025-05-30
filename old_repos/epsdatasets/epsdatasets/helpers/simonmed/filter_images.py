@@ -273,6 +273,7 @@ def filter_images(batch_data, studies_dir, allowed_dicom_tag_values):
 
     filtered_studies = [study for study in studies if study != {}]
     filtered_df = pd.DataFrame(filtered_studies)
+    filtered_df.rename(columns={"image_paths": "filtered_image_paths"}, inplace=True)
 
     print(f"Filtered reports file contains {len(filtered_df)} out of {len(reports_df)} original studies")
 
