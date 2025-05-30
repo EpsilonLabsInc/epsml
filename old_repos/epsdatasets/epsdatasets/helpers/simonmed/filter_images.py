@@ -15,6 +15,35 @@ from epsutils.dicom import dicom_utils
 from epsutils.image import image_utils
 from epsutils.logging import logging_utils
 
+BATCHES = {
+    1: [
+        {"reports_file": "batch1/Steinberg_2020_20110_CR.csv", "header": False, "accession_number_column": 0, "report_text_column": 1}
+    ],
+    2: [
+        {"reports_file": "batch2/Sills_2018_29055_CR.csv", "header": False, "accession_number_column": 0, "report_text_column": 1},
+        {"reports_file": "batch2/Tranisi_2020_916_CR.csv", "header": False, "accession_number_column": 0, "report_text_column": 1}
+    ],
+    3: [
+        {"reports_file": "batch3/Shiraj_2018_23091_CR.csv", "header": False, "accession_number_column": 0, "report_text_column": 1}
+    ],
+    4: [
+        {"reports_file": "batch4/Rosellini_2018_15109_CR_sent.xlsx", "header": False, "accession_number_column": 0, "report_text_column": 1}
+    ],
+    5: [
+        {"reports_file": "batch5/Reports Anonymized (1).xlsx", "header": True, "accession_number_column": "Accession Number", "report_text_column": "Report Text"}
+    ],
+    6: [
+        {"reports_file": "batch6/Golshani_2018_18455_CR.csv", "header": False, "accession_number_column": 0, "report_text_column": 1}
+    ],
+    7: [
+        {"reports_file": "batch7/Gerace_2018_6305_CR.csv", "header": False, "accession_number_column": 0, "report_text_column": 1},
+        {"reports_file": "batch7/Sherry_2020_26586_CR.csv", "header": False, "accession_number_column": 0, "report_text_column": 1}
+    ],
+    8: [
+        {"reports_file": "batch8/Cho_2018_13832_CR.csv", "header": False, "accession_number_column": 0, "report_text_column": 1}
+    ]
+}
+
 
 def filter_study_images(study_id, studies_dir, allowed_dicom_tag_values, reports_dict):
 
@@ -190,14 +219,41 @@ def filter_study_images(study_id, studies_dir, allowed_dicom_tag_values, reports
     return study
 
 
-def filter_images(reports_files, studies_dir, allowed_dicom_tag_values):
-    if len(reports_files) < 1:
-        raise ValueError(f"At least one reports file required, got {len(reports_files)}")
+def filter_images(batch_data, studies_dir, allowed_dicom_tag_values):
+    assert len(batch_data) > 0
 
     print("Loading reports file(s)")
 
-    dfs = [pd.read_csv(f) for f in tqdm(reports_files, desc="Processing", unit="file")]
+    dfs = []
+
+    for index, item in enumerate(batch_data):
+        reports_file = item["reports_file"]
+        extension = os.path.splitext(reports_file)[1]
+        header = 0 if item["header"] else None
+        accession_number = item["accession_number_column"]
+        report_text = item["report_text_column"]
+
+        print(f"{index + 1}/{len(batch_data)} Loading reports file {reports_file}")
+
+        if extension == ".csv":
+            df = pd.read_csv(reports_file, header=header)
+        elif extension == ".xlsx":
+            df = pd.read_excel(reports_file, header=header, sheet_name=0)
+        else:
+            raise ValueError(f"Unknown reports file extension: {extension}")
+
+        df = df[[accession_number, report_text]]
+        cleaned_df = df.dropna(subset=[accession_number]).copy()
+        cleaned_df[accession_number] = cleaned_df[accession_number].astype(str)
+        dfs.append(cleaned_df)
+
+        print(f"Dropped {len(df) - len(cleaned_df)} rows with NaN accession number out of total {len(df)} rows")
+
     reports_df = pd.concat(dfs, ignore_index=True)
+
+    print(f"Reports dataset has {len(reports_df)} rows:")
+    print(reports_df.head())
+
     reports_dict = dict(zip(reports_df.iloc[:, 0], reports_df.iloc[:, 1]))
 
     print("Searching for all the studies within the studies directory")
@@ -236,8 +292,13 @@ def main(args):
     # Suppress validation warnings.
     pydicom.config.settings.reading_validation_mode = pydicom.config.IGNORE
 
+    # Get batch data.
+    batch_data = BATCHES[args.batch_index]
+    for item in batch_data:
+        item["reports_file"] = os.path.join(args.batches_base_dir, item["reports_file"])
+
     # Filter images.
-    reports_df = filter_images(reports_files=args.reports_files,
+    reports_df = filter_images(batch_data=batch_data,
                                studies_dir=args.studies_dir,
                                allowed_dicom_tag_values=args.allowed_dicom_tag_values)
 
@@ -246,9 +307,10 @@ def main(args):
 
 
 if __name__ == "__main__":
-    REPORTS_FILES = ["/mnt/efs/all-cxr/simonmed/batch1/Steinberg_2020_20110_CR.csv"]
-    STUDIES_DIR = "/mnt/efs/all-cxr/simonmed/batch1/422ca224-a9f2-4c64-bf7c-bb122ae2a7bb"
-    OUTPUT_REPORTS_FILE_PATH = "/mnt/efs/all-cxr/simonmed/batch1/simonmed_batch_1_reports_with_image_paths_filtered.csv"
+    BATCH_INDEX = 1
+    BATCHES_BASE_DIR = "/mnt/efs/all-cxr/simonmed/"
+    STUDIES_DIR = "/mnt/efs/all-cxr/simonmed/images/422ca224-a9f2-4c64-bf7c-bb122ae2a7bb"
+    OUTPUT_REPORTS_FILE_PATH = f"/mnt/efs/all-cxr/simonmed/batch{BATCH_INDEX}/simonmed_batch_{BATCH_INDEX}_reports_with_image_paths_filtered.csv"
 
     ALLOWED_DICOM_TAG_VALUES = {
         "modalities": [
@@ -262,7 +324,8 @@ if __name__ == "__main__":
         ]
     }
 
-    args = argparse.Namespace(reports_files=REPORTS_FILES,
+    args = argparse.Namespace(batch_index=BATCH_INDEX,
+                              batches_base_dir=BATCHES_BASE_DIR,
                               studies_dir=STUDIES_DIR,
                               allowed_dicom_tag_values=ALLOWED_DICOM_TAG_VALUES,
                               output_reports_file_path=OUTPUT_REPORTS_FILE_PATH)

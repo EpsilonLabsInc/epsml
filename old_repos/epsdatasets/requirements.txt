@@ -19,3 +19,4 @@ torchvision==0.20.1+cu121
 tqdm
 google-cloud-storage
 opencv-python
+openpyxl
