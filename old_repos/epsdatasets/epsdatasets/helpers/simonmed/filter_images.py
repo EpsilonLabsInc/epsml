@@ -256,6 +256,15 @@ def filter_images(batch_data, studies_dir, allowed_dicom_tag_values):
 
     reports_dict = dict(zip(reports_df.iloc[:, 0], reports_df.iloc[:, 1]))
 
+    for key in list(reports_dict.keys()):
+        try:
+            float_value = float(key)
+            int_value = int(float_value)
+            new_key = str(int_value)
+            reports_dict[new_key] = reports_dict.pop(key)
+        except:
+            pass
+
     print("Searching for all the studies within the studies directory")
 
     study_ids = [f.name for f in Path(studies_dir).iterdir() if f.is_dir()]
@@ -308,7 +317,7 @@ def main(args):
 
 
 if __name__ == "__main__":
-    BATCH_INDEX = 1
+    BATCH_INDEX = 5
     BATCHES_BASE_DIR = "/mnt/efs/all-cxr/simonmed/"
     STUDIES_DIR = "/mnt/efs/all-cxr/simonmed/images/422ca224-a9f2-4c64-bf7c-bb122ae2a7bb"
     OUTPUT_REPORTS_FILE_PATH = f"/mnt/efs/all-cxr/simonmed/batch{BATCH_INDEX}/simonmed_batch_{BATCH_INDEX}_reports_with_image_paths_filtered.csv"
