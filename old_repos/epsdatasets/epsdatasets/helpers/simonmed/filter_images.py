@@ -41,6 +41,11 @@ BATCHES = {
     ],
     8: [
         {"reports_file": "batch8/Cho_2018_13832_CR.csv", "header": False, "accession_number_column": 0, "report_text_column": 1}
+    ],
+    9: [
+        {"reports_file": "batch9/Carlson_2018_13533_CR.csv", "header": False, "accession_number_column": 0, "report_text_column": 1},
+        {"reports_file": "batch9/Leon_2018_10565_CR.csv", "header": False, "accession_number_column": 0, "report_text_column": 1},
+        {"reports_file": "batch9/Sommerville_2018_9390_CR.csv", "header": False, "accession_number_column": 0, "report_text_column": 1}
     ]
 }
 
