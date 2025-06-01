@@ -37,7 +37,7 @@ def download_files_from_gcs(bucket_name, subfolder, local_folder):
     client = storage.Client()
     bucket = client.bucket(bucket_name)
 
-    logging.info(f"Listing files in gs://{BUCKET_NAME}/{SUBFOLDER}")
+    logging.info(f"Listing files in gs://{bucket_name}/{subfolder}")
 
     blobs = list(bucket.list_blobs(prefix=subfolder))
 
