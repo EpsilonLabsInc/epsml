@@ -41,6 +41,8 @@ def download_files_from_gcs(bucket_name, subfolder, local_folder):
 
     blobs = list(bucket.list_blobs(prefix=subfolder))
 
+    logging.info(f"Found total {len(blobs)} files")
+
     if not os.path.exists(local_folder):
         os.makedirs(local_folder)
 
