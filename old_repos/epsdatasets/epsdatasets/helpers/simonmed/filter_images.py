@@ -141,7 +141,7 @@ def filter_study_images(study_id, studies_dir, allowed_dicom_tag_values, reports
             images.append(image)
 
         except Exception as e:
-            logging.warning(f"{str(e)} (image path: {image_path}")
+            logging.warning(f"{str(e)} (image path: {image_path})")
 
     if len(images) == 0:
         return {}
