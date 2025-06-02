@@ -228,7 +228,7 @@ def filter_study_images(study_id, studies_dir, allowed_dicom_tag_values, reports
     return study
 
 
-def filter_images(batch_data, studies_dir, allowed_dicom_tag_values):
+def filter_images(batch_data, studies_dir, all_available_images_file_path, allowed_dicom_tag_values):
     assert len(batch_data) > 0
 
     print("Loading reports file(s)")
@@ -274,11 +274,11 @@ def filter_images(batch_data, studies_dir, allowed_dicom_tag_values):
         except:
             pass
 
-    if args.all_available_images_file_path is not None:
+    if all_available_images_file_path is not None:
         print("Comparing the images referenced in the reports file(s) against all the available images")
 
         all_available_images = set()
-        with open(args.all_available_images_file_path, "r", encoding="utf-8") as file:
+        with open(all_available_images_file_path, "r", encoding="utf-8") as file:
             for line in file:
                 data = json.loads(line)
                 all_available_images.add(data["accession_number"])
@@ -332,6 +332,7 @@ def main(args):
     # Filter images.
     reports_df = filter_images(batch_data=batch_data,
                                studies_dir=args.studies_dir,
+                               all_available_images_file_path=args.all_available_images_file_path,
                                allowed_dicom_tag_values=args.allowed_dicom_tag_values)
 
     # Save reports.
