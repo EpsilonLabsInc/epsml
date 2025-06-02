@@ -1,4 +1,5 @@
 import argparse
+import json
 import logging
 import os
 from concurrent.futures import ThreadPoolExecutor
@@ -273,6 +274,19 @@ def filter_images(batch_data, studies_dir, allowed_dicom_tag_values):
         except:
             pass
 
+    if args.all_available_images_file_path is not None:
+        print("Comparing the images referenced in the reports file(s) against all the available images")
+
+        all_available_images = set()
+        with open(args.all_available_images_file_path, "r", encoding="utf-8") as file:
+            for line in file:
+                data = json.loads(line)
+                all_available_images.add(data["accession_number"])
+
+        for accession_number in reports_dict.keys():
+            if accession_number not in all_available_images:
+                print(f"Missing image with accession number {accession_number}")
+
     print("Searching for all the studies within the studies directory")
 
     study_ids = [f.name for f in Path(studies_dir).iterdir() if f.is_dir()]
@@ -328,6 +342,7 @@ if __name__ == "__main__":
     BATCH_INDEX = 5
     BATCHES_BASE_DIR = "/mnt/efs/all-cxr/simonmed/"
     STUDIES_DIR = "/mnt/efs/all-cxr/simonmed/images/422ca224-a9f2-4c64-bf7c-bb122ae2a7bb"
+    ALL_AVAILABLE_IMAGES_FILE_PATH = "/home/andrej/work/epsdatasets/epsdatasets/helpers/simonmed/all_available_simonmed_images.jsonl"
     OUTPUT_REPORTS_FILE_PATH = f"/mnt/efs/all-cxr/simonmed/batch{BATCH_INDEX}/simonmed_batch_{BATCH_INDEX}_reports_with_image_paths_filtered.csv"
 
     ALLOWED_DICOM_TAG_VALUES = {
@@ -345,6 +360,7 @@ if __name__ == "__main__":
     args = argparse.Namespace(batch_index=BATCH_INDEX,
                               batches_base_dir=BATCHES_BASE_DIR,
                               studies_dir=STUDIES_DIR,
+                              all_available_images_file_path=ALL_AVAILABLE_IMAGES_FILE_PATH,
                               allowed_dicom_tag_values=ALLOWED_DICOM_TAG_VALUES,
                               output_reports_file_path=OUTPUT_REPORTS_FILE_PATH)
 
