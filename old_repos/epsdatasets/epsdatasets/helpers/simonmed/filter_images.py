@@ -275,17 +275,21 @@ def filter_images(batch_data, studies_dir, all_available_images_file_path, allow
             pass
 
     if all_available_images_file_path is not None:
-        print("Comparing the images referenced in the reports file(s) against all the available images")
+        print("Comparing the studies referenced in the reports file(s) against all the available studies")
 
-        all_available_images = set()
+        all_available_studies = set()
         with open(all_available_images_file_path, "r", encoding="utf-8") as file:
             for line in file:
                 data = json.loads(line)
-                all_available_images.add(data["accession_number"])
+                all_available_studies.add(data["accession_number"])
 
+        missing_count = 0
         for accession_number in reports_dict.keys():
-            if accession_number not in all_available_images:
-                print(f"Missing image with accession number {accession_number}")
+            if accession_number not in all_available_studies:
+                missing_count += 1
+                print(f"Missing study with accession number {accession_number}")
+
+        print(f"Total number of missing studies: {missing_count}")
 
     print("Searching for all the studies within the studies directory")
 
@@ -340,10 +344,10 @@ def main(args):
 
 
 if __name__ == "__main__":
-    BATCH_INDEX = 5
+    BATCH_INDEX = 10
     BATCHES_BASE_DIR = "/mnt/efs/all-cxr/simonmed/"
     STUDIES_DIR = "/mnt/efs/all-cxr/simonmed/images/422ca224-a9f2-4c64-bf7c-bb122ae2a7bb"
-    ALL_AVAILABLE_IMAGES_FILE_PATH = "/home/andrej/work/epsdatasets/epsdatasets/helpers/simonmed/all_available_simonmed_images.jsonl"
+    ALL_AVAILABLE_IMAGES_FILE_PATH = "/mnt/efs/all-cxr/simonmed/all_available_simonmed_images.jsonl"
     OUTPUT_REPORTS_FILE_PATH = f"/mnt/efs/all-cxr/simonmed/batch{BATCH_INDEX}/simonmed_batch_{BATCH_INDEX}_reports_with_image_paths_filtered.csv"
 
     ALLOWED_DICOM_TAG_VALUES = {
