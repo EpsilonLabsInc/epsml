@@ -59,20 +59,19 @@ def filter_study_images(study_id, studies_dir, allowed_dicom_tag_values, reports
     study_dir = os.path.join(studies_dir, study_id)
     image_paths = list(Path(study_dir).rglob("*.dcm"))
 
+    is_referenced_study = False
     images = []
 
     for image_path in image_paths:
         try:
-            try:
-                dicom_file = pydicom.dcmread(image_path)
-            except:
-                dicom_file = pydicom.dcmread(image_path, force=True)
-                dicom_file = dicom_compression_utils.handle_dicom_compression(dicom_file)
-
+            dicom_file = pydicom.dcmread(image_path, force=True)
             accession_number = str(dicom_file.AccessionNumber)
 
             if accession_number not in reports_dict:
                 return {}
+
+            is_referenced_study = True
+            dicom_file = dicom_compression_utils.handle_dicom_compression(dicom_file)
 
             # Check modality.
 
@@ -108,6 +107,8 @@ def filter_study_images(study_id, studies_dir, allowed_dicom_tag_values, reports
             numpy_array = dicom_utils.get_dicom_image_from_dataset(dicom_file, {"window_width": 0, "window_center": 0})
             image = Image.fromarray(numpy_array)
 
+            logging.info(f"DICOM image successfully read (image path: {image_path})")
+
             # Validate histogram.
             # TODO: Fix and uncomment.
 
@@ -142,9 +143,12 @@ def filter_study_images(study_id, studies_dir, allowed_dicom_tag_values, reports
             images.append(image)
 
         except Exception as e:
-            logging.warning(f"{str(e)} (image path: {image_path})")
+            if is_referenced_study:
+                logging.warning(f"{str(e)} (image path: {image_path})")
 
     if len(images) == 0:
+        if is_referenced_study:
+            logging.warning(f"Study has no images after filtering (study ID: {study_id}")
         return {}
 
     # Check data consistency.
@@ -287,9 +291,10 @@ def filter_images(batch_data, studies_dir, all_available_images_file_path, allow
         for accession_number in reports_dict.keys():
             if accession_number not in all_available_studies:
                 missing_count += 1
-                print(f"Missing study with accession number {accession_number}")
+                logging.warning(f"Missing study with accession number {accession_number}")
 
-        print(f"Total number of missing studies: {missing_count}")
+        if missing_count > 0:
+            logging.warning(f"Total number of missing studies: {missing_count}")
 
     print("Searching for all the studies within the studies directory")
 
