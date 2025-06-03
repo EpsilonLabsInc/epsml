@@ -13,7 +13,7 @@ from epsutils.logging import logging_utils
 def parse_image(image_path):
     dicom_file = pydicom.dcmread(image_path, force=True)
     accession_number = str(dicom_file.AccessionNumber)
-    logging.info(json.dumps({"accession_number": accession_number, "image_path": image_path}))
+    logging.info(json.dumps({"accession_number": accession_number, "image_path": str(image_path)}))
 
 
 def main(args):
