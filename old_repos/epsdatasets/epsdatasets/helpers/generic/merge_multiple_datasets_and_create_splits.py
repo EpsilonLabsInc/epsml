@@ -1,4 +1,5 @@
 import argparse
+import os
 
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -12,6 +13,7 @@ def merge_datasets(datasets_info):
     for index, dataset_info in enumerate(datasets_info):
         dataset_name = dataset_info["dataset_name"]
         file_name = dataset_info["file_name"]
+        images_base_path = dataset_info["images_base_path"]
         report_text_column = dataset_info["report_text_column"]
         labels_column = dataset_info["labels_column"]
         image_paths_column = dataset_info["image_paths_column"]
@@ -23,8 +25,17 @@ def merge_datasets(datasets_info):
         df = pd.read_csv(file_name, low_memory=False)
         print(f"Dataset has {len(df)} rows")
 
+        # Populate base paths.
+        print("Populating base paths")
+        if dataset_name == "gradient":
+            base_paths = df["batch_id"].apply(lambda batch_id: os.path.join(images_base_path, batch_id))
+        else:
+            base_paths = pd.Series([images_base_path] * len(df))
+        assert len(base_paths) == len(df)
+        df["base_path"] = base_paths
+
         # Drop columns that won't be used.
-        df = df[[report_text_column, labels_column, image_paths_column]]
+        df = df[[report_text_column, labels_column, image_paths_column, "base_path"]]
         print(f"Using the following columns: {df.columns}")
 
         # Rename columns.
@@ -80,7 +91,7 @@ if __name__ == "__main__":
         {
             "dataset_name": "gradient",
             "file_name": "/mnt/efs/all-cxr/gradient/GRADIENT_CR_ALL_BATCHES_with_uncertain_labels.csv",
-            "dir_prefix_to_add": "gradient",
+            "images_base_path": "gradient",
             "report_text_column": "report_text",  # TODO: Rename column.
             "labels_column": "labels",
             "image_paths_column": "image_paths"
@@ -88,7 +99,7 @@ if __name__ == "__main__":
         {
             "dataset_name": "segmed_batch_1",
             "file_name": "/mnt/efs/all-cxr/segmed/batch1/segmed_batch_1_merged_reports_with_image_paths_filtered_standardized_mapped_modalities_with_uncertain_labels_cleaned_unflagged.csv",
-            "dir_prefix_to_add": "segmed/batch1",
+            "images_base_path": "segmed/batch1",
             "report_text_column": "cleaned_report_text",
             "labels_column": "labels",
             "image_paths_column": "filtered_image_paths"
@@ -96,7 +107,7 @@ if __name__ == "__main__":
         {
             "dataset_name": "segmed_batch_2",
             "file_name": "/mnt/efs/all-cxr/segmed/batch2/segmed_batch_2_merged_reports_with_image_paths_filtered_standardized_mapped_modalities_with_uncertain_labels_cleaned_unflagged.csv",
-            "dir_prefix_to_add": "segmed/batch2",
+            "images_base_path": "segmed/batch2",
             "report_text_column": "cleaned_report_text",
             "labels_column": "labels",
             "image_paths_column": "filtered_image_paths"
