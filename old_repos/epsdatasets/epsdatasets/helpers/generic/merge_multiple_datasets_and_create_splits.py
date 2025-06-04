@@ -35,7 +35,11 @@ def merge_datasets(datasets_info):
         df["base_path"] = base_paths
 
         # Drop columns that won't be used.
-        df = df[[report_text_column, labels_column, image_paths_column, "base_path"]]
+        columns_to_use = ["patient_id", "study_uid", "sex", "age", "body_part", report_text_column, labels_column, image_paths_column, "base_path"]
+        if dataset_name.startswith("segmed_"):
+            columns_to_use.extend(["meta_data_on_study_level", "meta_data_on_series_level"])
+
+        df = df[columns_to_use]
         print(f"Using the following columns: {df.columns}")
 
         # Rename columns.
