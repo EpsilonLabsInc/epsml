@@ -54,7 +54,7 @@ BATCHES = {
 }
 
 
-def filter_study_images(study_id, studies_dir, allowed_dicom_tag_values, reports_dict):
+def filter_study_images(study_id, studies_dir, allowed_dicom_tag_values, reports_dict, ignore_non_primary_and_non_original_images):
 
     study_dir = os.path.join(studies_dir, study_id)
     image_paths = list(Path(study_dir).rglob("*.dcm"))
@@ -86,8 +86,9 @@ def filter_study_images(study_id, studies_dir, allowed_dicom_tag_values, reports
             # Ignore non-primary/non-original and localizer image types.
 
             if hasattr(dicom_file, "ImageType"):
-                if "PRIMARY" not in dicom_file.ImageType and "ORIGINAL" not in dicom_file.ImageType:
-                    raise ValueError(f"Ignoring non-primary/non-original image type {dicom_file.ImageType}")
+                if ignore_non_primary_and_non_original_images:
+                    if "PRIMARY" not in dicom_file.ImageType and "ORIGINAL" not in dicom_file.ImageType:
+                        raise ValueError(f"Ignoring non-primary/non-original image type {dicom_file.ImageType}")
 
                 if "LOCALIZER" in dicom_file.ImageType:
                     raise ValueError(f"Ignoring localizer image type {dicom_file.ImageType}")
@@ -232,7 +233,11 @@ def filter_study_images(study_id, studies_dir, allowed_dicom_tag_values, reports
     return study
 
 
-def filter_images(batch_data, studies_dir, all_available_images_file_path, allowed_dicom_tag_values):
+def filter_images(batch_data,
+                  studies_dir,
+                  all_available_images_file_path,
+                  allowed_dicom_tag_values,
+                  ignore_non_primary_and_non_original_images):
     assert len(batch_data) > 0
 
     print("Loading reports file(s)")
@@ -303,7 +308,12 @@ def filter_images(batch_data, studies_dir, all_available_images_file_path, allow
     print("Image filtering started")
 
     with ThreadPoolExecutor() as executor:
-        studies = list(tqdm(executor.map(lambda study_id: filter_study_images(study_id, studies_dir, allowed_dicom_tag_values, reports_dict), study_ids),
+        studies = list(tqdm(executor.map(lambda study_id: filter_study_images(study_id,
+                                                                              studies_dir,
+                                                                              allowed_dicom_tag_values,
+                                                                              reports_dict,
+                                                                              ignore_non_primary_and_non_original_images),
+                                         study_ids),
                             total=len(study_ids),
                             desc="Processing"))
 
@@ -342,7 +352,8 @@ def main(args):
     reports_df = filter_images(batch_data=batch_data,
                                studies_dir=args.studies_dir,
                                all_available_images_file_path=args.all_available_images_file_path,
-                               allowed_dicom_tag_values=args.allowed_dicom_tag_values)
+                               allowed_dicom_tag_values=args.allowed_dicom_tag_values,
+                               ignore_non_primary_and_non_original_images=args.ignore_non_primary_and_non_original_images)
 
     # Save reports.
     save_reports(reports_df=reports_df, output_reports_file_path=args.output_reports_file_path)
@@ -353,6 +364,7 @@ if __name__ == "__main__":
     BATCHES_BASE_DIR = "/mnt/efs/all-cxr/simonmed/"
     STUDIES_DIR = "/mnt/efs/all-cxr/simonmed/images/422ca224-a9f2-4c64-bf7c-bb122ae2a7bb"
     ALL_AVAILABLE_IMAGES_FILE_PATH = "/mnt/efs/all-cxr/simonmed/all_available_simonmed_images.jsonl"
+    IGNORE_NON_PRIMARY_AND_NON_ORIGINAL_IMAGES = False
     OUTPUT_REPORTS_FILE_PATH = f"/mnt/efs/all-cxr/simonmed/batch{BATCH_INDEX}/simonmed_batch_{BATCH_INDEX}_reports_with_image_paths_filtered.csv"
 
     ALLOWED_DICOM_TAG_VALUES = {
@@ -372,6 +384,7 @@ if __name__ == "__main__":
                               studies_dir=STUDIES_DIR,
                               all_available_images_file_path=ALL_AVAILABLE_IMAGES_FILE_PATH,
                               allowed_dicom_tag_values=ALLOWED_DICOM_TAG_VALUES,
+                              ignore_non_primary_and_non_original_images=IGNORE_NON_PRIMARY_AND_NON_ORIGINAL_IMAGES,
                               output_reports_file_path=OUTPUT_REPORTS_FILE_PATH)
 
     main(args)
