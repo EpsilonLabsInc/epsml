@@ -35,7 +35,7 @@ def merge_datasets(datasets_info):
         df["base_path"] = base_paths
 
         # Drop columns that won't be used.
-        columns_to_use = ["patient_id", "study_uid", "sex", "age", "body_part", report_text_column, labels_column, image_paths_column, "base_path"]
+        columns_to_use = ["patient_id", "study_uid", "sex", "age", "body_part", report_text_column, labels_column, "structured_labels", image_paths_column, "base_path"]
         if dataset_name.startswith("segmed_"):
             columns_to_use.extend(["meta_data_on_study_level", "meta_data_on_series_level"])
 
@@ -94,7 +94,7 @@ if __name__ == "__main__":
     DATASETS_INFO = [
         {
             "dataset_name": "gradient",
-            "file_name": "/mnt/efs/all-cxr/gradient/GRADIENT_CR_ALL_BATCHES_with_uncertain_labels_cleaned_unflagged.csv",
+            "file_name": "/mnt/efs/all-cxr/gradient/GRADIENT_CR_ALL_BATCHES_with_uncertain_labels_cleaned_unflagged_with_dicom_data.csv",
             "images_base_path": "gradient",
             "report_text_column": "cleaned_report_text",
             "labels_column": "labels",
@@ -102,7 +102,7 @@ if __name__ == "__main__":
         },
         {
             "dataset_name": "segmed_batch_1",
-            "file_name": "/mnt/efs/all-cxr/segmed/batch1/segmed_batch_1_merged_reports_with_image_paths_filtered_standardized_mapped_modalities_with_uncertain_labels_cleaned_unflagged.csv",
+            "file_name": "/mnt/efs/all-cxr/segmed/batch1/segmed_batch_1_merged_reports_with_image_paths_filtered_standardized_mapped_modalities_with_uncertain_labels_cleaned_unflagged_with_dicom_data.csv",
             "images_base_path": "segmed/batch1",
             "report_text_column": "cleaned_report_text",
             "labels_column": "labels",
@@ -110,7 +110,7 @@ if __name__ == "__main__":
         },
         {
             "dataset_name": "segmed_batch_2",
-            "file_name": "/mnt/efs/all-cxr/segmed/batch2/segmed_batch_2_merged_reports_with_image_paths_filtered_standardized_mapped_modalities_with_uncertain_labels_cleaned_unflagged.csv",
+            "file_name": "/mnt/efs/all-cxr/segmed/batch2/segmed_batch_2_merged_reports_with_image_paths_filtered_standardized_mapped_modalities_with_uncertain_labels_cleaned_unflagged_with_dicom_data.csv",
             "images_base_path": "segmed/batch2",
             "report_text_column": "cleaned_report_text",
             "labels_column": "labels",
@@ -118,7 +118,7 @@ if __name__ == "__main__":
         },
         {
             "dataset_name": "simonmed_batch_1",
-            "file_name": "/mnt/efs/all-cxr/simonmed/batch1/simonmed_batch_1_reports_with_image_paths_filtered_standardized_mapped_modalities_with_uncertain_labels_cleaned_unflagged.csv",
+            "file_name": "/mnt/efs/all-cxr/simonmed/batch1/simonmed_batch_1_reports_with_image_paths_filtered_standardized_mapped_modalities_with_uncertain_labels_cleaned_unflagged_with_dicom_data.csv",
             "images_base_path": "simonmed",
             "report_text_column": "cleaned_report_text",
             "labels_column": "labels",
@@ -126,7 +126,7 @@ if __name__ == "__main__":
         },
         {
             "dataset_name": "simonmed_batch_2",
-            "file_name": "/mnt/efs/all-cxr/simonmed/batch2/simonmed_batch_2_reports_with_image_paths_filtered_standardized_mapped_modalities_with_uncertain_labels_cleaned_unflagged.csv",
+            "file_name": "/mnt/efs/all-cxr/simonmed/batch2/simonmed_batch_2_reports_with_image_paths_filtered_standardized_mapped_modalities_with_uncertain_labels_cleaned_unflagged_with_dicom_data.csv",
             "images_base_path": "simonmed",
             "report_text_column": "cleaned_report_text",
             "labels_column": "labels",
@@ -134,7 +134,7 @@ if __name__ == "__main__":
         },
         {
             "dataset_name": "simonmed_batch_3",
-            "file_name": "/mnt/efs/all-cxr/simonmed/batch3/simonmed_batch_3_reports_with_image_paths_filtered_standardized_mapped_modalities_with_uncertain_labels_cleaned_unflagged.csv",
+            "file_name": "/mnt/efs/all-cxr/simonmed/batch3/simonmed_batch_3_reports_with_image_paths_filtered_standardized_mapped_modalities_with_uncertain_labels_cleaned_unflagged_with_dicom_data.csv",
             "images_base_path": "simonmed",
             "report_text_column": "cleaned_report_text",
             "labels_column": "labels",
@@ -142,7 +142,7 @@ if __name__ == "__main__":
         },
         {
             "dataset_name": "simonmed_batch_4",
-            "file_name": "/mnt/efs/all-cxr/simonmed/batch4/simonmed_batch_4_reports_with_image_paths_filtered_standardized_mapped_modalities_with_uncertain_labels_cleaned_unflagged.csv",
+            "file_name": "/mnt/efs/all-cxr/simonmed/batch4/simonmed_batch_4_reports_with_image_paths_filtered_standardized_mapped_modalities_with_uncertain_labels_cleaned_unflagged_with_dicom_data.csv",
             "images_base_path": "simonmed",
             "report_text_column": "cleaned_report_text",
             "labels_column": "labels",
@@ -150,7 +150,7 @@ if __name__ == "__main__":
         },
         {
             "dataset_name": "simonmed_batch_5",
-            "file_name": "/mnt/efs/all-cxr/simonmed/batch5/simonmed_batch_5_reports_with_image_paths_filtered_standardized_mapped_modalities_with_uncertain_labels_cleaned_unflagged.csv",
+            "file_name": "/mnt/efs/all-cxr/simonmed/batch5/simonmed_batch_5_reports_with_image_paths_filtered_standardized_mapped_modalities_with_uncertain_labels_cleaned_unflagged_with_dicom_data.csv",
             "images_base_path": "simonmed",
             "report_text_column": "cleaned_report_text",
             "labels_column": "labels",
@@ -158,7 +158,7 @@ if __name__ == "__main__":
         },
         {
             "dataset_name": "simonmed_batch_6",
-            "file_name": "/mnt/efs/all-cxr/simonmed/batch6/simonmed_batch_6_reports_with_image_paths_filtered_standardized_mapped_modalities_with_uncertain_labels_cleaned_unflagged.csv",
+            "file_name": "/mnt/efs/all-cxr/simonmed/batch6/simonmed_batch_6_reports_with_image_paths_filtered_standardized_mapped_modalities_with_uncertain_labels_cleaned_unflagged_with_dicom_data.csv",
             "images_base_path": "simonmed",
             "report_text_column": "cleaned_report_text",
             "labels_column": "labels",
@@ -166,7 +166,7 @@ if __name__ == "__main__":
         },
         {
             "dataset_name": "simonmed_batch_7",
-            "file_name": "/mnt/efs/all-cxr/simonmed/batch7/simonmed_batch_7_reports_with_image_paths_filtered_standardized_mapped_modalities_with_uncertain_labels_cleaned_unflagged.csv",
+            "file_name": "/mnt/efs/all-cxr/simonmed/batch7/simonmed_batch_7_reports_with_image_paths_filtered_standardized_mapped_modalities_with_uncertain_labels_cleaned_unflagged_with_dicom_data.csv",
             "images_base_path": "simonmed",
             "report_text_column": "cleaned_report_text",
             "labels_column": "labels",
@@ -174,7 +174,7 @@ if __name__ == "__main__":
         },
         {
             "dataset_name": "simonmed_batch_8",
-            "file_name": "/mnt/efs/all-cxr/simonmed/batch8/simonmed_batch_8_reports_with_image_paths_filtered_standardized_mapped_modalities_with_uncertain_labels_cleaned_unflagged.csv",
+            "file_name": "/mnt/efs/all-cxr/simonmed/batch8/simonmed_batch_8_reports_with_image_paths_filtered_standardized_mapped_modalities_with_uncertain_labels_cleaned_unflagged_with_dicom_data.csv",
             "images_base_path": "simonmed",
             "report_text_column": "cleaned_report_text",
             "labels_column": "labels",
@@ -182,7 +182,7 @@ if __name__ == "__main__":
         },
         {
             "dataset_name": "simonmed_batch_9",
-            "file_name": "/mnt/efs/all-cxr/simonmed/batch9/simonmed_batch_9_reports_with_image_paths_filtered_standardized_mapped_modalities_with_uncertain_labels_cleaned_unflagged.csv",
+            "file_name": "/mnt/efs/all-cxr/simonmed/batch9/simonmed_batch_9_reports_with_image_paths_filtered_standardized_mapped_modalities_with_uncertain_labels_cleaned_unflagged_with_dicom_data.csv",
             "images_base_path": "simonmed",
             "report_text_column": "cleaned_report_text",
             "labels_column": "labels",
@@ -190,7 +190,7 @@ if __name__ == "__main__":
         },
         {
             "dataset_name": "simonmed_batch_10",
-            "file_name": "/mnt/efs/all-cxr/simonmed/batch10/simonmed_batch_10_reports_with_image_paths_filtered_standardized_mapped_modalities_with_uncertain_labels_cleaned_unflagged.csv",
+            "file_name": "/mnt/efs/all-cxr/simonmed/batch10/simonmed_batch_10_reports_with_image_paths_filtered_standardized_mapped_modalities_with_uncertain_labels_cleaned_unflagged_with_dicom_data.csv",
             "images_base_path": "simonmed",
             "report_text_column": "cleaned_report_text",
             "labels_column": "labels",
