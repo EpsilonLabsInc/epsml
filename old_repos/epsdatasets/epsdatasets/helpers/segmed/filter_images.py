@@ -2,7 +2,7 @@ import argparse
 import ast
 import logging
 import os
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ProcessPoolExecutor
 from datetime import datetime
 
 import pandas as pd
@@ -15,7 +15,8 @@ from epsutils.image import image_utils
 from epsutils.logging import logging_utils
 
 
-def filter_study_images(images_base_path, allowed_dicom_tag_values, df_row):
+def filter_study_images(args):
+    images_base_path, allowed_dicom_tag_values, df_row = args
 
     image_paths = ast.literal_eval(df_row["image_paths"])
     study_id = df_row["study_id"]
@@ -164,8 +165,8 @@ def filter_images(reports_file_with_image_paths, images_base_path, allowed_dicom
 
     print("Image filtering started")
 
-    with ThreadPoolExecutor() as executor:
-        filtered_image_paths = list(tqdm(executor.map(lambda row: filter_study_images(images_base_path, allowed_dicom_tag_values, row), df_rows),
+    with ProcessPoolExecutor() as executor:
+        filtered_image_paths = list(tqdm(executor.map(filter_study_images, [(images_base_path, allowed_dicom_tag_values, row) for row in df_rows]),
                                          total=len(df_rows),
                                          desc="Processing"))
 
@@ -200,9 +201,9 @@ def main(args):
 
 
 if __name__ == "__main__":
-    REPORTS_FILE_WITH_IMAGE_PATHS = "/mnt/efs/all-cxr/segmed/batch2/segmed_batch_2_merged_reports_with_image_paths.csv"
-    IMAGES_BASE_PATH = "/mnt/efs/all-cxr/segmed/batch2"
-    OUTPUT_REPORTS_FILE_PATH = "/mnt/efs/all-cxr/segmed/batch2/segmed_batch_2_merged_reports_with_image_paths_filtered.csv"
+    REPORTS_FILE_WITH_IMAGE_PATHS = "/mnt/efs/all-cxr/segmed/batch4/segmed_batch_4_merged_reports_with_image_paths.csv"
+    IMAGES_BASE_PATH = "/mnt/efs/all-cxr/segmed/batch4"
+    OUTPUT_REPORTS_FILE_PATH = "/mnt/efs/all-cxr/segmed/batch4/segmed_batch_4_merged_reports_with_image_paths_filtered.csv"
 
     ALLOWED_DICOM_TAG_VALUES = {
         "modalities": [
