@@ -28,7 +28,7 @@ def merge_datasets(datasets_info):
         # Populate base paths.
         print("Populating base paths")
         if dataset_name == "gradient":
-            base_paths = df["batch_id"].apply(lambda batch_id: os.path.join(images_base_path, batch_id))
+            base_paths = df["batch"].apply(lambda batch_id: os.path.join(images_base_path, batch_id))
         else:
             base_paths = pd.Series([images_base_path] * len(df))
         assert len(base_paths) == len(df)
