@@ -98,9 +98,9 @@ if __name__ == "__main__":
 
     INTERN_VL_CHECKPOINT_DIR = "/mnt/efs/models/internvl/old/internvl2.5_26b_finetune_lora_20241229_184000_1e-5_2.5_gradient_full_rm_sole_no_findings_rm_bad_dcm_no_label/checkpoint-58670"
     BINARY_CLASSIFIER_CHECKPOINTS = [
-        {"name": "consolidation", "path": "/home/andrej/tmp/binary_checkpoints/binary_consolidation_checkpoint.pt"},
-        {"name": "edema", "path": "/home/andrej/tmp/binary_checkpoints/binary_edema_checkpoint.pt"},
-        {"name": "airspace opacity", "path": "/home/andrej/tmp/binary_checkpoints/binary_airspace_opacity_checkpoint.pt"},
+        {"name": "consolidation", "path": "/mnt/efs/models/internvl/binary/consolidation/binary_consolidation_checkpoint.pt"},
+        {"name": "edema", "path": "/mnt/efs/models/internvl/binary/edema/binary_edema_checkpoint.pt"},
+        {"name": "airspace opacity", "path": "/mnt/efs/models/internvl/binary/airspace_opacity/binary_airspace_opacity_checkpoint.pt"},
     ]
 
     # Edema.
@@ -128,7 +128,8 @@ if __name__ == "__main__":
         intern_vl_checkpoint_dir=INTERN_VL_CHECKPOINT_DIR,
         intern_vit_output_dim=3200,
         multi_image_input=True,
-        num_multi_images=2)
+        num_multi_images=2,
+        device="cuda")
 
     output = classifier.predict(dicom_files=DICOM_FILES)
 

@@ -8,3 +8,6 @@ torch==2.5.1+cu121
 torchvision==0.20.1+cu121
 torchxrayvision
 tqdm
+einops
+timm
+peft
