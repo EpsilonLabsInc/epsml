@@ -7,6 +7,8 @@ import numpy as np
 import pydicom
 import SimpleITK as sitk
 
+from epsutils.dicom import dicom_compression_utils
+
 
 def get_friendly_names(sop_class_uids: Tuple[pydicom.uid.UID, ...]):
     return tuple([sop_class_uid.name for sop_class_uid in sop_class_uids])
@@ -155,6 +157,16 @@ def get_dicom_image_from_dataset(dataset: pydicom.dataset.FileDataset, custom_wi
 
 def get_dicom_image(dicom_file_name, custom_windowing_parameters=None):
     dataset = pydicom.dcmread(dicom_file_name)
+    return get_dicom_image_from_dataset(dataset, custom_windowing_parameters)
+
+
+def get_dicom_image_fail_safe(dicom_file_name, custom_windowing_parameters=None):
+    try:
+        dataset = pydicom.dcmread(dicom_file_name)
+    except:
+        dataset = pydicom.dcmread(dicom_file_name, force=True)
+        dataset = dicom_compression_utils.handle_dicom_compression(dataset)
+
     return get_dicom_image_from_dataset(dataset, custom_windowing_parameters)
 
 
