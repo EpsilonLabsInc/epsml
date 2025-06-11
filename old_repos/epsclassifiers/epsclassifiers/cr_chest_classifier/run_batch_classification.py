@@ -95,7 +95,7 @@ def classification_task(progress_bar):
             # Write results.
             for dicom_file, label in zip(dicom_files, labels):
                 slabel = "CHEST" if label == Label.CHEST else "NON-CHEST"
-                logging.info(f"{dicom_file};{slabel}")
+                logging.info(f"{dicom_file},{slabel}")
 
         except queue.Empty:
             # DICOM queue is empty. Classify the remaining DICOM files in the queue and exit the classification loop.
@@ -103,7 +103,7 @@ def classification_task(progress_bar):
                 labels = classifier.predict(images=images, device="cuda")
                 for dicom_file, label in zip(dicom_files, labels):
                     slabel = "CHEST" if label == Label.CHEST else "NON-CHEST"
-                    logging.info(f"{dicom_file};{slabel}")
+                    logging.info(f"{dicom_file},{slabel}")
 
             break
 
