@@ -37,10 +37,10 @@ class CrChestClassifier:
 
     def predict(self, images: List[Union[pydicom.dataset.FileDataset, PIL.Image.Image]], device: str) -> List[Label]:
         """
-        Accepts a list of pydicom datasets or PIL images and runs inference on them.
+        Accepts a list of pydicom datasets, PIL images or numpy arrays and runs inference on them.
 
         Args:
-            images (List[Union[pydicom.dataset.FileDataset, PIL.Image.Image]]): List of pydicom datasets or PIL images.
+            images (List[Union[pydicom.dataset.FileDataset, PIL.Image.Image, np.ndarray]]): List of pydicom datasets, PIL images or numpy arrays.
             device (str): CUDA device. Can be 'cpu' or 'cuda'.
 
         Returns:
