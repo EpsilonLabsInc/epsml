@@ -14,6 +14,7 @@ def main(args):
         total_len += len(df)
         dfs.append(df)
 
+    print("Merging")
     merged_df = pd.concat(dfs, axis=0)
     print(f"Number of rows in the merged dataset: {len(merged_df)}")
 
