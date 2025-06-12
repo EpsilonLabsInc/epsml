@@ -20,8 +20,8 @@ INPUT_FILE_NAME = "/mnt/efs/all-cxr/combined/gradient_batches_1-5_segmed_batches
 IMAGE_PATH_COLUMN_NAME = "image_paths"
 BASE_PATH_COLUMN_NAME = "base_path"
 OUTPUT_FILE = "gradient_batches_1-5_segmed_batches_1-4_simonmed_batches_1-10_reports_with_labels_all_projections.csv"
-MAX_BATCH_SIZE = 64
-EMPTY_QUEUE_WAIT_TIMEOUT_SEC = 60
+MAX_BATCH_SIZE = 192
+EMPTY_QUEUE_WAIT_TIMEOUT_SEC = 300
 BASE_PATH_SUBSTITUTIONS = {
     "gradient/22JUL2024": "/mnt/efs/all-cxr/gradient/22JUL2024",
     "gradient/20DEC2024": "/mnt/efs/all-cxr/gradient/20DEC2024/deid",
@@ -71,7 +71,7 @@ def load_dicom_file(df_row):
         for image, image_path in zip(images, image_paths):
             dicom_queue.put({"dicom_file": image_path, "image": image})
     except Exception as e:
-        print(f"Error loading DICOM file: {str(e)}")
+        print(f"Error loading DICOM file: {str(e)} ({df_row[IMAGE_PATH_COLUMN_NAME]})")
 
 
 def classification_task(progress_bar):
