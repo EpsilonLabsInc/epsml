@@ -136,7 +136,7 @@ def main():
         image_paths = image_paths if isinstance(image_paths, list) else [image_paths]
         num_images += len(image_paths)
 
-    progress_bar = tqdm(total=len(num_images), leave=False, desc="Processing")
+    progress_bar = tqdm(total=num_images, leave=False, desc="Processing")
     classification_thread = threading.Thread(target=classification_task, args=(progress_bar,))
     classification_thread.start()
 
