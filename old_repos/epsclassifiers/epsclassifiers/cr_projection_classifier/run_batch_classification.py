@@ -121,7 +121,21 @@ def main():
     print(f"Loading {INPUT_FILE_NAME}")
     df = pd.read_csv(INPUT_FILE_NAME, low_memory=False)
 
-    progress_bar = tqdm(total=len(df), leave=False, desc="Processing")
+    print("Estimating number of images that will be classified")
+    num_images = 0
+    for index, row in tqdm(df.iterrows(), total=len(df), desc="Processing"):
+        base_path = row[BASE_PATH_COLUMN_NAME]
+        if base_path not in BASE_PATH_SUBSTITUTIONS or BASE_PATH_SUBSTITUTIONS[base_path] is None:
+            continue
+
+        try:
+            image_paths = ast.literal_eval(row[IMAGE_PATH_COLUMN_NAME])
+        except:
+            image_paths = row[IMAGE_PATH_COLUMN_NAME]
+        image_paths = image_paths if isinstance(image_paths, list) else [image_paths]
+        num_images += len(image_paths)
+
+    progress_bar = tqdm(total=num_images, leave=False, desc="Processing")
     classification_thread = threading.Thread(target=classification_task, args=(progress_bar,))
     classification_thread.start()
 
