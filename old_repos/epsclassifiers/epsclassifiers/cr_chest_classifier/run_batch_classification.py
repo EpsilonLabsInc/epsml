@@ -58,9 +58,10 @@ def load_dicom_file(df_row):
             image_paths = df_row[IMAGE_PATH_COLUMN_NAME]
         image_paths = image_paths if isinstance(image_paths, list) else [image_paths]
 
-        # Load images.
+        # Load and preprocess images.
         image_paths = [os.path.join(BASE_PATH_SUBSTITUTIONS[base_path], image_path) for image_path in image_paths]
-        images = [dicom_utils.get_dicom_image_fail_safe(image_path, custom_windowing_parameters={"window_center": 0, "window_width": 0}) for image_path in image_paths]
+        numpy_images = [dicom_utils.get_dicom_image_fail_safe(image_path, custom_windowing_parameters={"window_center": 0, "window_width": 0}) for image_path in image_paths]
+        images = [classifier.preprocess(numpy_image) for numpy_image in numpy_images]
 
         # Wait if queue full.
         while dicom_queue.qsize() >= MAX_BATCH_SIZE * 20:
