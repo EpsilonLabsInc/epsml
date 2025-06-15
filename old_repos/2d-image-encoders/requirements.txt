@@ -1,9 +1,9 @@
-xformers
+xformers>=0.0.29.post1
 --extra-index-url https://download.pytorch.org/whl/cu121
 torch==2.5.1+cu121
-Pillow
-transformers
-einops
-timm
-peft
-flash-attn
+pillow>=11.1.0
+transformers>=4.49.0
+einops>=0.8.1
+timm>= 1.0.15
+peft>=0.14.0
+flash-attn>=2.7.4.post1
