@@ -18,5 +18,5 @@ torch==2.5.1+cu121
 torchvision==0.20.1+cu121
 tqdm>=4.67.1
 google-cloud-storage>=3.1.0
-opencv_python>=4.11.0.86
+opencv-python>=4.11.0.86
 openpyxl>=3.1.5
