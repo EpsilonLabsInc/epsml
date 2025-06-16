@@ -1,4 +1,5 @@
 import ast
+import os
 from io import BytesIO
 
 import datasets
@@ -101,11 +102,14 @@ class GenericDatasetHelper(BaseDatasetHelper):
         self.__torch_test_dataset = GenericTorchDataset(pandas_dataframe=self.__pandas_test_dataset) if self.__pandas_test_dataset else None
 
     def get_pil_image(self, item):
-        image_paths = item["image_paths"]
+        image_paths = ast.literal_eval(item["image_paths"])
+        base_path = item["base_path"]
         images = []
 
         for image_path in image_paths:
             try:
+                subst = self.__base_path_substitutions[base_path]
+                image_path = os.path.join(subst, image_path)
                 image = dicom_utils.get_dicom_image_fail_safe(image_path, custom_windowing_parameters={"window_center": 0, "window_width": 0})
                 image = image_utils.numpy_array_to_pil_image(image, convert_to_rgb=self.__convert_images_to_rgb)
                 images.append(image)
@@ -193,10 +197,10 @@ class GenericDatasetHelper(BaseDatasetHelper):
         selected_rows = []
         for _, row in tqdm(df.iterrows(), total=len(df), desc="Procesing"):
             image_paths = ast.literal_eval(row["image_paths"])
-            df_body_part = row["body_part"].strip().lower()
+            df_body_parts = {body_part.strip().lower() for body_part in row["body_part"].split(",")}
             body_part = body_part.strip().lower()
 
-            if df_body_part != body_part:
+            if body_part not in df_body_parts:
                 continue
 
             # For chest perform additonal checks.
@@ -231,7 +235,14 @@ class GenericDatasetHelper(BaseDatasetHelper):
                 row["projection_classification"] = [projection_classification[frontal_index], projection_classification[lateral_index]]
                 row["chest_classification"] = [chest_classification[frontal_index], chest_classification[lateral_index]]
 
-            selected_rows.append(row)
+                selected_rows.append(row)
+
+            # For body parts other than chest unroll images.
+            else:
+                for image_path in image_paths:
+                    new_row = row.copy()
+                    new_row["image_paths"] = image_path
+                    selected_rows.append(new_row)
 
         df = pd.DataFrame(selected_rows)
         print(f"Filtered dataset has {len(df)} rows")
