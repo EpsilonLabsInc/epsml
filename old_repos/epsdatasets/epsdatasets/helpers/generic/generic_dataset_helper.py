@@ -1,20 +1,15 @@
 import ast
-import os
-from io import BytesIO, StringIO
+from io import BytesIO
 
 import datasets
-import numpy as np
 import pandas as pd
 import torch
-from PIL import Image
 from torch.utils.data import Dataset, DataLoader
 from tqdm import tqdm
 
 from epsdatasets.helpers.base.base_dataset_helper import BaseDatasetHelper
 from epsutils.aws import aws_s3_utils
 from epsutils.dicom import dicom_utils
-from epsutils.gcs import gcs_utils
-from epsutils.image import image_augmentation
 from epsutils.image import image_utils
 from epsutils.labels import labels_utils
 from epsutils.labels.labels_by_body_part import LABELS_BY_BODY_PART
@@ -28,7 +23,7 @@ class GenericDatasetHelper(BaseDatasetHelper):
                  base_path_substitutions,
                  body_part,
                  merge_val_and_test=True,
-                 treat_uncertain_as_positive=False,
+                 treat_uncertain_as_positive=True,
                  convert_images_to_rgb=True,
                  custom_labels=None):
 
@@ -213,11 +208,11 @@ class GenericDatasetHelper(BaseDatasetHelper):
                 chest_classification = ast.literal_eval(row["chest_classification"])
                 assert len(chest_classification) == len(image_paths)
 
-                # All elementes of the chest classificatin column must be chests!
+                # All elementes of the chest classification column must be chests!
                 if not all(elem.strip().lower() == "chest" for elem in chest_classification):
                     continue
 
-                # If no projectionclassification was done for this row, skip it.
+                # If no projection classification was done for this row, skip it.
                 if pd.isna(row["projection_classification"]):
                     continue
 
