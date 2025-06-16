@@ -43,6 +43,9 @@ def filter_reports(args):
             lateral_index = next((i for i, elem in enumerate(projection_classification) if elem == "Lateral"), None)
             assert frontal_index is not None and lateral_index is not None
             row["image_paths"] = [image_paths[frontal_index], image_paths[lateral_index]]
+            row["projection_classification"] = [projection_classification[frontal_index], projection_classification[lateral_index]]
+            if args.apply_chest_filtering:
+                row["chest_classification"] = [chest_classification[frontal_index], chest_classification[lateral_index]]
 
         selected_rows.append(row)
 
