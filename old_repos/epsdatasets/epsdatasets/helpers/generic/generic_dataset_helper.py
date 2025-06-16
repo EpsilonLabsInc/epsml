@@ -102,7 +102,7 @@ class GenericDatasetHelper(BaseDatasetHelper):
         self.__torch_test_dataset = GenericTorchDataset(pandas_dataframe=self.__pandas_test_dataset) if self.__pandas_test_dataset else None
 
     def get_pil_image(self, item):
-        image_paths = ast.literal_eval(item["image_paths"])
+        image_paths = item["image_paths"] if isinstance(item["image_paths"], list) else ast.literal_eval(item["image_paths"])
         base_path = item["base_path"]
         images = []
 
