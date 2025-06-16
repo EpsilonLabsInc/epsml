@@ -13,7 +13,7 @@ def from_multi_hot_encoding(multi_hot_encoding, all_labels):
     return [all_labels[i] for i, val in enumerate(multi_hot_encoding) if val == 1]
 
 
-def parse_structured_labels(structured_labels, treat_uncertain_as_positive=True):
+def parse_structured_labels(structured_labels, treat_uncertain_as_positive):
     parsed_labels = {}
     for item in structured_labels:
         # Make sure body part is not repeated.
