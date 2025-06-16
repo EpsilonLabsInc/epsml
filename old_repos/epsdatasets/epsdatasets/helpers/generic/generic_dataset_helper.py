@@ -237,11 +237,11 @@ class GenericDatasetHelper(BaseDatasetHelper):
 
                 selected_rows.append(row)
 
-            # For body parts other than chest unroll images.
+            # For body parts other than chest, unroll images.
             else:
                 for image_path in image_paths:
                     new_row = row.copy()
-                    new_row["image_paths"] = image_path
+                    new_row["image_paths"] = [image_path]
                     selected_rows.append(new_row)
 
         df = pd.DataFrame(selected_rows)
