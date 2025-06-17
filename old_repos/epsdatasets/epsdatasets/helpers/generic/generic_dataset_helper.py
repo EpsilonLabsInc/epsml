@@ -233,7 +233,6 @@ class GenericDatasetHelper(BaseDatasetHelper):
         for _, row in tqdm(df.iterrows(), total=len(df), desc="Processing"):
             labels = labels_utils.parse_structured_labels(ast.literal_eval(row["structured_labels"]), treat_uncertain_as_positive=self.__treat_uncertain_as_positive)
             assert self.__body_part in labels
-            res = labels_utils.to_multi_hot_encoding(labels[self.__body_part], self.get_labels())
             training_labels.append(labels_utils.to_multi_hot_encoding(labels[self.__body_part], self.get_labels()))
 
         assert len(df) == len(training_labels)
