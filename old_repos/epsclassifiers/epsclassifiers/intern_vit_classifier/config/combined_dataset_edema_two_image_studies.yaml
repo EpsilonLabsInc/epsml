@@ -6,6 +6,7 @@ general:
   custom_labels: ["Edema"]
   body_part: "Chest"
   treat_uncertain_as_positive: True
+  perform_label_balancing: True
   save_full_model: False
 
 paths:
