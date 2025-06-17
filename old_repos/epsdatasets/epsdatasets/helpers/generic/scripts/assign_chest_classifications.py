@@ -56,9 +56,9 @@ def main(args):
 
 
 if __name__ == "__main__":
-    INPUT_CSV_PATH = "/mnt/efs/all-cxr/combined/gradient_batches_1-5_segmed_batches_1-4_simonmed_batches_1-10_reports_with_labels_all.csv"
-    CHEST_CLASSIFICATIONS_CSV_PATH = "/home/andrej/tmp/gradient_batches_1-5_segmed_batches_1-4_simonmed_batches_1-10_reports_with_labels_all_chest_classifications.csv"
-    OUTPUT_FILE_PATH = "/mnt/efs/all-cxr/combined/gradient_batches_1-5_segmed_batches_1-4_simonmed_batches_1-10_reports_with_labels_all_with_chest_classifications.csv"
+    INPUT_CSV_PATH = "/mnt/efs/all-cxr/combined/gradient_batches_1-5_segmed_batches_1-4_simonmed_batches_1-10_reports_with_labels_val.csv"
+    CHEST_CLASSIFICATIONS_CSV_PATH = "/mnt/efs/all-cxr/combined/chest_classifications_for_gradient_batches_1-5_segmed_batches_1-4_simonmed_batches_1-10.csv"
+    OUTPUT_FILE_PATH = "/mnt/efs/all-cxr/combined/gradient_batches_1-5_segmed_batches_1-4_simonmed_batches_1-10_reports_with_labels_val.csv"
     BASE_PATH_SUBSTITUTIONS = {
         "gradient/22JUL2024": "/mnt/efs/all-cxr/gradient/22JUL2024",
         "gradient/20DEC2024": "/mnt/efs/all-cxr/gradient/20DEC2024/deid",
