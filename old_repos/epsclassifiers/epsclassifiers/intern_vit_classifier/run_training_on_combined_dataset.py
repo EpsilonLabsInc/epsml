@@ -200,7 +200,7 @@ def main(config_path):
 
         data = {
             "images": images,
-            "file_names": [sample["image_path"] for sample in samples]
+            "file_names": [sample["image_paths"] for sample in samples]
         }
 
         return data, labels
