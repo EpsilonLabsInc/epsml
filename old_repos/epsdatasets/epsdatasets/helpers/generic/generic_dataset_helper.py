@@ -25,8 +25,10 @@ class GenericDatasetHelper(BaseDatasetHelper):
                  body_part,
                  merge_val_and_test=True,
                  treat_uncertain_as_positive=True,
+                 perform_label_balancing=True,
                  convert_images_to_rgb=True,
-                 custom_labels=None):
+                 custom_labels=None,
+                 seed=42):
 
         super().__init__(train_file=train_file,
                          validation_file=validation_file,
@@ -35,8 +37,10 @@ class GenericDatasetHelper(BaseDatasetHelper):
                          body_part=body_part,
                          merge_val_and_test=merge_val_and_test,
                          treat_uncertain_as_positive=treat_uncertain_as_positive,
+                         perform_label_balancing=perform_label_balancing,
                          convert_images_to_rgb=convert_images_to_rgb,
-                         custom_labels=custom_labels)
+                         custom_labels=custom_labels,
+                         seed=seed)
 
     def _load_dataset(self, *args, **kwargs):
         # Store params.
@@ -47,8 +51,10 @@ class GenericDatasetHelper(BaseDatasetHelper):
         self.__body_part = kwargs["body_part"] if "body_part" in kwargs else next((arg for arg in args if arg == "body_part"), None)
         self.__merge_val_and_test = kwargs["merge_val_and_test"] if "merge_val_and_test" in kwargs else next((arg for arg in args if arg == "merge_val_and_test"), None)
         self.__treat_uncertain_as_positive = kwargs["treat_uncertain_as_positive"] if "treat_uncertain_as_positive" in kwargs else next((arg for arg in args if arg == "treat_uncertain_as_positive"), None)
+        self.__perform_label_balancing = kwargs["perform_label_balancing"] if "perform_label_balancing" in kwargs else next((arg for arg in args if arg == "perform_label_balancing"), None)
         self.__convert_images_to_rgb = kwargs["convert_images_to_rgb"] if "convert_images_to_rgb" in kwargs else next((arg for arg in args if arg == "convert_images_to_rgb"), None)
         self.__custom_labels = kwargs["custom_labels"] if "custom_labels" in kwargs else next((arg for arg in args if arg == "custom_labels"), None)
+        self.__seed = kwargs["seed"] if "seed" in kwargs else next((arg for arg in args if arg == "seed"), None)
 
         self.__pandas_train_dataset = None
         self.__pandas_validation_dataset = None
@@ -56,6 +62,8 @@ class GenericDatasetHelper(BaseDatasetHelper):
         self.__torch_train_dataset = None
         self.__torch_validation_dataset = None
         self.__torch_test_dataset = None
+
+        self.__uses_single_label = len(self.__custom_labels) == 1
 
         # Train dataset.
         if aws_s3_utils.is_aws_s3_uri(self.__train_file):
@@ -67,6 +75,12 @@ class GenericDatasetHelper(BaseDatasetHelper):
             print(f"Loading {self.__train_file}")
             content = self.__train_file
         self.__pandas_train_dataset = self.__filter_dataset(df=pd.read_csv(content, low_memory=False), body_part=self.__body_part)
+        self.__generate_training_labels(self.__pandas_train_dataset)
+
+        if self.__uses_single_label:
+            print("Generating balancing statistics for the training dataset")
+            num_pos, pos_percent, num_neg, neg_percent = self.__balancing_statistics(self.__pandas_train_dataset)
+            print(f"There are {num_pos} ({pos_percent:.2f}%) positive and {num_neg} ({neg_percent:.2f}%) negative samples in the training dataset")
 
         # Validation dataset.
         if aws_s3_utils.is_aws_s3_uri(self.__validation_file):
@@ -78,6 +92,12 @@ class GenericDatasetHelper(BaseDatasetHelper):
             print(f"Loading {self.__validation_file}")
             content = self.__validation_file
         self.__pandas_validation_dataset = self.__filter_dataset(df=pd.read_csv(content, low_memory=False), body_part=self.__body_part)
+        self.__generate_training_labels(self.__pandas_validation_dataset)
+
+        if self.__uses_single_label:
+            print("Generating balancing statistics for the validation dataset")
+            num_pos, pos_percent, num_neg, neg_percent = self.__balancing_statistics(self.__pandas_validation_dataset)
+            print(f"There are {num_pos} ({pos_percent:.2f}%) positive and {num_neg} ({neg_percent:.2f}%) negative samples in the validation dataset")
 
         # Test dataset.
         if aws_s3_utils.is_aws_s3_uri(self.__test_file):
@@ -89,12 +109,33 @@ class GenericDatasetHelper(BaseDatasetHelper):
             print(f"Loading {self.__test_file}")
             content = self.__test_file
         self.__pandas_test_dataset = self.__filter_dataset(df=pd.read_csv(content, low_memory=False), body_part=self.__body_part)
+        self.__generate_training_labels(self.__pandas_test_dataset)
+
+        if self.__uses_single_label:
+            print("Generating balancing statistics for the test dataset")
+            num_pos, pos_percent, num_neg, neg_percent = self.__balancing_statistics(self.__pandas_test_dataset)
+            print(f"There are {num_pos} ({pos_percent:.2f}%) positive and {num_neg} ({neg_percent:.2f}%) negative samples in the test dataset")
 
         # Merge validation and test dataset.
         if self.__merge_val_and_test:
             self.__pandas_validation_dataset = pd.concat([self.__pandas_validation_dataset, self.__pandas_test_dataset], axis=0)
             self.__pandas_test_dataset = None
             print(f"After merging validation and test dataset, validation dataset has {len(self.__pandas_validation_dataset)} rows")
+
+        # Perform label balancing.
+        if self.__perform_label_balancing and self.__uses_single_label:
+            print("Balancing training dataset")
+            self.__pandas_train_dataset = self.__balance_dataset(self.__pandas_train_dataset)
+            print(f"After balancing, the training dataset has {len(self.__pandas_train_dataset)} rows")
+
+            print("Balancing validation dataset")
+            self.__pandas_validation_dataset = self.__balance_dataset(self.__pandas_validation_dataset)
+            print(f"After balancing, the validation dataset has {len(self.__pandas_validation_dataset)} rows")
+
+            if self.__pandas_test_dataset is not None:
+                print("Balancing test dataset")
+                self.__pandas_test_dataset = self.__balance_dataset(self.__pandas_test_dataset)
+                print(f"After balancing, the test dataset has {len(self.__pandas_test_dataset)} rows")
 
         # Create Torch datasets.
         print("Creating Torch datasets")
@@ -136,12 +177,7 @@ class GenericDatasetHelper(BaseDatasetHelper):
         raise NotImplementedError("Not implemented")
 
     def get_torch_label(self, item):
-        structured_labels = ast.literal_eval(item["structured_labels"])
-        parsed_labels = labels_utils.parse_structured_labels(structured_labels, treat_uncertain_as_positive=self.__treat_uncertain_as_positive)
-        assert self.__body_part in parsed_labels
-        labels = parsed_labels[self.__body_part]
-        multi_hot_labels = labels_utils.to_multi_hot_encoding(labels, self.get_labels())
-        return torch.tensor(multi_hot_labels)
+        return torch.tensor(item["training_labels"])
 
     def get_pandas_full_dataset(self):
         raise NotImplementedError("Not implemented")
@@ -190,6 +226,41 @@ class GenericDatasetHelper(BaseDatasetHelper):
                                  num_workers=num_workers,
                                  persistent_workers=True) if self.__torch_test_dataset else None
         return data_loader
+
+    def __generate_training_labels(self, df):
+        print("Generating training labels")
+        training_labels = []
+        for _, row in tqdm(df.iterrows(), total=len(df), desc="Processing"):
+            labels = labels_utils.parse_structured_labels(ast.literal_eval(row["structured_labels"]), treat_uncertain_as_positive=self.__treat_uncertain_as_positive)
+            assert self.__body_part in labels
+            res = labels_utils.to_multi_hot_encoding(labels[self.__body_part], self.get_labels())
+            training_labels.append(labels_utils.to_multi_hot_encoding(labels[self.__body_part], self.get_labels()))
+
+        assert len(df) == len(training_labels)
+        df["training_labels"] = training_labels
+
+    def __balancing_statistics(self, df):
+        assert self.__uses_single_label
+
+        num_pos = df["training_labels"].apply(lambda x: x == [1]).sum()
+        num_neg = df["training_labels"].apply(lambda x: x == [0]).sum()
+
+        pos_percent = num_pos / (num_pos + num_neg) * 100
+        neg_percent = num_neg / (num_pos + num_neg) * 100
+
+        return num_pos, pos_percent, num_neg, neg_percent
+
+    def __balance_dataset(self, df):
+        assert self.__uses_single_label
+
+        pos_df = df[df["training_labels"].apply(lambda x: x == [1])]
+        neg_df = df[df["training_labels"].apply(lambda x: x == [0])]
+        neg_df = neg_df.sample(n=len(pos_df), random_state=self.__seed)
+
+        df = pd.concat([pos_df, neg_df]).reset_index(drop=True)
+        df = df.sample(frac=1, random_state=self.__seed).reset_index(drop=True)
+
+        return df
 
     def __filter_dataset(self, df, body_part):
         print("Filtering dataset")
