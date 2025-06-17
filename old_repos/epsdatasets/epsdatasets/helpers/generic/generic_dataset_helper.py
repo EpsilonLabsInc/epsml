@@ -94,6 +94,7 @@ class GenericDatasetHelper(BaseDatasetHelper):
         if self.__merge_val_and_test:
             self.__pandas_validation_dataset = pd.concat([self.__pandas_validation_dataset, self.__pandas_test_dataset], axis=0)
             self.__pandas_test_dataset = None
+            print(f"After merging validation and test dataset, validation dataset has {len(self.__pandas_validation_dataset)} rows")
 
         # Create Torch datasets.
         print("Creating Torch datasets")
@@ -212,6 +213,10 @@ class GenericDatasetHelper(BaseDatasetHelper):
                 chest_classification = ast.literal_eval(row["chest_classification"])
                 assert len(chest_classification) == len(image_paths)
 
+                # If any chest classification element is None, skip the row.
+                if any(elem is None for elem in chest_classification):
+                    continue
+
                 # All elementes of the chest classification column must be chests!
                 if not all(elem.strip().lower() == "chest" for elem in chest_classification):
                     continue
@@ -222,6 +227,10 @@ class GenericDatasetHelper(BaseDatasetHelper):
 
                 projection_classification = ast.literal_eval(row["projection_classification"])
                 assert len(projection_classification) == len(image_paths)
+
+                # If any projection classification element is None, skip the row.
+                if any(elem is None for elem in projection_classification):
+                    continue
 
                 # Study needs to have at least one frontal and one lateral image.
                 if "Frontal" not in projection_classification or "Lateral" not in projection_classification:
