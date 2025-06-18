@@ -1,7 +1,7 @@
 general:
   model_name: "intern_vit_classifier"
   dataset_name: "combined_dataset_edema"
-  run_name: "Edema - release run #1"
+  run_name: "Edema - release run #1 w/o data aug"
   notes: "Balanced labels w/o data augmentation"
   custom_labels: ["Edema"]
   body_part: "Chest"
