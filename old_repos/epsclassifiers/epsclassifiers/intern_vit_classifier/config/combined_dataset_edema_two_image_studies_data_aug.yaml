@@ -12,7 +12,7 @@ general:
 
 paths:
   intern_vl_checkpoint_dir: "/mnt/efs/models/internvl/release_candidate_no_label/internvl3_chimera_20250609_233409_1e-5_epsilon_all_0608/checkpoint-24934"
-  train_file: "/mnt/efs/all-cxr/combined/gradient_batches_1-5_segmed_batches_1-4_simonmed_batches_1-10_reports_with_labels_test.csv"
+  train_file: "/mnt/efs/all-cxr/combined/gradient_batches_1-5_segmed_batches_1-4_simonmed_batches_1-10_reports_with_labels_train.csv"
   validation_file: "/mnt/efs/all-cxr/combined/gradient_batches_1-5_segmed_batches_1-4_simonmed_batches_1-10_reports_with_labels_val.csv"
   test_file: "/mnt/efs/all-cxr/combined/gradient_batches_1-5_segmed_batches_1-4_simonmed_batches_1-10_reports_with_labels_test.csv"
   base_path_substitutions:
