@@ -182,6 +182,13 @@ class GenericDatasetHelper(BaseDatasetHelper):
                 image_path = os.path.join(subst, image_path)
                 image = dicom_utils.get_dicom_image_fail_safe(image_path, custom_windowing_parameters={"window_center": 0, "window_width": 0})
                 image = image_utils.numpy_array_to_pil_image(image, convert_to_rgb=self.__convert_images_to_rgb)
+
+                if "augmentation_params" in item and item["augmentation_params"] is not None:
+                    image = image_augmentation.augment_image(image=image,
+                                                             rotation_in_degrees=item["augmentation_params"]["rotation_in_degrees"],
+                                                             scaling=item["augmentation_params"]["scaling"],
+                                                             translation=item["augmentation_params"]["translation"])
+
                 images.append(image)
             except Exception as e:
                 print(f"Error loading {image_path}: {str(e)}")
