@@ -74,8 +74,8 @@ def random_augment_image(image,
 
 
 def generate_augmentation_parameters(num_images,
-                                     min_rotation_in_degrees=-45,
-                                     max_rotation_in_degrees=45,
+                                     min_rotation_in_degrees=-10,
+                                     max_rotation_in_degrees=10,
                                      min_scaling=0.9,
                                      max_scaling=1.1,
                                      min_translation=-0.15,
