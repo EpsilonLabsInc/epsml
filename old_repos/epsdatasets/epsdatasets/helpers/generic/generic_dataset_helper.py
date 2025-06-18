@@ -11,7 +11,7 @@ from tqdm import tqdm
 from epsdatasets.helpers.base.base_dataset_helper import BaseDatasetHelper
 from epsutils.aws import aws_s3_utils
 from epsutils.dicom import dicom_utils
-from epsutils.image import image_utils
+from epsutils.image import image_utils, image_augmentation
 from epsutils.labels import labels_utils
 from epsutils.labels.labels_by_body_part import LABELS_BY_BODY_PART
 
@@ -26,6 +26,7 @@ class GenericDatasetHelper(BaseDatasetHelper):
                  merge_val_and_test=True,
                  treat_uncertain_as_positive=True,
                  perform_label_balancing=True,
+                 num_data_augmentations=0,
                  convert_images_to_rgb=True,
                  custom_labels=None,
                  seed=42):
@@ -38,6 +39,7 @@ class GenericDatasetHelper(BaseDatasetHelper):
                          merge_val_and_test=merge_val_and_test,
                          treat_uncertain_as_positive=treat_uncertain_as_positive,
                          perform_label_balancing=perform_label_balancing,
+                         num_data_augmentations=num_data_augmentations,
                          convert_images_to_rgb=convert_images_to_rgb,
                          custom_labels=custom_labels,
                          seed=seed)
@@ -52,6 +54,7 @@ class GenericDatasetHelper(BaseDatasetHelper):
         self.__merge_val_and_test = kwargs["merge_val_and_test"] if "merge_val_and_test" in kwargs else next((arg for arg in args if arg == "merge_val_and_test"), None)
         self.__treat_uncertain_as_positive = kwargs["treat_uncertain_as_positive"] if "treat_uncertain_as_positive" in kwargs else next((arg for arg in args if arg == "treat_uncertain_as_positive"), None)
         self.__perform_label_balancing = kwargs["perform_label_balancing"] if "perform_label_balancing" in kwargs else next((arg for arg in args if arg == "perform_label_balancing"), None)
+        self.__num_data_augmentations = kwargs["num_data_augmentations"] if "num_data_augmentations" in kwargs else next((arg for arg in args if arg == "num_data_augmentations"), None)
         self.__convert_images_to_rgb = kwargs["convert_images_to_rgb"] if "convert_images_to_rgb" in kwargs else next((arg for arg in args if arg == "convert_images_to_rgb"), None)
         self.__custom_labels = kwargs["custom_labels"] if "custom_labels" in kwargs else next((arg for arg in args if arg == "custom_labels"), None)
         self.__seed = kwargs["seed"] if "seed" in kwargs else next((arg for arg in args if arg == "seed"), None)
@@ -65,7 +68,14 @@ class GenericDatasetHelper(BaseDatasetHelper):
 
         self.__uses_single_label = len(self.__custom_labels) == 1
 
-        # Train dataset.
+        # Training dataset.
+
+        print("")
+        print("----------------")
+        print("Training dataset")
+        print("----------------")
+        print("")
+
         if aws_s3_utils.is_aws_s3_uri(self.__train_file):
             print(f"Downloading {self.__train_file}")
             aws_s3_data = aws_s3_utils.split_aws_s3_uri(self.__train_file)
@@ -74,6 +84,7 @@ class GenericDatasetHelper(BaseDatasetHelper):
         else:
             print(f"Loading {self.__train_file}")
             content = self.__train_file
+
         self.__pandas_train_dataset = self.__filter_dataset(df=pd.read_csv(content, low_memory=False), body_part=self.__body_part)
         self.__generate_training_labels(self.__pandas_train_dataset)
 
@@ -82,7 +93,19 @@ class GenericDatasetHelper(BaseDatasetHelper):
             num_pos, pos_percent, num_neg, neg_percent = self.__balancing_statistics(self.__pandas_train_dataset)
             print(f"There are {num_pos} ({pos_percent:.2f}%) positive and {num_neg} ({neg_percent:.2f}%) negative samples in the training dataset")
 
+        if self.__perform_label_balancing and self.__uses_single_label:
+            print("Balancing training dataset")
+            self.__pandas_train_dataset = self.__balance_dataset(self.__pandas_train_dataset)
+            print(f"After balancing, the training dataset has {len(self.__pandas_train_dataset)} rows")
+
         # Validation dataset.
+
+        print("")
+        print("------------------")
+        print("Validation dataset")
+        print("------------------")
+        print("")
+
         if aws_s3_utils.is_aws_s3_uri(self.__validation_file):
             print(f"Downloading {self.__validation_file}")
             aws_s3_data = aws_s3_utils.split_aws_s3_uri(self.__validation_file)
@@ -91,6 +114,7 @@ class GenericDatasetHelper(BaseDatasetHelper):
         else:
             print(f"Loading {self.__validation_file}")
             content = self.__validation_file
+
         self.__pandas_validation_dataset = self.__filter_dataset(df=pd.read_csv(content, low_memory=False), body_part=self.__body_part)
         self.__generate_training_labels(self.__pandas_validation_dataset)
 
@@ -99,7 +123,19 @@ class GenericDatasetHelper(BaseDatasetHelper):
             num_pos, pos_percent, num_neg, neg_percent = self.__balancing_statistics(self.__pandas_validation_dataset)
             print(f"There are {num_pos} ({pos_percent:.2f}%) positive and {num_neg} ({neg_percent:.2f}%) negative samples in the validation dataset")
 
+        if self.__perform_label_balancing and self.__uses_single_label:
+            print("Balancing validation dataset")
+            self.__pandas_validation_dataset = self.__balance_dataset(self.__pandas_validation_dataset)
+            print(f"After balancing, the validation dataset has {len(self.__pandas_validation_dataset)} rows")
+
         # Test dataset.
+
+        print("")
+        print("------------")
+        print("Test dataset")
+        print("------------")
+        print("")
+
         if aws_s3_utils.is_aws_s3_uri(self.__test_file):
             print(f"Downloading {self.__test_file}")
             aws_s3_data = aws_s3_utils.split_aws_s3_uri(self.__test_file)
@@ -108,6 +144,7 @@ class GenericDatasetHelper(BaseDatasetHelper):
         else:
             print(f"Loading {self.__test_file}")
             content = self.__test_file
+
         self.__pandas_test_dataset = self.__filter_dataset(df=pd.read_csv(content, low_memory=False), body_part=self.__body_part)
         self.__generate_training_labels(self.__pandas_test_dataset)
 
@@ -116,26 +153,17 @@ class GenericDatasetHelper(BaseDatasetHelper):
             num_pos, pos_percent, num_neg, neg_percent = self.__balancing_statistics(self.__pandas_test_dataset)
             print(f"There are {num_pos} ({pos_percent:.2f}%) positive and {num_neg} ({neg_percent:.2f}%) negative samples in the test dataset")
 
+        if self.__perform_label_balancing and self.__uses_single_label:
+            print("Balancing test dataset")
+            self.__pandas_test_dataset = self.__balance_dataset(self.__pandas_test_dataset)
+            print(f"After balancing, the test dataset has {len(self.__pandas_test_dataset)} rows")
+
         # Merge validation and test dataset.
         if self.__merge_val_and_test:
+            print("Merging validation and test dataset")
             self.__pandas_validation_dataset = pd.concat([self.__pandas_validation_dataset, self.__pandas_test_dataset], axis=0)
             self.__pandas_test_dataset = None
             print(f"After merging validation and test dataset, validation dataset has {len(self.__pandas_validation_dataset)} rows")
-
-        # Perform label balancing.
-        if self.__perform_label_balancing and self.__uses_single_label:
-            print("Balancing training dataset")
-            self.__pandas_train_dataset = self.__balance_dataset(self.__pandas_train_dataset)
-            print(f"After balancing, the training dataset has {len(self.__pandas_train_dataset)} rows")
-
-            print("Balancing validation dataset")
-            self.__pandas_validation_dataset = self.__balance_dataset(self.__pandas_validation_dataset)
-            print(f"After balancing, the validation dataset has {len(self.__pandas_validation_dataset)} rows")
-
-            if self.__pandas_test_dataset is not None:
-                print("Balancing test dataset")
-                self.__pandas_test_dataset = self.__balance_dataset(self.__pandas_test_dataset)
-                print(f"After balancing, the test dataset has {len(self.__pandas_test_dataset)} rows")
 
         # Create Torch datasets.
         print("Creating Torch datasets")
@@ -253,13 +281,44 @@ class GenericDatasetHelper(BaseDatasetHelper):
         assert self.__uses_single_label
 
         pos_df = df[df["training_labels"].apply(lambda x: x == [1])]
+        pos_df = self.__apply_data_augmentation(df=pos_df, num_data_augmentations=self.__num_data_augmentations)
+
         neg_df = df[df["training_labels"].apply(lambda x: x == [0])]
+        neg_df = self.__apply_data_augmentation(df=neg_df, num_data_augmentations=0)
         neg_df = neg_df.sample(n=len(pos_df), random_state=self.__seed)
 
         df = pd.concat([pos_df, neg_df]).reset_index(drop=True)
         df = df.sample(frac=1, random_state=self.__seed).reset_index(drop=True)
 
         return df
+
+    def __apply_data_augmentation(self, df, num_data_augmentations):
+        res_df = df.copy(deep=True)
+        res_df["augmentation_params"] = None
+
+        if num_data_augmentations > 0:
+            print("Applying data augmentation")
+
+            num_augmented_images = len(res_df) * num_data_augmentations
+            augmentation_params = image_augmentation.generate_augmentation_parameters(num_images=num_augmented_images, seed=self.__seed)
+            augmented_dataset = pd.concat([res_df] * num_data_augmentations, ignore_index=True)
+            assert len(augmentation_params) == len(augmented_dataset)
+            augmented_dataset["augmentation_params"] = augmentation_params
+
+            org_size = len(res_df)
+            res_df = pd.concat([res_df, augmented_dataset], ignore_index=True)
+
+            print(f"Data augmented dataset has {len(res_df)} rows")
+            print("Data augmented dataset head:")
+            print(res_df.head())
+
+            print("Sanity check")
+            for index in range(3):
+                for i in range(num_data_augmentations):
+                    row = res_df.iloc[index + i * org_size]
+                    print(f"{row['image_paths']}: {row['augmentation_params']}")
+
+        return res_df
 
     def __filter_dataset(self, df, body_part):
         print("Filtering dataset")
