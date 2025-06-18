@@ -29,6 +29,7 @@ def main(config_path):
     body_part                      = config["general"].get("body_part", "")
     treat_uncertain_as_positive    = config["general"].get("treat_uncertain_as_positive", False)
     perform_label_balancing        = config["general"].get("perform_label_balancing", False)
+    num_data_augmentations         = config["general"].get("num_data_augmentations", 0)
     save_full_model                = config["general"].get("save_full_model", False)
     intern_vl_checkpoint_dir       = config["paths"].get("intern_vl_checkpoint_dir", "")
     train_file                     = config["paths"].get("train_file", "")
@@ -63,6 +64,7 @@ def main(config_path):
     print(f"+ body_part: {body_part}")
     print(f"+ treat_uncertain_as_positive: {treat_uncertain_as_positive}")
     print(f"+ perform_label_balancing: {perform_label_balancing}")
+    print(f"+ num_data_augmentations: {num_data_augmentations}")
     print(f"+ save_full_model: {save_full_model}")
     print(f"+ intern_vl_checkpoint_dir: {intern_vl_checkpoint_dir}")
     print(f"+ train_file: {train_file}")
@@ -106,6 +108,7 @@ def main(config_path):
         merge_val_and_test=True,
         treat_uncertain_as_positive=treat_uncertain_as_positive,
         perform_label_balancing=perform_label_balancing,
+        num_data_augmentations=num_data_augmentations,
         convert_images_to_rgb=True,
         custom_labels=custom_labels)
 
