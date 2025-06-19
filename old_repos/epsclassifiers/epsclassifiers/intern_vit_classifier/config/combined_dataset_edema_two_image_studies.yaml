@@ -1,12 +1,13 @@
 general:
   model_name: "intern_vit_classifier"
   dataset_name: "combined_dataset_edema"
-  run_name: "Edema - release run #1 w/o data aug"
-  notes: "Balanced labels w/o data augmentation"
+  run_name: "Edema - release run with 5x data aug"
+  notes: "Balanced labels with 5x data augmentation"
   custom_labels: ["Edema"]
   body_part: "Chest"
   treat_uncertain_as_positive: True
   perform_label_balancing: True
+  num_data_augmentations: 5
   save_full_model: False
 
 paths:
@@ -32,10 +33,10 @@ training:
   intra_epoch_validation_step: 3000
   send_wandb_notification: False
   device: "cuda"
-  device_ids: None  # Use one (the default) GPU.
+  device_ids: None  # Use the default GPU(s).
   # device_ids: [0, 1, 2, 3, 4, 5, 6, 7]  # Use 8 GPUs.
-  num_training_workers_per_gpu: 8
-  num_validation_workers_per_gpu: 8
+  num_training_workers_per_gpu: 32
+  num_validation_workers_per_gpu: 32
   learning_rate:  0.01
   warmup_ratio: 0.05  # = 1/20
   num_epochs: 2
