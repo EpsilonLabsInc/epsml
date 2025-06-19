@@ -1,0 +1,47 @@
+general:
+  model_name: "intern_vit_classifier"
+  dataset_name: "combined_dataset_scarring"
+  run_name: "Scarring - release run with 0x data aug"
+  notes: "Balanced labels with 0x data augmentation"
+  custom_labels: ["Scarring"]
+  body_part: "Chest"
+  treat_uncertain_as_positive: True
+  perform_label_balancing: True
+  num_data_augmentations: 0
+  save_full_model: False
+
+paths:
+  intern_vl_checkpoint_dir: "/mnt/efs/models/internvl/release_candidate_no_label/internvl3_chimera_20250609_233409_1e-5_epsilon_all_0608/checkpoint-24934"
+  train_file: "/mnt/efs/all-cxr/combined/gradient_batches_1-5_segmed_batches_1-4_simonmed_batches_1-10_reports_with_labels_train.csv"
+  validation_file: "/mnt/efs/all-cxr/combined/gradient_batches_1-5_segmed_batches_1-4_simonmed_batches_1-10_reports_with_labels_val.csv"
+  test_file: "/mnt/efs/all-cxr/combined/gradient_batches_1-5_segmed_batches_1-4_simonmed_batches_1-10_reports_with_labels_test.csv"
+  base_path_substitutions:
+    "gradient/22JUL2024": "/mnt/efs/all-cxr/gradient/22JUL2024"
+    "gradient/20DEC2024": "/mnt/efs/all-cxr/gradient/20DEC2024/deid"
+    "gradient/09JAN2025": "/mnt/efs/all-cxr/gradient/09JAN2025/deid"
+    "gradient/16AUG2024": None
+    "gradient/13JAN2025": None
+    "segmed/batch1": "/mnt/efs/all-cxr/segmed/batch1"
+    "segmed/batch2": "/mnt/efs/all-cxr/segmed/batch2"
+    "segmed/batch3": "/mnt/efs/all-cxr/segmed/batch3"
+    "segmed/batch4": "/mnt/efs/all-cxr/segmed/batch4"
+    "simonmed": "/mnt/efs/all-cxr/simonmed/images/422ca224-a9f2-4c64-bf7c-bb122ae2a7bb"
+  output_dir: "./output"
+
+training:
+  perform_intra_epoch_validation: True
+  intra_epoch_validation_step: 3000
+  send_wandb_notification: False
+  device: "cuda"
+  device_ids: None  # Use the default GPU(s).
+  # device_ids: [0, 1, 2, 3, 4, 5, 6, 7]  # Use 8 GPUs.
+  num_training_workers_per_gpu: 32
+  num_validation_workers_per_gpu: 32
+  learning_rate:  0.01
+  warmup_ratio: 0.05  # = 1/20
+  num_epochs: 2
+  training_batch_size: 32
+  validation_batch_size: 32
+  min_allowed_batch_size: 2  # In order for batch norm in the InternVitClassifier model to work.
+  multi_image_input: True
+  num_multi_images: 2
