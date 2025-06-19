@@ -66,7 +66,7 @@ class GenericDatasetHelper(BaseDatasetHelper):
         self.__torch_validation_dataset = None
         self.__torch_test_dataset = None
 
-        self.__uses_single_label = len(self.__custom_labels) == 1
+        self.__uses_single_label = False if self.__custom_labels is None else len(self.__custom_labels) == 1
 
         # Training dataset.
 
@@ -169,7 +169,7 @@ class GenericDatasetHelper(BaseDatasetHelper):
         print("Creating Torch datasets")
         self.__torch_train_dataset = GenericTorchDataset(pandas_dataframe=self.__pandas_train_dataset)
         self.__torch_validation_dataset = GenericTorchDataset(pandas_dataframe=self.__pandas_validation_dataset)
-        self.__torch_test_dataset = GenericTorchDataset(pandas_dataframe=self.__pandas_test_dataset) if self.__pandas_test_dataset else None
+        self.__torch_test_dataset = GenericTorchDataset(pandas_dataframe=self.__pandas_test_dataset) if self.__pandas_test_dataset is not None else None
 
     def get_pil_image(self, item):
         image_paths = item["image_paths"] if isinstance(item["image_paths"], list) else ast.literal_eval(item["image_paths"])
@@ -204,6 +204,42 @@ class GenericDatasetHelper(BaseDatasetHelper):
             return self.__custom_labels
         else:
             return LABELS_BY_BODY_PART[self.__body_part]
+
+    def get_all_possible_binary_labels_distribution(self):
+        org_custom_labels = self.__custom_labels
+        org_uses_single_label = self.__uses_single_label
+
+        all_possible_binary_labels = LABELS_BY_BODY_PART[self.__body_part]
+        datasets = {
+            "Trainining": self.__pandas_train_dataset,
+            "Validation": self.__pandas_validation_dataset,
+            "Test": self.__pandas_test_dataset
+        }
+        res = {}
+
+        for dataset_name, df in datasets.items():
+            print("")
+            print("-----------------------------")
+            print(f"{dataset_name} dataset")
+            print("-----------------------------")
+            print("")
+
+            df_copy = df.copy(deep=True)
+            res[dataset_name] = []
+
+            for label in all_possible_binary_labels:
+                print(f"Label: {label}")
+                self.__custom_labels = [label]
+                self.__uses_single_label = True
+                self.__generate_training_labels(df_copy)
+                num_pos, pos_percent, num_neg, neg_percent = self.__balancing_statistics(df_copy)
+                print(f"There are {num_pos} ({pos_percent:.2f}%) positive and {num_neg} ({neg_percent:.2f}%) negative samples in the dataset")
+                res[dataset_name].append(f"{label},{num_pos} ({pos_percent:.2f}%),{num_neg} ({neg_percent:.2f}%)")
+
+        self.__custom_labels = org_custom_labels
+        self.__uses_single_label = org_uses_single_label
+
+        return res
 
     def get_ids_to_labels(self):
         raise NotImplementedError("Not implemented")
@@ -263,7 +299,7 @@ class GenericDatasetHelper(BaseDatasetHelper):
         return data_loader
 
     def __generate_training_labels(self, df):
-        print("Generating training labels")
+        print(f"Generating training labels for {self.get_labels()}")
         training_labels = []
         for _, row in tqdm(df.iterrows(), total=len(df), desc="Processing"):
             labels = labels_utils.parse_structured_labels(ast.literal_eval(row["structured_labels"]), treat_uncertain_as_positive=self.__treat_uncertain_as_positive)
@@ -405,3 +441,32 @@ class GenericTorchDataset(Dataset):
 
     def __len__(self):
         return len(self.__pandas_dataframe)
+
+
+if __name__ == "__main__":
+    TRAIN_FILE = "/mnt/efs/all-cxr/combined/gradient_batches_1-5_segmed_batches_1-4_simonmed_batches_1-10_reports_with_labels_train.csv"
+    VALIDATION_FILE = "/mnt/efs/all-cxr/combined/gradient_batches_1-5_segmed_batches_1-4_simonmed_batches_1-10_reports_with_labels_val.csv"
+    TEST_FILE = "/mnt/efs/all-cxr/combined/gradient_batches_1-5_segmed_batches_1-4_simonmed_batches_1-10_reports_with_labels_test.csv"
+    BODY_PART = "Chest"
+    TREAT_UNCERTAIN_AS_POSITIVE = True
+
+    helper = GenericDatasetHelper(train_file=TRAIN_FILE,
+                                  validation_file=VALIDATION_FILE,
+                                  test_file=TEST_FILE,
+                                  base_path_substitutions=None,
+                                  body_part=BODY_PART,
+                                  merge_val_and_test=False,
+                                  treat_uncertain_as_positive=TREAT_UNCERTAIN_AS_POSITIVE,
+                                  perform_label_balancing=False)
+
+    res = helper.get_all_possible_binary_labels_distribution()
+
+    print("")
+    print(f"Distribution of all possible binary labels for body part {BODY_PART}:")
+    print("")
+
+    for dataset_name, vals in res.items():
+        print(f"{dataset_name} dataset:")
+        for val in vals:
+            print(val)
+        print("")
