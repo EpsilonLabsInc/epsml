@@ -277,7 +277,8 @@ class GenericDatasetHelper(BaseDatasetHelper):
                                  batch_size=batch_size,
                                  shuffle=True,
                                  num_workers=num_workers,
-                                 persistent_workers=True)
+                                 persistent_workers=True,
+                                 drop_last=True)
         return data_loader
 
     def get_torch_validation_data_loader(self, collate_function, batch_size, num_workers):
@@ -286,7 +287,8 @@ class GenericDatasetHelper(BaseDatasetHelper):
                                  batch_size=batch_size,
                                  shuffle=False,
                                  num_workers=num_workers,
-                                 persistent_workers=True)
+                                 persistent_workers=True,
+                                 drop_last=True)
         return data_loader
 
     def get_torch_test_data_loader(self, collate_function, batch_size, num_workers):
@@ -295,7 +297,8 @@ class GenericDatasetHelper(BaseDatasetHelper):
                                  batch_size=batch_size,
                                  shuffle=False,
                                  num_workers=num_workers,
-                                 persistent_workers=True) if self.__torch_test_dataset else None
+                                 persistent_workers=True,
+                                 drop_last=True) if self.__torch_test_dataset else None
         return data_loader
 
     def __generate_training_labels(self, df):
@@ -328,7 +331,7 @@ class GenericDatasetHelper(BaseDatasetHelper):
 
         neg_df = df[df["training_labels"].apply(lambda x: x == [0])]
         neg_df = self.__apply_data_augmentation(df=neg_df, num_data_augmentations=0)
-        neg_df = neg_df.sample(n=len(pos_df), random_state=self.__seed)
+        neg_df = neg_df.sample(n=len(pos_df), random_state=self.__seed, replace=True)
 
         df = pd.concat([pos_df, neg_df]).reset_index(drop=True)
         df = df.sample(frac=1, random_state=self.__seed).reset_index(drop=True)
