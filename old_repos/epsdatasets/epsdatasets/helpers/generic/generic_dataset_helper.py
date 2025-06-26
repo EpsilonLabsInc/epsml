@@ -95,7 +95,7 @@ class GenericDatasetHelper(BaseDatasetHelper):
 
         if self.__perform_label_balancing and self.__uses_single_label:
             print("Balancing training dataset")
-            self.__pandas_train_dataset = self.__balance_dataset(self.__pandas_train_dataset)
+            self.__pandas_train_dataset = self.__balance_dataset(self.__pandas_train_dataset, apply_data_augmentation=True)
             print(f"After balancing, the training dataset has {len(self.__pandas_train_dataset)} rows")
 
         # Validation dataset.
@@ -323,14 +323,16 @@ class GenericDatasetHelper(BaseDatasetHelper):
 
         return num_pos, pos_percent, num_neg, neg_percent
 
-    def __balance_dataset(self, df):
+    def __balance_dataset(self, df, apply_data_augmentation=False):
         assert self.__uses_single_label
 
         pos_df = df[df["training_labels"].apply(lambda x: x == [1])]
-        pos_df = self.__apply_data_augmentation(df=pos_df, num_data_augmentations=self.__num_data_augmentations)
+        if apply_data_augmentation:
+            pos_df = self.__apply_data_augmentation(df=pos_df, num_data_augmentations=self.__num_data_augmentations)
 
         neg_df = df[df["training_labels"].apply(lambda x: x == [0])]
-        neg_df = self.__apply_data_augmentation(df=neg_df, num_data_augmentations=0)
+        if apply_data_augmentation:
+            neg_df = self.__apply_data_augmentation(df=neg_df, num_data_augmentations=0)
         neg_df = neg_df.sample(n=len(pos_df), random_state=self.__seed, replace=True)
 
         df = pd.concat([pos_df, neg_df]).reset_index(drop=True)
