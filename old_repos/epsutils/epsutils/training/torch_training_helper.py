@@ -140,7 +140,7 @@ class DataWrapper:
 
 
 class TorchTrainingHelper:
-    def __init__(self, model, dataset_helper, device, device_ids, training_parameters: TrainingParameters, mlops_parameters: MlopsParameters):
+    def __init__(self, model, dataset_helper, device, device_ids, training_parameters: TrainingParameters, mlops_parameters: MlopsParameters, **kwargs):
         self.__model = model
         self.__parallel_model = None
         self.__optimizer = None
@@ -151,6 +151,7 @@ class TorchTrainingHelper:
         self.__device_ids = device_ids
         self.__training_parameters = training_parameters
         self.__mlops_parameters = mlops_parameters
+        self.__custom_parameters = kwargs
 
         # Dump training information.
         print("Creating TorchTrainingHelper")
@@ -649,10 +650,12 @@ class TorchTrainingHelper:
         if self.__mlops_parameters.mlops_type == MlopsType.MLFLOW:
             mlflow.log_params(self.__training_parameters.__dict__)
             mlflow.log_params(self.__mlops_parameters.__dict__)
+            mlflow.log_params(self.__custom_parameters)
             mlflow.log_params(extra_params)
         elif self.__mlops_parameters.mlops_type == MlopsType.WANDB:
             wandb.config.update(self.__training_parameters.__dict__)
             wandb.config.update(self.__mlops_parameters.__dict__)
+            wandb.config.update(self.__custom_parameters)
             wandb.config.update(extra_params)
         else:
             raise ValueError(f"Unsupported MLOps type {self.__mlops_parameters.mlops_type}")
