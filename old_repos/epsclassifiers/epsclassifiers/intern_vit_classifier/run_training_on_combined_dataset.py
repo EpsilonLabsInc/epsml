@@ -18,7 +18,10 @@ def convert_none(value):
 def main(config_path):
     # Read the configuration file.
     with open(config_path, "r") as file:
-        config = yaml.safe_load(file)
+        config_file_content = file.read()
+
+    # Load config.
+    config = yaml.safe_load(config_file_content)
 
     # Get the configuration parameters.
     model_name                     = config["general"].get("model_name", "")
@@ -165,7 +168,8 @@ def main(config_path):
                                           device=device,
                                           device_ids=device_ids,
                                           training_parameters=training_parameters,
-                                          mlops_parameters=mlops_parameters)
+                                          mlops_parameters=mlops_parameters,
+                                          config_file_content=config_file_content)
 
     def get_torch_images(samples):
         if multi_image_input:
