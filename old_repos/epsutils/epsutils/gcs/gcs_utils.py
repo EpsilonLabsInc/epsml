@@ -22,15 +22,19 @@ def is_gcs_uri(gcs_uri):
         return False
 
 
-def list_files(gcs_bucket_name, gcs_dir, max_results=None):
-    # Dir must end with a slash in order for the code below to work correctly (i.e., not to look for files recursively)!
+def list_files(gcs_bucket_name, gcs_dir, max_results=None, recursive=False):
     if not gcs_dir.endswith("/"):
         gcs_dir += "/"
 
     client = storage.Client()
     bucket = client.bucket(gcs_bucket_name)
     blobs = bucket.list_blobs(prefix=gcs_dir, max_results=max_results)
-    return [blob.name for blob in blobs if "/" not in blob.name[len(gcs_dir):]]
+
+    return [
+        f"gs://{gcs_bucket_name}/{blob.name}"
+        for blob in blobs
+        if recursive or "/" not in blob.name[len(gcs_dir):]
+    ]
 
 
 def download_file(gcs_bucket_name, gcs_file_name, local_file_name, num_retries=0, show_warning_on_retry=False):
@@ -81,6 +85,17 @@ def upload_file(local_file_name, gcs_bucket_name, gcs_file_name):
         bucket = client.bucket(gcs_bucket_name)
         blob = bucket.blob(gcs_file_name)  # Destination name of the file.
         blob.upload_from_filename(local_file_name)  # Local file to be uploaded.
+        return True, ""
+    except Exception as e:
+        return False, str(e)
+
+
+def upload_file_stream(file_stream, gcs_bucket_name, gcs_file_name):
+    try:
+        client = storage.Client()
+        bucket = client.bucket(gcs_bucket_name)
+        blob = bucket.blob(gcs_file_name)  # Destination name of the file.
+        blob.upload_from_file(file_stream, content_type="application/jsonl")  # File stream to be uploaded.
         return True, ""
     except Exception as e:
         return False, str(e)
