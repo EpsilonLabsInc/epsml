@@ -95,7 +95,7 @@ def upload_file_stream(file_stream, gcs_bucket_name, gcs_file_name):
         client = storage.Client()
         bucket = client.bucket(gcs_bucket_name)
         blob = bucket.blob(gcs_file_name)  # Destination name of the file.
-        blob.upload_from_file(file_stream, content_type="application/jsonl")  # File stream to be uploaded.
+        blob.upload_from_file(file_stream)  # File stream to be uploaded.
         return True, ""
     except Exception as e:
         return False, str(e)
