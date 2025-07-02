@@ -1,5 +1,5 @@
 import torch
-from sklearn.metrics import confusion_matrix, precision_score, recall_score, f1_score, accuracy_score
+from sklearn.metrics import confusion_matrix, precision_score, recall_score, f1_score, accuracy_score, average_precision_score
 
 
 class EvaluationMetricsCalculator:
@@ -56,6 +56,20 @@ class EvaluationMetricsCalculator:
                               if (self.__sum_tp + self.__sum_tn + self.__sum_fp + self.__sum_fn) != 0.0 else 0.0
 
         return cumulative_precision, cumulative_recall, cumulative_f1, cumulative_accuracy
+
+    def get_macro_mean_average_precision(self, logits: torch.Tensor, labels: torch.Tensor, skip_sigmoid=False):
+        y_true = labels.int().view(-1).cpu().numpy()
+        num_classes = 1 if len(y_true.shape) == 1 else y_true.shape[1]
+        assert num_classes == 1
+
+        probabilities = logits if skip_sigmoid else torch.sigmoid(logits)
+        y_scores = probabilities.view(-1).cpu().numpy()
+
+        ap_pos = average_precision_score(y_true, y_scores)
+        ap_neg = average_precision_score(1 - y_true, 1 - y_scores)
+        map = (ap_pos + ap_neg) / 2
+
+        return {"macro_mean_average_precision": map, "average_precision_pos": ap_pos, "average_precision_neg": ap_neg}
 
     def reset(self):
         self.__num_samples = 0

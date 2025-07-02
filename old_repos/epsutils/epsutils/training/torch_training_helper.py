@@ -310,14 +310,18 @@ class TorchTrainingHelper:
 
         evaluation_metrics_calculator = EvaluationMetricsCalculator()
         for output, target in zip(outputs, targets):
-            evaluation_metrics_calculator.add(torch.tensor([output]), torch.tensor([target]), skip_sigmoid=True)
+            evaluation_metrics_calculator.add(output, target, skip_sigmoid=True)
 
         acc_precision, acc_recall, acc_f1, acc_accuracy = evaluation_metrics_calculator.get_accumulated_metrics()
+        map = evaluation_metrics_calculator.get_macro_mean_average_precision(outputs, targets, skip_sigmoid=True)
         values = {
             f"Accumulated Precision": acc_precision,
             f"Accumulated Recall": acc_recall,
             f"Accumulated F1": acc_f1,
-            f"Accumulated Accuracy": acc_accuracy
+            f"Accumulated Accuracy": acc_accuracy,
+            f"Macro Mean Average Precision": map["macro_mean_average_precision"],
+            f"Average Precision Pos": map["average_precision_pos"],
+            f"Average Precision Neg": map["average_precision_neg"]
         }
         self.__log_metric(values=values, step=0)
 
@@ -570,12 +574,16 @@ class TorchTrainingHelper:
         # Log MLOps metrics.
         if self.__mlops_parameters is not None:
             acc_precision, acc_recall, acc_f1, acc_accuracy = evaluation_metrics_calculator.get_accumulated_metrics()
+            map = evaluation_metrics_calculator.get_macro_mean_average_precision(all_outputs, all_targets)
             values = {
                 f"{validation_type} Accumulated Precision": acc_precision,
                 f"{validation_type} Accumulated Recall": acc_recall,
                 f"{validation_type} Accumulated F1": acc_f1,
                 f"{validation_type} Accumulated Accuracy": acc_accuracy,
-                f"{validation_type} Loss": validation_losses.avg
+                f"{validation_type} Loss": validation_losses.avg,
+                f"{validation_type} Macro Mean Average Precision": map["macro_mean_average_precision"],
+                f"{validation_type} Average Precision Pos": map["average_precision_pos"],
+                f"{validation_type} Average Precision Neg": map["average_precision_neg"]
             }
             self.__log_metric(values, step)
 
