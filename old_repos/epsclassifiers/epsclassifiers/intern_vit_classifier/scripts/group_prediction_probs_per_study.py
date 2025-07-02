@@ -58,7 +58,7 @@ def main(args):
             if len(found_image_paths) > 0:
                 assert len(found_image_paths) == len(found_probs) == len(found_targets)
                 if not all(target == found_targets[0] for target in found_targets):
-                    print("Target mismatch within the study:")
+                    print("WARNING - Target mismatch within the study:")
                     print(f"- found image paths: {found_image_paths}")
                     print(f"- found probs: {found_probs}")
                     print(f"- found targets: {found_targets}")
