@@ -28,7 +28,7 @@ def main(args):
     assert gcs_utils.is_gcs_uri(args.prediction_probs_dir)
     gcs_data = gcs_utils.split_gcs_uri(args.prediction_probs_dir)
     all_files = gcs_utils.list_files(gcs_bucket_name=gcs_data["gcs_bucket_name"], gcs_dir=gcs_data["gcs_path"], recursive=True)
-    pattern = re.compile(r"prediction_probs_.*\.jsonl$")
+    pattern = re.compile(r"/prediction_probs_.*\.jsonl$")
     prediction_probs_files = [file_name for file_name in all_files if pattern.search(file_name)]
 
     print("Merging per-study probs")
@@ -42,19 +42,28 @@ def main(args):
         for line in content.splitlines():
             item = json.loads(line)
             assert len(item["file_name"]) == 1
-            probs[item["file_name"][0]] = item["prob"]
+            probs[item["file_name"][0]] = item
 
         merged_probs = []
         for _, row in tqdm(df.iterrows(), total=len(df), desc="Processing"):
             found_image_paths = []
             found_probs = []
+            found_targets = []
             for image_path in ast.literal_eval(row["image_paths"]):
                 if image_path in probs:
                     found_image_paths.append(image_path)
-                    found_probs.append(probs[image_path])
+                    found_probs.append(probs[image_path]["prob"])
+                    found_targets.append(probs[image_path]["target"])
 
             if len(found_image_paths) > 0:
-                merged_probs.append({"image_paths": found_image_paths, "probs": found_probs})
+                assert len(found_image_paths) == len(found_probs) == len(found_targets)
+                if not all(target == found_targets[0] for target in found_targets):
+                    print("Target mismatch within the study:")
+                    print(f"- found image paths: {found_image_paths}")
+                    print(f"- found probs: {found_probs}")
+                    print(f"- found targets: {found_targets}")
+                    continue
+                merged_probs.append({"image_paths": found_image_paths, "probs": found_probs, "target": found_targets[0]})
 
         jsonl_buffer = BytesIO()
         for item in merged_probs:
