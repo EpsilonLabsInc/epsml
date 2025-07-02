@@ -176,6 +176,11 @@ class TorchTrainingHelper:
         # Create checkpoint dir.
         os.makedirs(self.__training_parameters.checkpoint_dir, exist_ok=True)
 
+    def __del__(self):
+        # Disconnect from MLOps.
+        if self.__mlops_parameters is not None:
+            self.__disconnect_from_mlops()
+
     def start_training(self, collate_function_for_training=None, collate_function_for_validation=None):
         torch.cuda.empty_cache()
 
@@ -692,11 +697,19 @@ class TorchTrainingHelper:
             mlflow.set_tag("mlflow.note.content", self.__mlops_parameters.notes)
         elif self.__mlops_parameters.mlops_type == MlopsType.WANDB:
             wandb.login()
-            run = wandb.init(project=self.__mlops_parameters.experiment_name, name=self.__mlops_parameters.run_name, notes=self.__mlops_parameters.notes)
+            self.__wandb_run = wandb.init(project=self.__mlops_parameters.experiment_name, name=self.__mlops_parameters.run_name, notes=self.__mlops_parameters.notes)
             if self.__mlops_parameters.send_notification:
-                run.alert(title=self.__mlops_parameters.experiment_name, text=self.__mlops_parameters.notes)
+                self.__wandb_run.alert(title=self.__mlops_parameters.experiment_name, text=self.__mlops_parameters.notes)
             wandb.define_metric("Steps")
             wandb.define_metric("*", step_metric="Steps")
+        else:
+            raise ValueError(f"Unsupported MLOps type {self.__mlops_parameters.mlops_type}")
+
+    def __disconnect_from_mlops(self):
+        if self.__mlops_parameters.mlops_type == MlopsType.MLFLOW:
+            pass
+        elif self.__mlops_parameters.mlops_type == MlopsType.WANDB:
+            self.__wandb_run.finish()
         else:
             raise ValueError(f"Unsupported MLOps type {self.__mlops_parameters.mlops_type}")
 
