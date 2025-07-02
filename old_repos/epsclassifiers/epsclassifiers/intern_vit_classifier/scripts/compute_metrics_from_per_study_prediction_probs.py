@@ -1,4 +1,5 @@
 import argparse
+import gc
 import json
 import os
 import re
@@ -48,6 +49,7 @@ def main(args):
 
         # Generate run name.
         run_name = f"{name}-epoch-{epoch_num}-{str(args.probabilities_reduction_strategy).lower()}"
+        print(f"Run name: {run_name}")
 
         mlops_parameters = MlopsParameters(mlops_type=MlopsType.WANDB, experiment_name=args.experiment_name, run_name=run_name,
                                            notes=None, label_names=None, send_notification=False)
@@ -79,6 +81,9 @@ def main(args):
         targets = torch.tensor(targets).unsqueeze(1)
 
         helper.compute_metrics(probs=probs, outputs=outputs, targets=targets)
+
+        del helper
+        gc.collect()
 
 
 if __name__ == "__main__":
