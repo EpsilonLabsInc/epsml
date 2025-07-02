@@ -39,8 +39,15 @@ def main(args):
     for index, probs_file in enumerate(per_study_prediction_probs_files):
         print(f"{index + 1}/{len(per_study_prediction_probs_files)} Computing metrics for {probs_file}")
 
+        # Get epoch number.
+        match = re.search(r"_epoch_(\d+)", probs_file)
+        epoch_num = int(match.group(1)) if match else "unknown"
+
+        # Extract the most meaningful part of the file name.
         name = probs_file.split(os.sep)[-3]
-        run_name = f"{name}-{str(args.probabilities_reduction_strategy).lower()}"
+
+        # Generate run name.
+        run_name = f"{name}-epoch-{epoch_num}-{str(args.probabilities_reduction_strategy).lower()}"
 
         mlops_parameters = MlopsParameters(mlops_type=MlopsType.WANDB, experiment_name=args.experiment_name, run_name=run_name,
                                            notes=None, label_names=None, send_notification=False)
