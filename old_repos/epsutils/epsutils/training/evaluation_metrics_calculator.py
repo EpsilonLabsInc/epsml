@@ -6,8 +6,8 @@ class EvaluationMetricsCalculator:
     def __init__(self):
         self.reset()
 
-    def add(self, logits: torch.Tensor, labels: torch.Tensor):
-        probabilities = torch.sigmoid(logits)
+    def add(self, logits: torch.Tensor, labels: torch.Tensor, skip_sigmoid=False):
+        probabilities = logits if skip_sigmoid else torch.sigmoid(logits)
         predictions = (probabilities > 0.5).int()
         y_pred = predictions.view(-1).cpu().numpy()
         y_true = labels.int().view(-1).cpu().numpy()

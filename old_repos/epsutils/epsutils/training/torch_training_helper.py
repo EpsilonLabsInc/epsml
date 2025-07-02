@@ -304,6 +304,60 @@ class TorchTrainingHelper:
         print("VALIDATION")
         self.__validate(step=epoch, validation_type="Validation")
 
+    def compute_metrics(self, probs, outputs, targets):
+        assert self.__mlops_parameters is not None
+        assert len(probs) == len(outputs) == len(targets)
+
+        evaluation_metrics_calculator = EvaluationMetricsCalculator()
+        for output, target in zip(outputs, targets):
+            evaluation_metrics_calculator.add(torch.tensor([output]), torch.tensor([target]), skip_sigmoid=True)
+
+        acc_precision, acc_recall, acc_f1, acc_accuracy = evaluation_metrics_calculator.get_accumulated_metrics()
+        values = {
+            f"Accumulated Precision": acc_precision,
+            f"Accumulated Recall": acc_recall,
+            f"Accumulated F1": acc_f1,
+            f"Accumulated Accuracy": acc_accuracy
+        }
+        self.__log_metric(values=values, step=0)
+
+        # Log confusion matrix.
+        calc = ConfusionMatrixCalculator()
+        cm = calc.compute_confusion_matrix(y_true=targets, y_pred=outputs)
+        plot = calc.create_plot(confusion_matrices=[cm], titles=["All labels"], grid_shape=(1, 1))
+        self.__log_confusion_matrix(plot, "CM")
+
+        # Log confusion matrices.
+        cms = calc.compute_per_class_confusion_matrices(y_true=targets, y_pred=outputs)
+        plot = calc.create_plot(confusion_matrices=cms, titles=self.__mlops_parameters.label_names)
+        self.__log_confusion_matrix(plot, "Per-Label CMs")
+
+        # Log ROC.
+        calc = PerformanceCurveCalculator()
+        roc = calc.compute_curve(curve_type=PerformanceCurveType.ROC, y_true=targets, y_prob=probs)
+        plot = calc.create_plot(curves=[roc], titles=["All labels"], grid_shape=(1, 1))
+        self.__log_performance_curve(plot, "ROC")
+
+        # Log per-label ROCs.
+        rocs = calc.compute_per_class_curves(curve_type=PerformanceCurveType.ROC, y_true=targets, y_prob=probs)
+        plot = calc.create_plot(curves=rocs, titles=self.__mlops_parameters.label_names)
+        self.__log_performance_curve(plot, "Per-Label ROCs")
+
+        # Log PRC.
+        prc = calc.compute_curve(curve_type=PerformanceCurveType.PRC, y_true=targets, y_prob=probs)
+        plot = calc.create_plot(curves=[prc], titles=["All labels"], grid_shape=(1, 1))
+        self.__log_performance_curve(plot, "PRC")
+
+        # Log per-label PRCs.
+        prcs = calc.compute_per_class_curves(curve_type=PerformanceCurveType.PRC, y_true=targets, y_prob=probs)
+        plot = calc.create_plot(curves=prcs, titles=self.__mlops_parameters.label_names)
+        self.__log_performance_curve(plot, "Per-Label PRCs")
+
+        # Log scores distribution.
+        gen = ScoresDistributionGenerator()
+        plot = gen.create_plot(scores=probs, title="Scores distribution")
+        self.__log_scores_distribution(plot, "Scores distribution")
+
     def save_model(self, model_file_name, parallel_model_file_name):
         torch.save(self.__parallel_model.module, model_file_name)
         print(f"Model saved as '{model_file_name}'")
