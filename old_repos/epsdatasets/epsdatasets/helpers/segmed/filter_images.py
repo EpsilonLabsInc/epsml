@@ -156,7 +156,7 @@ def filter_study_images(args):
 def filter_images(reports_file_with_image_paths, images_base_path, allowed_dicom_tag_values):
     print("Loading reports file")
 
-    reports_df = pd.read_csv(reports_file_with_image_paths)
+    reports_df = pd.read_csv(reports_file_with_image_paths, low_memory=False)
 
     if "image_paths" not in reports_df.columns:
         raise ValueError("Missing column 'image_paths' in the reports file")
@@ -201,9 +201,9 @@ def main(args):
 
 
 if __name__ == "__main__":
-    REPORTS_FILE_WITH_IMAGE_PATHS = "/mnt/efs/all-cxr/segmed/batch4/segmed_batch_4_merged_reports_with_image_paths.csv"
-    IMAGES_BASE_PATH = "/mnt/efs/all-cxr/segmed/batch4"
-    OUTPUT_REPORTS_FILE_PATH = "/mnt/efs/all-cxr/segmed/batch4/segmed_batch_4_merged_reports_with_image_paths_filtered.csv"
+    REPORTS_FILE_WITH_IMAGE_PATHS = "./segmed_batch_6_merged_reports_with_image_paths.csv"
+    IMAGES_BASE_PATH = "/mnt/segmed_6"
+    OUTPUT_REPORTS_FILE_PATH = "./segmed_batch_6_merged_reports_with_image_paths_filtered.csv"
 
     ALLOWED_DICOM_TAG_VALUES = {
         "modalities": [
