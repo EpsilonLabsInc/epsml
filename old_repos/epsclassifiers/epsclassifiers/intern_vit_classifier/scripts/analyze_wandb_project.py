@@ -67,7 +67,7 @@ def main(args):
             max_recall = stats[body_part][label]["max_recall"]
             max_precision = stats[body_part][label]["max_precision"]
 
-            print(f"{label}: {max_precision}, {max_recall}")
+            print(f"{label}: {max_precision:.2f}, {max_recall:.2f}")
 
 
 if __name__ == "__main__":
