@@ -3,30 +3,12 @@ import gc
 import json
 import os
 import re
-import statistics
-from enum import Enum
 
 import torch
 
 from epsutils.gcs import gcs_utils
 from epsutils.training.torch_training_helper import TorchTrainingHelper, TrainingParameters, MlopsParameters, MlopsType
-
-
-class ProbabilitiesReductionStrategy(Enum):
-    MAX = 1
-    MEAN = 2
-    MEDIAN = 3
-
-
-def probability_reduction(probs, strategy):
-    if strategy == ProbabilitiesReductionStrategy.MAX:
-        return max(probs)
-    elif strategy == ProbabilitiesReductionStrategy.MEAN:
-        return statistics.mean(probs)
-    elif strategy == ProbabilitiesReductionStrategy.MEDIAN:
-        return statistics.median(probs)
-    else:
-        raise ValueError(f"Unsupported probabilities reduction strategy {strategy}")
+from epsutils.training.probabilities_reduction import ProbabilitiesReductionStrategy, probabilities_reduction
 
 
 def main(args):
@@ -67,7 +49,7 @@ def main(args):
         for line in content.splitlines():
             item = json.loads(line)
 
-            prob = probability_reduction(item["probs"], args.probabilities_reduction_strategy)
+            prob = probabilities_reduction(item["probs"], args.probabilities_reduction_strategy)
             probs.append(prob)
 
             output = int(prob > 0.5)
