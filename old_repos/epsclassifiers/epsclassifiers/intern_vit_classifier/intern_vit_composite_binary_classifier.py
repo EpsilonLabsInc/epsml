@@ -1,5 +1,4 @@
 import copy
-from enum import Enum
 from typing import List, Dict
 
 import torch
@@ -54,14 +53,14 @@ class InternVitCompositeBinaryClassifier:
     def predict(self, group, dicom_files):
         num_multi_images = self.__heads[group]["num_multi_images"]
 
-        # In multi-image mode number of input images must match number of multi images.
+        # In multi-image mode, the number of input images must match.
         assert num_multi_images == 1 or len(dicom_files) == num_multi_images
 
         # Convert DICOM files to PIL images.
         images = []
         for dicom_file in dicom_files:
             # TODO: Handle compressed DICOM files.
-            image = dicom_utils.get_dicom_image(dicom_file, custom_windowing_parameters={"window_center": 0, "window_width": 0})
+            image = dicom_utils.get_dicom_image_fail_safe(dicom_file, custom_windowing_parameters={"window_center": 0, "window_width": 0})
             image = image_utils.numpy_array_to_pil_image(image, convert_to_uint8=True, convert_to_rgb=True)
             images.append(image)
 
@@ -78,9 +77,6 @@ class InternVitCompositeBinaryClassifier:
         with torch.no_grad():
             res = backbone(pixel_values.to(self.__device))
             embeddings = res["embeddings"]
-
-        breakpoint()
-        print(self.__probabilities_reduction_strategy)
 
         # Pass embeddings into separate heads.
         with torch.no_grad():
