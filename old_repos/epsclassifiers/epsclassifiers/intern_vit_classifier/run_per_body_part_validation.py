@@ -27,13 +27,14 @@ def main(args):
             image_paths = data["image"]
             body_part =  data["labels"][0]["body_part"].lower()
 
-            if body_part not in args.grouped_binary_classifier_checkpoints:
-                print(f"WARNING: Unknown body part '{body_part}'")
+            if body_part == "chest":
                 probs = None
-            elif body_part == "chest":
+            elif body_part not in args.grouped_binary_classifier_checkpoints:
+                print(f"WARNING: Unknown body part '{body_part}'")
                 probs = None
             else:
                 probs = classifier.predict(group=body_part, dicom_files=image_paths)
+                probs = {item["name"]: item["probs"].item() for item in probs}
 
             data["probs"] = probs
             results.append(data)
