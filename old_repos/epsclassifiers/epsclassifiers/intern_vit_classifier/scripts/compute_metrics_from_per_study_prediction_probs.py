@@ -7,8 +7,8 @@ import re
 import torch
 
 from epsutils.gcs import gcs_utils
-from epsutils.training.torch_training_helper import TorchTrainingHelper, TrainingParameters, MlopsParameters, MlopsType
 from epsutils.training.probabilities_reduction import ProbabilitiesReductionStrategy, probabilities_reduction
+from epsutils.training.torch_training_helper import TorchTrainingHelper, TrainingParameters, MlopsParameters, MlopsType
 
 
 def main(args):

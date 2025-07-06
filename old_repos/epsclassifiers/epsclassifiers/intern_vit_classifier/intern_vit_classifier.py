@@ -68,9 +68,6 @@ class InternVitClassifier(nn.Module):
         self.__use_text_encodings = use_text_encodings
 
     def forward(self, images, text_encodings=None, **kwargs):
-        if images.shape[0] < 2:
-            raise ValueError("Because of BatchNorm1d that doesn't work on single element batches, InternVitClassifier currently supports only batch sizes >= 2")
-
         if self.__multi_image_input or self.__use_tiles:
             # 5 dimensions indicate use of multi image input or tiles: (batch_num, num_tiles, num_channels, img_height, img_width)
             assert len(images.shape) == 5
