@@ -11,14 +11,16 @@ class ProbabilitiesReductionStrategy(Enum):
 
 
 def probabilities_reduction(probs, strategy):
-    if isinstance(probs, torch.Tensor):
-        probs = probs.tolist()
+    is_tensor = isinstance(probs, torch.Tensor)
+    probs_list = probs.tolist() if is_tensor else probs
 
     if strategy == ProbabilitiesReductionStrategy.MAX:
-        return max(probs)
+        res = max(probs_list)
     elif strategy == ProbabilitiesReductionStrategy.MEAN:
-        return statistics.mean(probs)
+        res = statistics.mean(probs_list)
     elif strategy == ProbabilitiesReductionStrategy.MEDIAN:
-        return statistics.median(probs)
+        res = statistics.median(probs_list)
     else:
         raise ValueError(f"Unsupported probabilities reduction strategy {strategy}")
+
+    return torch.tensor(res, dtype=probs.dtype) if is_tensor else res
