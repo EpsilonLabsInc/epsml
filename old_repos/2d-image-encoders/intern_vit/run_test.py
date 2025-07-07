@@ -1,10 +1,9 @@
 import torch
-from PIL import Image
 
-from epsutils.dicom import dicom_utils
+from utils_ml_inference.dicom import get_dicom_image
 from intern_vit import InternVit
 
-from epsutils.image import image_utils
+from utils_ml_inference.image import numpy_array_to_pil_image
 
 CHECKPOINT_DIR = "/mnt/efs/models/internvl/old/internvl2.5_26b_finetune_lora_20241229_184000_1e-5_2.5_gradient_full_rm_sole_no_findings_rm_bad_dcm_no_label/checkpoint-58670"
 IMAGE_PATH = "./samples/sample.dcm"
@@ -20,8 +19,8 @@ def main():
     image_processor = model.get_image_processor()
 
     # Preprocess image.
-    image = dicom_utils.get_dicom_image(IMAGE_PATH, custom_windowing_parameters={"window_center": 0, "window_width": 0})
-    image = image_utils.numpy_array_to_pil_image(image, convert_to_uint8=True, convert_to_rgb=True)
+    image = get_dicom_image(IMAGE_PATH, custom_windowing_parameters={"window_center": 0, "window_width": 0})
+    image = numpy_array_to_pil_image(image, convert_to_uint8=True, convert_to_rgb=True)
     pixel_values = image_processor(images=image, return_tensors="pt").pixel_values
     pixel_values = pixel_values.to(torch.bfloat16).cuda()
 

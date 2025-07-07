@@ -1,0 +1,20 @@
+[project]
+name = "2d-image-encoders"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Your Name",email = "you@example.com"}
+]
+readme = "README.md"
+requires-python = ">=3.10.12,<4"
+dependencies = [
+    "torch (>=2,<3)",
+    "internvl-chat @ git+ssh://git@github.com/EpsilonLabsInc/InternVL-3x.git@v2.0.0-classifier.1#subdirectory=internvl_chat",
+    "transformers (>=4.39.3,<5.0.0)",
+    "utils-ml-inference @ git+ssh://git@github.com/EpsilonLabsInc/utils_ml_inference@v1.1.0"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"

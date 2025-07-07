@@ -6,3 +6,6 @@ wandb/
 
 # Data files.
 output/
+
+venv/
+.idea/
