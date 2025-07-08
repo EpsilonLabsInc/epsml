@@ -9,3 +9,5 @@ output/
 
 venv/
 .idea/
+
+.DS_STORE

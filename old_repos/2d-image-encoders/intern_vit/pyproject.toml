@@ -6,13 +6,22 @@ authors = [
     {name = "Your Name",email = "you@example.com"}
 ]
 readme = "README.md"
-requires-python = ">=3.10.12,<4"
+requires-python = ">=3.10.12,<3.11"
 dependencies = [
     "torch (>=2,<3)",
-    "internvl-chat @ git+ssh://git@github.com/EpsilonLabsInc/InternVL-3x.git@v2.0.0-classifier.1#subdirectory=internvl_chat",
-    "utils-ml-inference @ git+ssh://git@github.com/EpsilonLabsInc/utils_ml_inference@v1.1.0"
 ]
 
+[project.optional-dependencies]
+local-development = [
+    "internvl-chat @ git+ssh://git@github.com/EpsilonLabsInc/InternVL-3x.git@v2.0.0-classifier.1#subdirectory=internvl_chat",
+]
+testing = [
+    "utils-ml-inference @ git+ssh://git@github.com/EpsilonLabsInc/utils_ml_inference.git@v1.2.1",
+]
+
+[tool.poetry]
+packages = [{include = "*"}]
+exclude = ["samples/*", "run_test.py"]
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
