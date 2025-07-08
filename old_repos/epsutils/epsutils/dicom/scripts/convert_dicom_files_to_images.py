@@ -29,8 +29,8 @@ def save_image(dicom_file, target_image_size, target_extension, source_dir, outp
 
         logging.info(f"Image successfully saved: {image_path}")
     except Exception as e:
-        logging.error(f"Error saving {image_path}: {str(e)}")
-        print(f"Error saving {image_path}: {str(e)}")
+        logging.error(f"Error saving {dicom_file}: {str(e)}")
+        print(f"Error saving {dicom_file}: {str(e)}")
 
 
 def main(args):
