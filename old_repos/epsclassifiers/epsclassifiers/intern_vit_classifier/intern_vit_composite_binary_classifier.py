@@ -157,7 +157,8 @@ if __name__ == "__main__":
                 {"name": "fracture", "path": "/mnt/training/classifier/checkpoints/chest/intern_vit_classifier-training-on-combined_dataset_fracture/checkpoint/checkpoint_epoch_2_20250701_035136_utc.pt"},
                 {"name": "tuberculosis", "path": "/mnt/training/classifier/checkpoints/chest/intern_vit_classifier-training-on-combined_dataset_tuberculosis/checkpoint/checkpoint_epoch_2_20250620_161905_utc.pt"},
                 {"name": "edema", "path": "/mnt/training/classifier/checkpoints/chest/intern_vit_classifier-training-on-combined_dataset_edema/checkpoint/checkpoint_epoch_2_20250621_031453_utc.pt"},
-                {"name": "emphysema", "path": "/mnt/training/classifier/checkpoints/chest/intern_vit_classifier-training-on-combined_dataset_emphysema/checkpoint/checkpoint_epoch_2_20250708_171118_utc.pt"}
+                {"name": "emphysema", "path": "/mnt/training/classifier/checkpoints/chest/intern_vit_classifier-training-on-combined_dataset_emphysema/checkpoint/checkpoint_epoch_2_20250708_171118_utc.pt"},
+                {"name": "osteoporosis", "path": "/mnt/training/classifier/checkpoints/chest/intern_vit_classifier-training-on-combined_dataset_osteoporosis/checkpoint/checkpoint_epoch_2_20250708_231250_utc.pt"}
             ]
         },
         "head": {
