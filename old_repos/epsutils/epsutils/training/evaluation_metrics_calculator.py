@@ -63,7 +63,7 @@ class EvaluationMetricsCalculator:
         assert num_classes == 1
 
         probabilities = logits if skip_sigmoid else torch.sigmoid(logits)
-        y_scores = probabilities.view(-1).cpu().numpy()
+        y_scores = probabilities.to(torch.float32).view(-1).cpu().numpy()
 
         ap_pos = average_precision_score(y_true, y_scores)
         ap_neg = average_precision_score(1 - y_true, 1 - y_scores)
