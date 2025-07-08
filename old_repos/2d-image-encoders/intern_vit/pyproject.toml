@@ -1,5 +1,5 @@
 [project]
-name = "2d-image-encoders"
+name = "intern-vit"
 version = "0.1.0"
 description = ""
 authors = [
@@ -11,13 +11,11 @@ dependencies = [
     "torch (>=2,<3)",
 ]
 
-[project.optional-dependencies]
-local-development = [
-    "internvl-chat @ git+ssh://git@github.com/EpsilonLabsInc/InternVL-3x.git@v2.0.0-classifier.1#subdirectory=internvl_chat",
-]
-testing = [
-    "utils-ml-inference @ git+ssh://git@github.com/EpsilonLabsInc/utils_ml_inference.git@v1.2.1",
-]
+[tool.poetry.group.local.dependencies]
+    internvl-chat = { git = "git@github.com/EpsilonLabsInc/InternVL-3x.git", tag = "v2.0.0-classifier.1", subdirectory = "internvl_chat" }
+
+[tool.poetry.group.test.dependencies]
+    utils-ml-inference = { git = "git@github.com/EpsilonLabsInc/utils_ml_inference.git", tag = "v1.2.1" }
 
 [tool.poetry]
 packages = [{include = "*"}]
