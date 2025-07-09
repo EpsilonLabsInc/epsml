@@ -6,11 +6,15 @@ import torch
 
 
 def strip_checkpoint(checkpoint_path):
-    checkpoint = torch.load(checkpoint_path)
-    new_checkpoint = {"model_state_dict": checkpoint["model_state_dict"]}
-
     directory, filename = os.path.split(checkpoint_path)
     new_checkpoint_path = os.path.join(directory, "production_" + filename)
+
+    if os.path.exists(new_checkpoint_path):
+        print("File already exists, skipping")
+        return
+
+    checkpoint = torch.load(checkpoint_path)
+    new_checkpoint = {"model_state_dict": checkpoint["model_state_dict"]}
 
     torch.save(new_checkpoint, new_checkpoint_path)
 
@@ -24,8 +28,6 @@ def main(args):
     for index, checkpoint in enumerate(checkpoints):
         print("")
         print(f"{index + 1}/{len(checkpoints)} Stripping checkpoint {checkpoint}")
-        print("")
-
         strip_checkpoint(checkpoint)
 
 
