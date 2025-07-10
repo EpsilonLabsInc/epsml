@@ -19,11 +19,11 @@ def save_image(dicom_file, target_image_size, target_extension, allowed_dicom_ta
         dataset = pydicom.dcmread(dicom_file, force=True)
         dataset = dicom_compression_utils.handle_dicom_compression(dataset)
 
-        if dataset.Modality not in allowed_dicom_tag_values["modalities"]:
+        if allowed_dicom_tag_values is not None and dataset.Modality not in allowed_dicom_tag_values["modalities"]:
             logging.warning(f"Unsupported modality {dataset.Modality}: {dicom_file}")
             return
 
-        if dataset.SOPClassUID not in allowed_dicom_tag_values["sop_class_uids"]:
+        if allowed_dicom_tag_values is not None and dataset.SOPClassUID not in allowed_dicom_tag_values["sop_class_uids"]:
             logging.warning(f"Unsupported SOPClassUID {pydicom.uid.UID(dataset.SOPClassUID).name}: {dicom_file}")
             return
 
