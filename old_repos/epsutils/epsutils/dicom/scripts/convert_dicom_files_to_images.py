@@ -57,7 +57,7 @@ def main(args):
     custom_save_image = partial(save_image,
                                 target_image_size=args.target_image_size,
                                 target_extension=args.target_extension,
-                                allowed_dicom_tag_value=args.allowed_dicom_tag_values,
+                                allowed_dicom_tag_values=args.allowed_dicom_tag_values,
                                 source_dir=args.dicom_dir,
                                 output_dir=args.output_dir)
 
