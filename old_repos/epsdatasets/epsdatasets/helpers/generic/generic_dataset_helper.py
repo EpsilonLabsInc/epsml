@@ -374,12 +374,18 @@ class GenericDatasetHelper(BaseDatasetHelper):
 
         selected_rows = []
         for _, row in tqdm(df.iterrows(), total=len(df), desc="Procesing"):
-            image_paths = ast.literal_eval(row["image_paths"])
-            df_body_parts = {body_part.strip().lower() for body_part in row["body_part"].split(",")}
+            if body_part.startswith("dicom:"):
+                body_part = body_part.replace("dicom:", "")
+                df_body_parts = row["body_part_dicom"].lower() if pd.notna(row["body_part_dicom"]) else ""
+            else:
+                df_body_parts = {body_part.strip().lower() for body_part in row["body_part"].split(",")}
+
             body_part = body_part.strip().lower()
 
             if body_part not in df_body_parts:
                 continue
+
+            image_paths = ast.literal_eval(row["image_paths"])
 
             # For chest perform additonal checks.
             if body_part == "chest":
