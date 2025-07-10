@@ -6,15 +6,27 @@ from concurrent.futures import ProcessPoolExecutor
 from datetime import datetime
 from functools import partial
 
+import pydicom
 from tqdm import tqdm
 
-from epsutils.dicom import dicom_utils
+from epsutils.dicom import dicom_utils, dicom_compression_utils
 from epsutils.image import image_utils
 from epsutils.logging import logging_utils
 
 
-def save_image(dicom_file, target_image_size, target_extension, source_dir, output_dir):
+def save_image(dicom_file, target_image_size, target_extension, allowed_dicom_tag_values, source_dir, output_dir):
     try:
+        dataset = pydicom.dcmread(dicom_file, force=True)
+        dataset = dicom_compression_utils.handle_dicom_compression(dataset)
+
+        if dataset.Modality not in allowed_dicom_tag_values["modalities"]:
+            logging.warning(f"Unsupported modality {dataset.Modality}: {dicom_file}")
+            return
+
+        if dataset.SOPClassUID not in allowed_dicom_tag_values["sop_class_uids"]:
+            logging.warning(f"Unsupported SOPClassUID {pydicom.uid.UID(dataset.SOPClassUID).name}: {dicom_file}")
+            return
+
         image = dicom_utils.get_dicom_image_fail_safe(dicom_file, custom_windowing_parameters={"window_center": 0, "window_width": 0})
         image = image_utils.numpy_array_to_pil_image(image, convert_to_uint8=True, convert_to_rgb=True)
 
@@ -29,8 +41,8 @@ def save_image(dicom_file, target_image_size, target_extension, source_dir, outp
 
         logging.info(f"Image successfully saved: {image_path}")
     except Exception as e:
-        logging.error(f"Error saving {dicom_file}: {str(e)}")
-        print(f"Error saving {dicom_file}: {str(e)}")
+        logging.error(f"Failed to convert {dicom_file}: {str(e)}")
+        print(f"Failed to convert {dicom_file}: {str(e)}")
 
 
 def main(args):
@@ -45,6 +57,7 @@ def main(args):
     custom_save_image = partial(save_image,
                                 target_image_size=args.target_image_size,
                                 target_extension=args.target_extension,
+                                allowed_dicom_tag_value=args.allowed_dicom_tag_values,
                                 source_dir=args.dicom_dir,
                                 output_dir=args.output_dir)
 
@@ -53,14 +66,26 @@ def main(args):
 
 
 if __name__ == "__main__":
-    DICOM_DIR = "/mnt/sfs-segmed-1"
-    OUTPUT_DIR = "/mnt/png/512x512/segmed/batch1"
+    DICOM_DIR = "/mnt/sfs-simonmed"
+    OUTPUT_DIR = "/mnt/png/512x512/simonmed"
     TARGET_IMAGE_SIZE = (512, 512)
     TARGET_EXTENSION = "png"
+    ALLOWED_DICOM_TAG_VALUES = {
+        "modalities": [
+            "CR",
+            "DX"
+        ],
+        "sop_class_uids": [
+            pydicom.uid.ComputedRadiographyImageStorage,
+            pydicom.uid.DigitalXRayImageStorageForPresentation,
+            pydicom.uid.DigitalXRayImageStorageForProcessing
+        ]
+    }
 
     args = argparse.Namespace(dicom_dir=DICOM_DIR,
                               output_dir=OUTPUT_DIR,
                               target_image_size=TARGET_IMAGE_SIZE,
-                              target_extension=TARGET_EXTENSION)
+                              target_extension=TARGET_EXTENSION,
+                              allowed_dicom_tag_values=ALLOWED_DICOM_TAG_VALUES)
 
     main(args)
