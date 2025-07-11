@@ -30,6 +30,7 @@ def main(config_path):
     notes                          = config["general"].get("notes", "")
     custom_labels                  = convert_none(config["general"].get("custom_labels", None))
     body_part                      = config["general"].get("body_part", "")
+    sub_body_part                  = convert_none(config["general"].get("sub_body_part", None))
     treat_uncertain_as_positive    = config["general"].get("treat_uncertain_as_positive", False)
     perform_label_balancing        = config["general"].get("perform_label_balancing", False)
     num_data_augmentations         = config["general"].get("num_data_augmentations", 0)
@@ -65,6 +66,7 @@ def main(config_path):
     print(f"+ notes: {notes}")
     print(f"+ custom_labels: {custom_labels}")
     print(f"+ body_part: {body_part}")
+    print(f"+ sub_body_part: {sub_body_part}")
     print(f"+ treat_uncertain_as_positive: {treat_uncertain_as_positive}")
     print(f"+ perform_label_balancing: {perform_label_balancing}")
     print(f"+ num_data_augmentations: {num_data_augmentations}")
@@ -108,6 +110,7 @@ def main(config_path):
         test_file=test_file,
         base_path_substitutions=base_path_substitutions,
         body_part=body_part,
+        sub_body_part=sub_body_part,
         merge_val_and_test=True,
         treat_uncertain_as_positive=treat_uncertain_as_positive,
         perform_label_balancing=perform_label_balancing,
