@@ -23,6 +23,7 @@ class GenericDatasetHelper(BaseDatasetHelper):
                  test_file,
                  base_path_substitutions,
                  body_part,
+                 sub_body_part=None,
                  merge_val_and_test=True,
                  treat_uncertain_as_positive=True,
                  perform_label_balancing=True,
@@ -36,6 +37,7 @@ class GenericDatasetHelper(BaseDatasetHelper):
                          test_file=test_file,
                          base_path_substitutions=base_path_substitutions,
                          body_part=body_part,
+                         sub_body_part=sub_body_part,
                          merge_val_and_test=merge_val_and_test,
                          treat_uncertain_as_positive=treat_uncertain_as_positive,
                          perform_label_balancing=perform_label_balancing,
@@ -51,6 +53,7 @@ class GenericDatasetHelper(BaseDatasetHelper):
         self.__test_file = kwargs["test_file"] if "test_file" in kwargs else next((arg for arg in args if arg == "test_file"), None)
         self.__base_path_substitutions = kwargs["base_path_substitutions"] if "base_path_substitutions" in kwargs else next((arg for arg in args if arg == "base_path_substitutions"), None)
         self.__body_part = kwargs["body_part"] if "body_part" in kwargs else next((arg for arg in args if arg == "body_part"), None)
+        self.__sub_body_part = kwargs["sub_body_part"] if "sub_body_part" in kwargs else next((arg for arg in args if arg == "sub_body_part"), None)
         self.__merge_val_and_test = kwargs["merge_val_and_test"] if "merge_val_and_test" in kwargs else next((arg for arg in args if arg == "merge_val_and_test"), None)
         self.__treat_uncertain_as_positive = kwargs["treat_uncertain_as_positive"] if "treat_uncertain_as_positive" in kwargs else next((arg for arg in args if arg == "treat_uncertain_as_positive"), None)
         self.__perform_label_balancing = kwargs["perform_label_balancing"] if "perform_label_balancing" in kwargs else next((arg for arg in args if arg == "perform_label_balancing"), None)
@@ -85,7 +88,7 @@ class GenericDatasetHelper(BaseDatasetHelper):
             print(f"Loading {self.__train_file}")
             content = self.__train_file
 
-        self.__pandas_train_dataset = self.__filter_dataset(df=pd.read_csv(content, low_memory=False), body_part=self.__body_part)
+        self.__pandas_train_dataset = self.__filter_dataset(df=pd.read_csv(content, low_memory=False), body_part=self.__body_part if self.__sub_body_part is None else self.__sub_body_part, use_dicom=self.__sub_body_part is not None)
         self.__generate_training_labels(self.__pandas_train_dataset)
 
         if self.__uses_single_label:
@@ -115,7 +118,7 @@ class GenericDatasetHelper(BaseDatasetHelper):
             print(f"Loading {self.__validation_file}")
             content = self.__validation_file
 
-        self.__pandas_validation_dataset = self.__filter_dataset(df=pd.read_csv(content, low_memory=False), body_part=self.__body_part)
+        self.__pandas_validation_dataset = self.__filter_dataset(df=pd.read_csv(content, low_memory=False), body_part=self.__body_part if self.__sub_body_part is None else self.__sub_body_part, use_dicom=self.__sub_body_part is not None)
         self.__generate_training_labels(self.__pandas_validation_dataset)
 
         if self.__uses_single_label:
@@ -145,7 +148,7 @@ class GenericDatasetHelper(BaseDatasetHelper):
             print(f"Loading {self.__test_file}")
             content = self.__test_file
 
-        self.__pandas_test_dataset = self.__filter_dataset(df=pd.read_csv(content, low_memory=False), body_part=self.__body_part)
+        self.__pandas_test_dataset = self.__filter_dataset(df=pd.read_csv(content, low_memory=False), body_part=self.__body_part if self.__sub_body_part is None else self.__sub_body_part, use_dicom=self.__sub_body_part is not None)
         self.__generate_training_labels(self.__pandas_test_dataset)
 
         if self.__uses_single_label:
@@ -306,8 +309,15 @@ class GenericDatasetHelper(BaseDatasetHelper):
         training_labels = []
         for _, row in tqdm(df.iterrows(), total=len(df), desc="Processing"):
             labels = labels_utils.parse_structured_labels(ast.literal_eval(row["structured_labels"]), treat_uncertain_as_positive=self.__treat_uncertain_as_positive)
-            assert self.__body_part in labels
-            training_labels.append(labels_utils.to_multi_hot_encoding(labels[self.__body_part], self.get_labels()))
+
+            if self.__body_part not in labels and self.__sub_body_part is None:
+                assert self.__body_part in labels
+            elif self.__body_part not in labels and self.__sub_body_part is not None:
+                labels = []
+            else:
+                labels = labels[self.__body_part]
+
+            training_labels.append(labels_utils.to_multi_hot_encoding(labels, self.get_labels()))
 
         assert len(df) == len(training_labels)
         df["training_labels"] = training_labels
@@ -368,19 +378,18 @@ class GenericDatasetHelper(BaseDatasetHelper):
 
         return res_df
 
-    def __filter_dataset(self, df, body_part):
+    def __filter_dataset(self, df, body_part, use_dicom):
         print("Filtering dataset")
         print(f"Original dataset has {len(df)} rows")
 
+        body_part = body_part.strip().lower()
         selected_rows = []
+
         for _, row in tqdm(df.iterrows(), total=len(df), desc="Procesing"):
-            if body_part.startswith("dicom:"):
-                body_part = body_part.replace("dicom:", "")
+            if use_dicom:
                 df_body_parts = row["body_part_dicom"].lower() if pd.notna(row["body_part_dicom"]) else ""
             else:
                 df_body_parts = {body_part.strip().lower() for body_part in row["body_part"].split(",")}
-
-            body_part = body_part.strip().lower()
 
             if body_part not in df_body_parts:
                 continue
