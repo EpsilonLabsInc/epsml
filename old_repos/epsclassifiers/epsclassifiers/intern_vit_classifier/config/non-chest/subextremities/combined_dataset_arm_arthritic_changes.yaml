@@ -33,13 +33,13 @@ training:
   intra_epoch_validation_step: 3000
   send_wandb_notification: false
   device: cuda
-  device_ids: null
-  num_training_workers_per_gpu: 32
+  device_ids: [0]  # null
+  num_training_workers_per_gpu: 1  # 32
   num_validation_workers_per_gpu: 32
   learning_rate: 0.01
   warmup_ratio: 0.05
   num_epochs: 10
-  training_batch_size: 128
+  training_batch_size: 2
   validation_batch_size: 32
   min_allowed_batch_size: 2
   multi_image_input: false

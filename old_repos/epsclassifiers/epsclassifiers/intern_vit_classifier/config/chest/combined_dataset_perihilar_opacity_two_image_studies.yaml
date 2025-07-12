@@ -19,8 +19,8 @@ paths:
     "gradient/22JUL2024": "/mnt/efs/all-cxr/gradient/22JUL2024"
     "gradient/20DEC2024": "/mnt/efs/all-cxr/gradient/20DEC2024/deid"
     "gradient/09JAN2025": "/mnt/efs/all-cxr/gradient/09JAN2025/deid"
-    "gradient/16AUG2024": None
-    "gradient/13JAN2025": None
+    "gradient/16AUG2024": null
+    "gradient/13JAN2025": null
     "segmed/batch1": "/mnt/efs/all-cxr/segmed/batch1"
     "segmed/batch2": "/mnt/efs/all-cxr/segmed/batch2"
     "segmed/batch3": "/mnt/efs/all-cxr/segmed/batch3"
