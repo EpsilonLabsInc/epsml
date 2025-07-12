@@ -386,6 +386,12 @@ class GenericDatasetHelper(BaseDatasetHelper):
         selected_rows = []
 
         for _, row in tqdm(df.iterrows(), total=len(df), desc="Procesing"):
+            base_path = row["base_path"]
+            if base_path not in self.__base_path_substitutions:
+                raise ValueError(f"Base path '{base_path}' not in base path substitutions")
+            elif self.__base_path_substitutions[base_path] is None:
+                continue
+
             if use_dicom:
                 df_body_parts = row["body_part_dicom"].lower() if pd.notna(row["body_part_dicom"]) else ""
             else:
