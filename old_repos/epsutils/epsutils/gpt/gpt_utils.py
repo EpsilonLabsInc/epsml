@@ -63,7 +63,7 @@ def run_batch(input_jsonl: str, endpoint: str, api_key: str, api_version: str, c
     if is_content:
         print("Uploading content")
         file_stream = BytesIO(input_jsonl.encode("utf-8"))
-        file_stream.name = "input_jsonl"
+        file_stream.name = "input.jsonl"
         resp = client.files.create(file=file_stream, purpose="batch")
     else:
         print("Uploading file")
