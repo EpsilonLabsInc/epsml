@@ -48,10 +48,10 @@ def create_request(prompt, images, request_id, deployment):
 
 
 def save_requests_as_jsonl(requests, output_file):
-    with open(output_file, "w", encoding="utf-8") as f:
+    with open(output_file, "w", encoding="utf-8") as file:
         for request in requests:
             line = json.dumps(request, ensure_ascii=False) + "\n"
-            f.write(line)
+            file.write(line)
 
 
 def run_batch(input_jsonl: str, endpoint: str, api_key: str, api_version: str, check_status_interval_in_sec=60, is_content=False):
@@ -63,12 +63,12 @@ def run_batch(input_jsonl: str, endpoint: str, api_key: str, api_version: str, c
     if is_content:
         print("Uploading content")
         file_stream = BytesIO(input_jsonl.encode("utf-8"))
-        file_stream.name = "input.jsonl"
+        file_stream.name = "input_jsonl"
         resp = client.files.create(file=file_stream, purpose="batch")
     else:
         print("Uploading file")
-        with open(input_jsonl, "rb") as file_stream:
-            resp = client.files.create(file=file_stream, purpose="batch")
+        with open(input_jsonl, "rb") as file:
+            resp = client.files.create(file=file, purpose="batch")
 
     file_id = resp.id
 
