@@ -11,7 +11,7 @@ def encode_image_as_base64(jpeg_byte_stream: BytesIO) -> str:
 
 
 def create_request(prompt, images, request_id, deployment):
-    base64_images = [encode_image_as_base64(jpeg_byte_stream=jpeg_byte_stream) for jpeg_byte_stream in images]
+    assert isinstance(request_id, str)
 
     content = [
         {
@@ -21,6 +21,8 @@ def create_request(prompt, images, request_id, deployment):
     ]
 
     if images is not None:
+        base64_images = [encode_image_as_base64(jpeg_byte_stream=jpeg_byte_stream) for jpeg_byte_stream in images]
+
         for base64_image in base64_images:
             content.append(
                 {
@@ -43,6 +45,13 @@ def create_request(prompt, images, request_id, deployment):
     }
 
     return request
+
+
+def save_requests_as_jsonl(requests, output_file):
+    with open(output_file, "w", encoding="utf-8") as f:
+        for request in requests:
+            line = json.dumps(request, ensure_ascii=False) + "\n"
+            f.write(line)
 
 
 def run_batch(input_jsonl: str, endpoint: str, api_key: str, api_version: str, check_status_interval_in_sec=60, is_content=False):
