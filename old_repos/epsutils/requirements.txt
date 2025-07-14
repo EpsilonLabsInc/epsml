@@ -24,3 +24,4 @@ boto3>=1.38.36
 gdcm>=1.1
 pylibjpeg>=2.0.1
 pylibjpeg-libjpeg>=2.3.0
+openai>=1.95.1
