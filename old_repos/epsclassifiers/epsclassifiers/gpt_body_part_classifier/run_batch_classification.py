@@ -36,6 +36,12 @@ def main(args):
     if args.max_num_rows is not None:
         filtered_reports = filtered_reports[:args.max_num_rows]
 
+    print("Filtered reports samples:")
+    print(filtered_reports[:10])
+
+    print("")
+    print(f"Number of filtered reports: {len(filtered_reports)}")
+
     print("Running batches")
     input_file_names, output_file_names = run_batches(filtered_reports=filtered_reports, gpt_prompt=args.gpt_prompt, gpt_config=args.gpt_config)
 
