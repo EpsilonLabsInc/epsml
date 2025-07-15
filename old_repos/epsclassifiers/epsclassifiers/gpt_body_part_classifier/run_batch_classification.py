@@ -155,7 +155,7 @@ def assemble_results(output_file_names):
         with open(output_file_name, "r") as file:
             for line in file:
                 data = json.loads(line)
-                index = data["custom_id"]
+                index = int(data["custom_id"])
                 result = data["response"]["body"]["choices"][0]["message"]["content"].strip().strip("\"")
                 results.append({"index": index, "result": result})
 
