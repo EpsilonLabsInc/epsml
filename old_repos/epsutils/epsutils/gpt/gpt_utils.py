@@ -1,36 +1,41 @@
-import base64
 import json
 import time
 from io import BytesIO
 
 from openai import AzureOpenAI
 
-
-def encode_image_as_base64(jpeg_byte_stream: BytesIO) -> str:
-    return base64.b64encode(jpeg_byte_stream.read()).decode("utf-8")
+from _internal import create_user_content
 
 
-def create_request(prompt, images, request_id, deployment):
+def run_single_query(system_prompt, user_prompt, images, endpoint, api_key, api_version, deployment):
+    # Create OpenAI client.
+    print("Creating OpenAI client")
+    client = AzureOpenAI(azure_endpoint=endpoint, api_key=api_key, api_version=api_version)
+
+    # Create user content.
+    user_content = create_user_content(user_prompt=user_prompt, images=images)
+
+    # Send request.
+    print("Creating request")
+    response = client.chat.completions.create(
+        model=deployment,
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_content}
+        ],
+        temperature=0
+    )
+
+    return response.choices[0].message.content
+
+
+def create_request(system_prompt, user_prompt, images, request_id, deployment):
     assert isinstance(request_id, str)
 
-    content = [
-        {
-            "type": "text",
-            "text": prompt
-        }
-    ]
+    # Create user content.
+    user_content = create_user_content(user_prompt=user_prompt, images=images)
 
-    if images is not None:
-        base64_images = [encode_image_as_base64(jpeg_byte_stream=jpeg_byte_stream) for jpeg_byte_stream in images]
-
-        for base64_image in base64_images:
-            content.append(
-                {
-                    "type": "image_url",
-                    "image_url": { "url": f"data:image/jpeg;base64,{base64_image}" }
-                }
-            )
-
+    # Create request.
     request = {
         "custom_id": request_id,
         "method": "POST",
@@ -38,7 +43,8 @@ def create_request(prompt, images, request_id, deployment):
         "body": {
             "model": deployment,
             "messages": [
-                {"role": "user", "content": content}
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_content}
             ],
             "temperature": 0,
         }
@@ -54,7 +60,7 @@ def save_requests_as_jsonl(requests, output_file):
             file.write(line)
 
 
-def run_batch(input_jsonl: str, endpoint: str, api_key: str, api_version: str, check_status_interval_in_sec=60, is_content=False):
+def run_batch(input_jsonl, endpoint, api_key, api_version, check_status_interval_in_sec=60, is_content=False):
     # Create OpenAI client.
     print("Creating OpenAI client")
     client = AzureOpenAI(azure_endpoint=endpoint, api_key=api_key, api_version=api_version)
