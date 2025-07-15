@@ -169,7 +169,7 @@ if __name__ == "__main__":
     COLUMN_NAME_TO_ADD = "arm_segment"
     TARGET_DICOM_BODY_PARTS = ["shoulder", "arm", "elbow", "hand", "palm", "finger"]
     TARGET_IMAGE_SIZE = (200, 200)
-    MAX_NUM_ROWS = 11
+    MAX_NUM_ROWS = 1000
     CLEAN_UP_FILES = True
     BASE_PATH_SUBSTITUTIONS = {
         "gradient/22JUL2024": None,
