@@ -1,6 +1,5 @@
 import json
 import time
-from io import BytesIO
 
 from openai import AzureOpenAI
 
@@ -55,11 +54,8 @@ def create_request(system_prompt, user_prompt, images, request_id, deployment):
     return request
 
 
-def save_requests_as_jsonl(requests,
-                           output_file_name,
-                           max_file_size=190 * 1024 * 1024,
-                           max_entries_per_file=100_000):
-    output_file_names = []
+def save_requests_as_jsonl(requests, file_name, max_file_size=190 * 1024 * 1024, max_entries_per_file=100_000):
+    file_names = []
     curr_file = None
 
     for request in requests:
@@ -70,10 +66,10 @@ def save_requests_as_jsonl(requests,
             if curr_file is not None:
                 curr_file.close()
 
-            file_count = len(output_file_names) + 1
-            new_output_file_name = sys_utils.add_suffix_to_file_path(output_file_name, f"_{file_count}")
-            curr_file = open(new_output_file_name, "w", encoding="utf-8")
-            output_file_names.append(new_output_file_name)
+            file_count = len(file_names) + 1
+            new_file_name = sys_utils.add_suffix_to_file_path(file_name, f"_{file_count}")
+            curr_file = open(new_file_name, "w", encoding="utf-8")
+            file_names.append(new_file_name)
 
             current_file_size = 0
             current_entry_count = 0
@@ -82,25 +78,18 @@ def save_requests_as_jsonl(requests,
         current_file_size += line_size
         current_entry_count += 1
 
-    return output_file_names
+    return file_names
 
 
-def run_batch(input_jsonl, endpoint, api_key, api_version, check_status_interval_in_sec=60, is_content=False):
+def run_batch(input_jsonl, output_jsonl, endpoint, api_key, api_version, check_status_interval_in_sec=60):
     # Create OpenAI client.
     print("Creating OpenAI client")
     client = AzureOpenAI(azure_endpoint=endpoint, api_key=api_key, api_version=api_version)
 
     # Upload file.
-    if is_content:
-        print("Uploading content")
-        file_stream = BytesIO(input_jsonl.encode("utf-8"))
-        file_stream.name = "input.jsonl"
-        resp = client.files.create(file=file_stream, purpose="batch")
-    else:
-        print("Uploading file")
-        with open(input_jsonl, "rb") as file:
-            resp = client.files.create(file=file, purpose="batch")
-
+    print("Uploading file")
+    with open(input_jsonl, "rb") as file:
+        resp = client.files.create(file=file, purpose="batch")
     file_id = resp.id
 
     # Wait for the file to be processed.
@@ -138,7 +127,9 @@ def run_batch(input_jsonl, endpoint, api_key, api_version, check_status_interval
     out_id = client.batches.retrieve(batch_id).output_file_id
     content = client.files.content(out_id).text
 
-    return content
+    # Save results.
+    with open(output_jsonl, "w", encoding="utf-8") as file:
+        file.write(content)
 
 
 def delete_files(endpoint, api_key, api_version, force=False, purpose=None):
@@ -184,22 +175,3 @@ def delete_files(endpoint, api_key, api_version, force=False, purpose=None):
 
     print(f"Successfully deleted {deleted_count} files.")
     return
-
-
-def find_content(response):
-    if isinstance(response, dict):
-        for key, value in response.items():
-            if key == 'content':
-                content = json.loads(value.strip("```json\\n"))
-                return content
-            else:
-                result = find_content(value)
-                if result:
-                    return result
-    elif isinstance(response, list):
-        for item in response:
-            result = find_content(item)
-            if result:
-                return result
-
-    return None
