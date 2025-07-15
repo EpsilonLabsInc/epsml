@@ -16,7 +16,7 @@ def run_single_query(system_prompt, user_prompt, images, endpoint, api_key, api_
     user_content = create_user_content(user_prompt=user_prompt, images=images)
 
     # Send request.
-    print("Creating request")
+    print("Sending request")
     response = client.chat.completions.create(
         model=deployment,
         messages=[
