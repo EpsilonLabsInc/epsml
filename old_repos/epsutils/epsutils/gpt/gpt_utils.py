@@ -137,6 +137,51 @@ def run_batch(input_jsonl, endpoint, api_key, api_version, check_status_interval
     return content
 
 
+def delete_files(endpoint, api_key, api_version, force=False, purpose=None):
+    # Create OpenAI client.
+    print("Creating OpenAI client")
+    client = AzureOpenAI(azure_endpoint=endpoint, api_key=api_key, api_version=api_version)
+
+    # List all files.
+    if purpose:
+        files = client.files.list(purpose=purpose)
+    else:
+        files = client.files.list()
+    file_list = list(files)
+
+    if not file_list:
+        print("No files found.")
+        return
+
+    # Print files to be deleted.
+    print(f"Found {len(file_list)} files to delete:")
+    for file in file_list[:10]:  # Show first 10 files.
+        print(f"  - {file.id}")
+
+    if len(file_list) > 10:
+        print(f"  ... and {len(file_list) - 10} more files")
+
+    # Confirm deletion
+    if not force:
+        confirmation = input(f"\nAre you sure you want to delete these {len(file_list)} files? (y/n): ")
+        if confirmation.lower() not in ["y", "yes"]:
+            print("Operation cancelled.")
+            return
+
+    # Delete each file.
+    deleted_count = 0
+    for file in file_list:
+        try:
+            client.files.delete(file.id)
+            print(f"Deleted file: {file.id}")
+            deleted_count += 1
+        except Exception as e:
+            print(f"Error deleting file {file.id}: {str(e)}")
+
+    print(f"Successfully deleted {deleted_count} files.")
+    return
+
+
 def find_content(response):
     if isinstance(response, dict):
         for key, value in response.items():
