@@ -143,7 +143,7 @@ def delete_files(endpoint, api_key, api_version, force=False, purpose=None):
     client = AzureOpenAI(azure_endpoint=endpoint, api_key=api_key, api_version=api_version)
 
     # List all files.
-    if purpose:
+    if purpose is not None:
         files = client.files.list(purpose=purpose)
     else:
         files = client.files.list()
