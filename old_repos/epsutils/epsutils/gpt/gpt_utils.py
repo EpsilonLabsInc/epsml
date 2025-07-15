@@ -104,9 +104,11 @@ def run_batch(input_jsonl, endpoint, api_key, api_version, check_status_interval
     file_id = resp.id
 
     # Wait for the file to be processed.
+    start_time = time.time()
     while True:
         status = client.files.retrieve(file_id).status.lower()
-        print(f"File {file_id} status: {status}")
+        elapsed = time.time() - start_time
+        print(f"File {file_id} status: {status} (elapsed time: {int(elapsed)} sec)")
         if status == "error":
             raise RuntimeError("File processing error")
         elif status == "processed":
@@ -119,10 +121,12 @@ def run_batch(input_jsonl, endpoint, api_key, api_version, check_status_interval
     batch_id = resp.id
 
     # Wait for the batch to complete.
+    start_time = time.time()
     while True:
         info = client.batches.retrieve(batch_id)
         status = info.status.lower()
-        print(f"Batch {batch_id} status: {status}")
+        elapsed = time.time() - start_time
+        print(f"Batch {batch_id} status: {status} (elapsed time: {int(elapsed)} sec)")
         if status in {"failed", "cancelled", "canceled", "expired"}:
             message = info.error.get("message", "No message available") if hasattr(info, "error") else str(info)
             raise RuntimeError(f"Batch processing error: {message}")
