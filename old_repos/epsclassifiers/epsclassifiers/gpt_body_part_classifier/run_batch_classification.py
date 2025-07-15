@@ -6,6 +6,7 @@ from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_compl
 from io import StringIO, BytesIO
 
 import pandas as pd
+from PIL import Image
 from tqdm import tqdm
 
 from epsutils.dicom import dicom_utils
@@ -30,7 +31,10 @@ def main(args):
                                       base_path_substitutions=args.base_path_substitutions,
                                       target_dicom_body_parts=args.target_dicom_body_parts,
                                       target_image_size=args.target_image_size,
-                                      max_num_rows=args.max_num_rows)
+                                      use_png=args.use_png)
+
+    if args.max_num_rows is not None:
+        filtered_reports = filtered_reports[:args.max_num_rows]
 
     print("Running batches")
     input_file_names, output_file_names = run_batches(filtered_reports=filtered_reports, gpt_prompt=args.gpt_prompt, gpt_config=args.gpt_config)
@@ -59,7 +63,7 @@ def main(args):
                                args.gpt_config["api_version"])
 
 
-def process_row(row, base_path_substitutions, target_dicom_body_parts, target_image_size):
+def process_row(row, base_path_substitutions, target_dicom_body_parts, target_image_size, use_png):
     # Get base path substitution.
     base_path = row.base_path
     if base_path not in base_path_substitutions:
@@ -77,8 +81,8 @@ def process_row(row, base_path_substitutions, target_dicom_body_parts, target_im
     images = []
     for image_path in ast.literal_eval(row.image_paths):
         image_path = os.path.join(subst, image_path)
-        image = dicom_utils.get_dicom_image_fail_safe(image_path, custom_windowing_parameters={"window_center": 0, "window_width": 0})
-        image = image_utils.numpy_array_to_pil_image(image, convert_to_uint8=True, convert_to_rgb=True)
+        image_path = image_path.replace(".dcm", ".png") if use_png else image_path
+        image = Image.open(image_path)
         image = image.resize(target_image_size)
 
         buffer = BytesIO()
@@ -94,9 +98,9 @@ def process_row(row, base_path_substitutions, target_dicom_body_parts, target_im
     }
 
 
-def filter_reports(df, base_path_substitutions, target_dicom_body_parts, target_image_size, max_num_rows):
+def filter_reports(df, base_path_substitutions, target_dicom_body_parts, target_image_size, use_png):
     with ThreadPoolExecutor() as executor:
-        results = list(tqdm(executor.map(lambda row: process_row(row, base_path_substitutions, target_dicom_body_parts, target_image_size), [row for row in df.itertuples()]),
+        results = list(tqdm(executor.map(lambda row: process_row(row, base_path_substitutions, target_dicom_body_parts, target_image_size, use_png), [row for row in df.itertuples()]),
                             total=len(df),
                             desc="Processing"))
 
@@ -155,6 +159,7 @@ def assemble_results(output_file_names):
 if __name__ == "__main__":
     REPORTS_FILE = "/mnt/training/splits/gradient_batches_1-5_segmed_batches_1-4_simonmed_batches_1-10_reports_with_labels_test.csv"  # Reports CSV file. Can be local file or GCS URI.
     OUTPUT_FILE = "/mnt/training/splits/gradient_batches_1-5_segmed_batches_1-4_simonmed_batches_1-10_reports_with_labels_with_arm_segment_test.csv"
+    USE_PNG = True
     COLUMN_NAME_TO_ADD = "arm_segment"
     TARGET_DICOM_BODY_PARTS = ["shoulder", "arm", "elbow", "hand", "palm", "finger"]
     TARGET_IMAGE_SIZE = (200, 200)
@@ -164,13 +169,13 @@ if __name__ == "__main__":
         "gradient/22JUL2024": None,
         "gradient/20DEC2024": None,
         "gradient/09JAN2025": None,
-        "gradient/16AUG2024": "/mnt/sfs-gradient-nochest/16AUG2024",
-        "gradient/13JAN2025": "/mnt/sfs-gradient-nochest/13JAN2025/deid",
-        "segmed/batch1": "/mnt/sfs-segmed-1",
-        "segmed/batch2": "/mnt/sfs-segmed-2",
-        "segmed/batch3": "/mnt/sfs-segmed-34/segmed_3",
-        "segmed/batch4": "/mnt/sfs-segmed-34/segmed_4",
-        "simonmed": "/mnt/sfs-simonmed"
+        "gradient/16AUG2024": "/mnt/png/512x512/gradient/16AUG2024",
+        "gradient/13JAN2025": "/mnt/png/512x512/gradient/13JAN2025/deid",
+        "segmed/batch1": "/mnt/png/512x512/segmed/batch1",
+        "segmed/batch2": "/mnt/png/512x512/segmed/batch2",
+        "segmed/batch3": "/mnt/png/512x512/segmed/batch3",
+        "segmed/batch4": "/mnt/png/512x512/segmed/batch4",
+        "simonmed": "/mnt/png/512x512/simonmed"
     }
     GPT_PROMPT = """
 You are a medical imaging assistant tasked with identifying the body part shown in X-ray images and/or described
@@ -196,6 +201,7 @@ in accompanying medical reports. Follow these strict guidelines:
 
     args = argparse.Namespace(reports_file=REPORTS_FILE,
                               output_file=OUTPUT_FILE,
+                              use_png=USE_PNG,
                               column_name_to_add=COLUMN_NAME_TO_ADD,
                               target_dicom_body_parts=TARGET_DICOM_BODY_PARTS,
                               target_image_size=TARGET_IMAGE_SIZE,
