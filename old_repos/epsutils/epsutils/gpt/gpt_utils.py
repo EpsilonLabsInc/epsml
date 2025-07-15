@@ -4,7 +4,7 @@ from io import BytesIO
 
 from openai import AzureOpenAI
 
-from _internal import create_user_content
+from ._internal import create_user_content
 
 
 def run_single_query(system_prompt, user_prompt, images, endpoint, api_key, api_version, deployment):
