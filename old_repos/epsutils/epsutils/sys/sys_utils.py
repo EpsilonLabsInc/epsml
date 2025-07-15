@@ -26,3 +26,10 @@ def compute_dir_depth(dir1, dir2):
     depth2 = dir2.count(os.sep)
 
     return abs(depth1 - depth2)
+
+
+def add_suffix_to_file_path(file_path, suffix):
+    dir_name = os.path.dirname(file_path)
+    base_name, extension = os.path.splitext(os.path.basename(file_path))
+    new_file_name = f"{base_name}{suffix}{extension}"
+    return os.path.join(dir_name, new_file_name)

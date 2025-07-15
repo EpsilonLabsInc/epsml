@@ -4,6 +4,8 @@ from io import BytesIO
 
 from openai import AzureOpenAI
 
+from epsutils.sys import sys_utils
+
 from ._internal import create_user_content
 
 
@@ -53,11 +55,34 @@ def create_request(system_prompt, user_prompt, images, request_id, deployment):
     return request
 
 
-def save_requests_as_jsonl(requests, output_file):
-    with open(output_file, "w", encoding="utf-8") as file:
-        for request in requests:
-            line = json.dumps(request, ensure_ascii=False) + "\n"
-            file.write(line)
+def save_requests_as_jsonl(requests,
+                           output_file_name,
+                           max_file_size=190 * 1024 * 1024,
+                           max_entries_per_file=100_000):
+    output_file_names = []
+    curr_file = None
+
+    for request in requests:
+        line = json.dumps(request, ensure_ascii=False) + "\n"
+        line_size = len(line.encode())
+
+        if curr_file is None or current_file_size + line_size > max_file_size or current_entry_count + 1 > max_entries_per_file:
+            if curr_file is not None:
+                curr_file.close()
+
+            file_count = len(output_file_names) + 1
+            new_output_file_name = sys_utils.add_suffix_to_file_path(output_file_name, f"_{file_count}")
+            curr_file = open(new_output_file_name, "w", encoding="utf-8")
+            output_file_names.append(new_output_file_name)
+
+            current_file_size = 0
+            current_entry_count = 0
+
+        curr_file.write(line)
+        current_file_size += line_size
+        current_entry_count += 1
+
+    return output_file_names
 
 
 def run_batch(input_jsonl, endpoint, api_key, api_version, check_status_interval_in_sec=60, is_content=False):
