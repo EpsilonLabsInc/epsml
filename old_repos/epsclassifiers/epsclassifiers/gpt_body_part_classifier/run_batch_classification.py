@@ -88,8 +88,14 @@ def process_row(row, base_path_substitutions, target_dicom_body_parts, target_im
     images = []
     for image_path in ast.literal_eval(row.image_paths):
         image_path = os.path.join(subst, image_path)
-        image_path = image_path.replace(".dcm", ".png") if use_png else image_path
-        image = Image.open(image_path)
+
+        if use_png:
+            image_path = image_path.replace(".dcm", ".png")
+            image = Image.open(image_path)
+        else:
+            image = dicom_utils.get_dicom_image_fail_safe(image_path, custom_windowing_parameters={"window_center": 0, "window_width": 0})
+            image = image_utils.numpy_array_to_pil_image(image, convert_to_uint8=True, convert_to_rgb=True)
+
         image = image.resize(target_image_size)
 
         buffer = BytesIO()
