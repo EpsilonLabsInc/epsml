@@ -28,7 +28,7 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
                  dir_prefix_to_remove=None,
                  remove_deid=False,
                  convert_images_to_rgb=True,
-                 replace_dicom_with_png=True,
+                 replace_dicom_with_png=False,
                  custom_labels=None,
                  apply_data_augmentation=False):
         """
