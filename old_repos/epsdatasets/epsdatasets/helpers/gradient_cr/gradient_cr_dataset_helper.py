@@ -28,6 +28,7 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
                  dir_prefix_to_remove=None,
                  remove_deid=False,
                  convert_images_to_rgb=True,
+                 replace_dicom_with_png=True,
                  custom_labels=None,
                  apply_data_augmentation=False):
         """
@@ -42,6 +43,7 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
             dir_prefix_to_remove (str, optional): Dir prefix to be removed from the input image paths.
             remove_deid (bool, optional): If True, '/deid/' subdir will be removed from the output paths.
             convert_images_to_rgb (bool, optional): If True, loaded images will be converted to RGB before being returned.
+            replace_dicom_with_png (bool, optional): If True, dataset helper will replace .dcm extension in image paths with .png extension and load images as PNGs.
             custom_labels ((List[str], optional): Custom labels to be used. If None, default EXTENDED_CR_CHEST_LABELS will be used.
             apply_data_augmentation (bool, optional): If True, loaded images will augmented.
         """
@@ -53,6 +55,7 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
                          dir_prefix_to_remove=dir_prefix_to_remove,
                          remove_deid=remove_deid,
                          convert_images_to_rgb=convert_images_to_rgb,
+                         replace_dicom_with_png=replace_dicom_with_png,
                          custom_labels=custom_labels,
                          apply_data_augmentation=apply_data_augmentation)
 
@@ -66,6 +69,7 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
         self.__dir_prefix_to_remove = kwargs["dir_prefix_to_remove"] if "dir_prefix_to_remove" in kwargs else next((arg for arg in args if arg == "dir_prefix_to_remove"), None)
         self.__remove_deid = kwargs["remove_deid"] if "remove_deid" in kwargs else next((arg for arg in args if arg == "remove_deid"), None)
         self.__convert_images_to_rgb = kwargs["convert_images_to_rgb"] if "convert_images_to_rgb" in kwargs else next((arg for arg in args if arg == "convert_images_to_rgb"), None)
+        self.__replace_dicom_with_png = kwargs["replace_dicom_with_png"] if "replace_dicom_with_png" in kwargs else next((arg for arg in args if arg == "replace_dicom_with_png"), None)
         self.__custom_labels = kwargs["custom_labels"] if "custom_labels" in kwargs else next((arg for arg in args if arg == "custom_labels"), None)
         self.__apply_data_augmentation = kwargs["apply_data_augmentation"] if "apply_data_augmentation" in kwargs else next((arg for arg in args if arg == "apply_data_augmentation"), None)
 
@@ -284,6 +288,9 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
                     gcs_data = gcs_utils.split_gcs_uri(image_path)
                     image_path = BytesIO(gcs_utils.download_file_as_bytes(gcs_bucket_name=gcs_data["gcs_bucket_name"], gcs_file_name=gcs_data["gcs_path"]))
 
+                if self.__replace_dicom_with_png and isinstance(image_path, str):
+                    image_path = image_path.replace(".dcm", ".png")
+
                 if image_path.endswith(".dcm"):
                     image = dicom_utils.get_dicom_image(image_path, custom_windowing_parameters={"window_center": 0, "window_width": 0})
                     image = image_utils.numpy_array_to_pil_image(image, convert_to_rgb=self.__convert_images_to_rgb)
@@ -311,6 +318,9 @@ class GradientCrDatasetHelper(BaseDatasetHelper):
             if gcs_utils.is_gcs_uri(image_path):
                 gcs_data = gcs_utils.split_gcs_uri(image_path)
                 image_path = BytesIO(gcs_utils.download_file_as_bytes(gcs_bucket_name=gcs_data["gcs_bucket_name"], gcs_file_name=gcs_data["gcs_path"]))
+
+            if self.__replace_dicom_with_png and isinstance(image_path, str):
+                image_path = image_path.replace(".dcm", ".png")
 
             if image_path.endswith(".dcm"):
                 image = dicom_utils.get_dicom_image(image_path, custom_windowing_parameters={"window_center": 0, "window_width": 0})
