@@ -64,9 +64,10 @@ def main(args):
 
     if args.gpt_config["clean_up_azure_files"]:
         print("Cleaning up Azure files")
-        gpt_utils.delete_files(args.gpt_config["endpoint"],
-                               args.gpt_config["api_key"],
-                               args.gpt_config["api_version"])
+        gpt_utils.delete_files(endpoint=args.gpt_config["endpoint"],
+                               api_key=args.gpt_config["api_key"],
+                               api_version=args.gpt_config["api_version"],
+                               purpose="batch")
 
 
 def process_row(row, base_path_substitutions, target_dicom_body_parts, target_image_size, use_png):
