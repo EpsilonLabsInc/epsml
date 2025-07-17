@@ -43,7 +43,7 @@ def main(args):
     print(f"Number of filtered reports: {len(filtered_reports)}")
 
     print("Running batches")
-    input_file_names, output_file_names = run_batches(filtered_reports=filtered_reports, gpt_prompt=args.gpt_prompt, gpt_config=args.gpt_config)
+    input_file_names, output_file_names = run_batches(filtered_reports=filtered_reports, gpt_prompt=args.gpt_prompt, gpt_config=args.gpt_config, max_workers=args.max_workers)
 
     print("Assemble results")
     results = assemble_results(output_file_names)
@@ -125,7 +125,7 @@ def filter_reports(df, base_path_substitutions, target_dicom_body_parts, target_
     return filtered_reports
 
 
-def run_batches(filtered_reports, gpt_prompt, gpt_config):
+def run_batches(filtered_reports, gpt_prompt, gpt_config, max_workers):
     requests = []
 
     for item in filtered_reports:
@@ -139,7 +139,7 @@ def run_batches(filtered_reports, gpt_prompt, gpt_config):
     input_file_names = gpt_utils.save_requests_as_jsonl(requests=requests, file_name="input.jsonl")
     output_file_names = [input_file_name.replace("input", "output") for input_file_name in input_file_names]
 
-    with ProcessPoolExecutor() as executor:
+    with ProcessPoolExecutor(max_workers=max_workers) as executor:
         futures = []
         for index, input_file_name in enumerate(input_file_names):
             futures.append(executor.submit(
@@ -173,13 +173,14 @@ def assemble_results(output_file_names):
 
 
 if __name__ == "__main__":
-    REPORTS_FILE = "/mnt/training/splits/gradient_batches_1-5_segmed_batches_1-4_simonmed_batches_1-10_reports_with_labels_test.csv"  # Reports CSV file. Can be local file or GCS URI.
-    OUTPUT_FILE = "/mnt/training/splits/gradient_batches_1-5_segmed_batches_1-4_simonmed_batches_1-10_reports_with_labels_with_arm_segment_test.csv"
+    REPORTS_FILE = "/mnt/training/splits/gradient_batches_1-5_segmed_batches_1-4_simonmed_batches_1-10_reports_with_labels_train.csv"  # Reports CSV file. Can be local file or GCS URI.
+    OUTPUT_FILE = "/mnt/training/splits/gradient_batches_1-5_segmed_batches_1-4_simonmed_batches_1-10_reports_with_labels_with_arm_segment_train.csv"
     USE_PNG = True
     COLUMN_NAME_TO_ADD = "arm_segment"
     TARGET_DICOM_BODY_PARTS = ["shoulder", "arm", "elbow", "hand", "palm", "finger"]
     TARGET_IMAGE_SIZE = (200, 200)
     MAX_NUM_ROWS = None
+    MAX_WORKERS = 20
     CLEAN_UP_FILES = True
     BASE_PATH_SUBSTITUTIONS = {
         "gradient/22JUL2024": None,
@@ -222,6 +223,7 @@ in accompanying medical reports. Follow these strict guidelines:
                               target_dicom_body_parts=TARGET_DICOM_BODY_PARTS,
                               target_image_size=TARGET_IMAGE_SIZE,
                               max_num_rows=MAX_NUM_ROWS,
+                              max_workers=MAX_WORKERS,
                               clean_up_files=CLEAN_UP_FILES,
                               base_path_substitutions=BASE_PATH_SUBSTITUTIONS,
                               gpt_prompt=GPT_PROMPT,
