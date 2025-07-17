@@ -71,6 +71,9 @@ def main(args):
 
 
 def process_row(row, base_path_substitutions, target_dicom_body_parts, target_image_size, use_png):
+    if pd.isna(row.report_text):
+        return None
+
     # Get base path substitution.
     base_path = row.base_path
     if base_path not in base_path_substitutions:
@@ -176,7 +179,7 @@ if __name__ == "__main__":
     COLUMN_NAME_TO_ADD = "arm_segment"
     TARGET_DICOM_BODY_PARTS = ["shoulder", "arm", "elbow", "hand", "palm", "finger"]
     TARGET_IMAGE_SIZE = (200, 200)
-    MAX_NUM_ROWS = 1000
+    MAX_NUM_ROWS = None
     CLEAN_UP_FILES = True
     BASE_PATH_SUBSTITUTIONS = {
         "gradient/22JUL2024": None,
