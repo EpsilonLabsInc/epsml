@@ -82,54 +82,58 @@ def save_requests_as_jsonl(requests, file_name, max_file_size=190 * 1024 * 1024,
 
 
 def run_batch(input_jsonl, output_jsonl, endpoint, api_key, api_version, check_status_interval_in_sec=60):
-    # Create OpenAI client.
-    print("Creating OpenAI client")
-    client = AzureOpenAI(azure_endpoint=endpoint, api_key=api_key, api_version=api_version)
+    try:
+        # Create OpenAI client.
+        print("Creating OpenAI client")
+        client = AzureOpenAI(azure_endpoint=endpoint, api_key=api_key, api_version=api_version)
 
-    # Upload file.
-    print("Uploading file")
-    with open(input_jsonl, "rb") as file:
-        resp = client.files.create(file=file, purpose="batch")
-    file_id = resp.id
+        # Upload file.
+        print("Uploading file")
+        with open(input_jsonl, "rb") as file:
+            resp = client.files.create(file=file, purpose="batch")
+        file_id = resp.id
 
-    # Wait for the file to be processed.
-    start_time = time.time()
-    while True:
-        status = client.files.retrieve(file_id).status.lower()
-        elapsed = time.time() - start_time
-        print(f"File {file_id} status: {status} (elapsed time: {int(elapsed)} sec)")
-        if status == "error":
-            raise RuntimeError("File processing error")
-        elif status == "processed":
-            break
-        time.sleep(10)
+        # Wait for the file to be processed.
+        start_time = time.time()
+        while True:
+            status = client.files.retrieve(file_id).status.lower()
+            elapsed = time.time() - start_time
+            print(f"File {file_id} status: {status} (elapsed time: {int(elapsed)} sec)")
+            if status == "error":
+                raise RuntimeError("File processing error")
+            elif status == "processed":
+                break
+            time.sleep(10)
 
-    # Create batch job.
-    print("Creating batch job")
-    resp = client.batches.create(input_file_id=file_id, endpoint="/chat/completions", completion_window="24h")
-    batch_id = resp.id
+        # Create batch job.
+        print("Creating batch job")
+        resp = client.batches.create(input_file_id=file_id, endpoint="/chat/completions", completion_window="24h")
+        batch_id = resp.id
 
-    # Wait for the batch to complete.
-    start_time = time.time()
-    while True:
-        info = client.batches.retrieve(batch_id)
-        status = info.status.lower()
-        elapsed = time.time() - start_time
-        print(f"Batch {batch_id} status: {status} (elapsed time: {int(elapsed)} sec)")
-        if status in {"failed", "cancelled", "canceled", "expired"}:
-            message = info.error.get("message", "No message available") if hasattr(info, "error") else str(info)
-            raise RuntimeError(f"Batch processing error: {message}")
-        elif status == "completed":
-            break
-        time.sleep(check_status_interval_in_sec)
+        # Wait for the batch to complete.
+        start_time = time.time()
+        while True:
+            info = client.batches.retrieve(batch_id)
+            status = info.status.lower()
+            elapsed = time.time() - start_time
+            print(f"Batch {batch_id} status: {status} (elapsed time: {int(elapsed)} sec)")
+            if status in {"failed", "cancelled", "canceled", "expired"}:
+                message = info.error.get("message", "No message available") if hasattr(info, "error") else str(info)
+                raise RuntimeError(f"Batch processing error: {message}")
+            elif status == "completed":
+                break
+            time.sleep(check_status_interval_in_sec)
 
-    # Get results.
-    out_id = client.batches.retrieve(batch_id).output_file_id
-    content = client.files.content(out_id).text
+        # Get results.
+        out_id = client.batches.retrieve(batch_id).output_file_id
+        content = client.files.content(out_id).text
 
-    # Save results.
-    with open(output_jsonl, "w", encoding="utf-8") as file:
-        file.write(content)
+        # Save results.
+        with open(output_jsonl, "w", encoding="utf-8") as file:
+            file.write(content)
+    except Exception as e:
+        print(f"Run batch error: {str(e)}")
+        raise
 
 
 def delete_files(endpoint, api_key, api_version, force=False, purpose=None):
