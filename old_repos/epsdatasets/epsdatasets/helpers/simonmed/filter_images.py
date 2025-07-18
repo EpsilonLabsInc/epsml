@@ -237,7 +237,8 @@ def filter_images(batch_data,
                   studies_dir,
                   all_available_images_file_path,
                   allowed_dicom_tag_values,
-                  ignore_non_primary_and_non_original_images):
+                  ignore_non_primary_and_non_original_images,
+                  max_workers):
     assert len(batch_data) > 0
 
     print("Loading reports file(s)")
@@ -307,7 +308,7 @@ def filter_images(batch_data,
 
     print("Image filtering started")
 
-    with ThreadPoolExecutor() as executor:
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
         studies = list(tqdm(executor.map(lambda study_id: filter_study_images(study_id,
                                                                               studies_dir,
                                                                               allowed_dicom_tag_values,
@@ -353,19 +354,21 @@ def main(args):
                                studies_dir=args.studies_dir,
                                all_available_images_file_path=args.all_available_images_file_path,
                                allowed_dicom_tag_values=args.allowed_dicom_tag_values,
-                               ignore_non_primary_and_non_original_images=args.ignore_non_primary_and_non_original_images)
+                               ignore_non_primary_and_non_original_images=args.ignore_non_primary_and_non_original_images,
+                               max_workers=args.max_workers)
 
     # Save reports.
     save_reports(reports_df=reports_df, output_reports_file_path=args.output_reports_file_path)
 
 
 if __name__ == "__main__":
-    BATCH_INDEX = 10
-    BATCHES_BASE_DIR = "/mnt/efs/all-cxr/simonmed/"
-    STUDIES_DIR = "/mnt/efs/all-cxr/simonmed/images/422ca224-a9f2-4c64-bf7c-bb122ae2a7bb"
-    ALL_AVAILABLE_IMAGES_FILE_PATH = "/mnt/efs/all-cxr/simonmed/all_available_simonmed_images.jsonl"
+    BATCH_INDEX = 1
+    BATCHES_BASE_DIR = "/mnt/sfs-simonmed/reports"
+    STUDIES_DIR = "/mnt/sfs-simonmed"
+    ALL_AVAILABLE_IMAGES_FILE_PATH = "/mnt/sfs-simonmed/reports/all_available_simonmed_images.jsonl"
     IGNORE_NON_PRIMARY_AND_NON_ORIGINAL_IMAGES = False
-    OUTPUT_REPORTS_FILE_PATH = f"/mnt/efs/all-cxr/simonmed/batch{BATCH_INDEX}/simonmed_batch_{BATCH_INDEX}_reports_with_image_paths_filtered.csv"
+    OUTPUT_REPORTS_FILE_PATH = f"/mnt/sfs-simonmed/reports/batch{BATCH_INDEX}/simonmed_batch_{BATCH_INDEX}_reports_with_image_paths_filtered.csv"
+    MAX_WORKERS = 20
 
     ALLOWED_DICOM_TAG_VALUES = {
         "modalities": [
@@ -385,6 +388,7 @@ if __name__ == "__main__":
                               all_available_images_file_path=ALL_AVAILABLE_IMAGES_FILE_PATH,
                               allowed_dicom_tag_values=ALLOWED_DICOM_TAG_VALUES,
                               ignore_non_primary_and_non_original_images=IGNORE_NON_PRIMARY_AND_NON_ORIGINAL_IMAGES,
-                              output_reports_file_path=OUTPUT_REPORTS_FILE_PATH)
+                              output_reports_file_path=OUTPUT_REPORTS_FILE_PATH,
+                              max_workers=MAX_WORKERS)
 
     main(args)
