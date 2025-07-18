@@ -1,6 +1,6 @@
 import torch
 
-from utils_ml_inference.dicom import get_dicom_image
+from utils_ml_inference.dicom import get_dicom_image_fail_safe
 from intern_vit import InternVit
 
 from utils_ml_inference.image import numpy_array_to_pil_image
@@ -19,7 +19,7 @@ def main():
     image_processor = model.get_image_processor()
 
     # Preprocess image.
-    image = get_dicom_image(IMAGE_PATH, custom_windowing_parameters={"window_center": 0, "window_width": 0})
+    image = get_dicom_image_fail_safe(IMAGE_PATH, custom_windowing_parameters={"window_center": 0, "window_width": 0})
     image = numpy_array_to_pil_image(image, convert_to_uint8=True, convert_to_rgb=True)
     pixel_values = image_processor(images=image, return_tensors="pt").pixel_values
     pixel_values = pixel_values.to(torch.bfloat16).cuda()
