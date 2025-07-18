@@ -4247,8 +4247,8 @@ torch = "^2"
 [package.source]
 type = "git"
 url = "ssh://git@github.com/EpsilonLabsInc/utils_ml_inference.git"
-reference = "v2.0.0"
-resolved_reference = "e4ced1ff3d93a50ac6477fe9efbb070fc9203a57"
+reference = "v3.1.0"
+resolved_reference = "4a3dc472e1a4ba0dc32fc53228e8966945f4e131"
 
 [[package]]
 name = "uvicorn"
@@ -4490,4 +4490,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10.12,<3.11"
-content-hash = "3c84514440c73a3714fd82a9c1d152c1fb1c7bfaafcff23bef0056eac51be321"
+content-hash = "b896cbaadf666d7fdab5ed7f5ef384a4ba9e69454590a7381ba39fc6ed598e9b"
