@@ -1,3 +1,17 @@
+from dataclasses import dataclass
+from enum import Enum
+
+
+class ReadLocation(Enum):
+    REPORT = 1
+    DICOM = 2
+
+@dataclass
+class TargetBodyParts:
+    read_location: ReadLocation
+    values: list[str]  # Must be lowercase strings representing body parts.
+
+
 # Arm segments.
 
 ARM_SEGMENTS_GPT_PROMPT = """
@@ -12,4 +26,4 @@ in accompanying medical reports. Follow these strict guidelines:
    Your entire output should be a single word: one of the four category labels.
 """
 
-ARM_SEGMENTS_TARGET_DICOM_BODY_PARTS = ["shoulder", "arm", "elbow", "hand", "palm", "finger"]
+ARM_SEGMENTS_TARGET_BODY_PARTS = TargetBodyParts(read_location=ReadLocation.DICOM, values=["shoulder", "arm", "elbow", "hand", "palm", "finger"])

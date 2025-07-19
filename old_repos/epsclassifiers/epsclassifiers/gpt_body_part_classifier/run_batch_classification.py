@@ -31,7 +31,7 @@ def main(args):
     print("Filtering reports")
     filtered_reports = filter_reports(df=df,
                                       base_path_substitutions=args.base_path_substitutions,
-                                      target_dicom_body_parts=args.target_dicom_body_parts,
+                                      target_body_parts=args.target_body_parts,
                                       target_image_size=args.target_image_size,
                                       use_png=args.use_png)
 
@@ -72,7 +72,7 @@ def main(args):
                                purpose="batch")
 
 
-def process_row(row, base_path_substitutions, target_dicom_body_parts, target_image_size, use_png):
+def process_row(row, base_path_substitutions, target_body_parts, target_image_size, use_png):
     if pd.isna(row.report_text):
         return None
 
@@ -84,9 +84,15 @@ def process_row(row, base_path_substitutions, target_dicom_body_parts, target_im
         return None
     subst = base_path_substitutions[base_path]
 
-    # Check body part DICOM tag. If it differs from target body parts, skip the row.
-    dicom_body_part = row.body_part_dicom.lower() if pd.notna(row.body_part_dicom) else ""
-    if not any(item in dicom_body_part for item in target_dicom_body_parts):
+    # Compare body part with target body parts.
+    if target_body_parts.read_location == prompts.ReadLocation.REPORT:
+        body_part = row.body_part.lower() if pd.notna(row.body_part) else ""
+    elif target_body_parts.read_location == prompts.ReadLocation.DICOM:
+        body_part = row.body_part_dicom.lower() if pd.notna(row.body_part_dicom) else ""
+    else:
+        raise ValueError(f"Unknown read location: {target_body_parts.read_location}")
+
+    if not any(item in body_part for item in target_body_parts.values):
         return None
 
     # Get all study images and convert them to JPEG.
@@ -122,9 +128,9 @@ def process_row(row, base_path_substitutions, target_dicom_body_parts, target_im
     }
 
 
-def filter_reports(df, base_path_substitutions, target_dicom_body_parts, target_image_size, use_png):
+def filter_reports(df, base_path_substitutions, target_body_parts, target_image_size, use_png):
     with ThreadPoolExecutor() as executor:
-        results = list(tqdm(executor.map(lambda row: process_row(row, base_path_substitutions, target_dicom_body_parts, target_image_size, use_png), [row for row in df.itertuples()]),
+        results = list(tqdm(executor.map(lambda row: process_row(row, base_path_substitutions, target_body_parts, target_image_size, use_png), [row for row in df.itertuples()]),
                             total=len(df),
                             desc="Processing"))
 
@@ -181,11 +187,11 @@ def assemble_results(output_file_names):
 
 
 if __name__ == "__main__":
-    REPORTS_FILE = "/mnt/training/splits/gradient_batches_1-5_segmed_batches_1-4_simonmed_batches_1-10_reports_with_labels_train.csv"  # Reports CSV file. Can be local file or GCS URI.
+    REPORTS_FILE = "/mnt/training/splits/gradient_batches_1-5_segmed_batches_1-4_simonmed_batches_1-10_reports_with_labels_test.csv"  # Reports CSV file. Can be local file or GCS URI.
     OUTPUT_FILE = "/mnt/training/splits/gradient_batches_1-5_segmed_batches_1-4_simonmed_batches_1-10_reports_with_labels_with_arm_segment_train.csv"
     USE_PNG = True
     COLUMN_NAME_TO_ADD = "arm_segment"
-    TARGET_DICOM_BODY_PARTS = prompts.ARM_SEGMENTS_TARGET_DICOM_BODY_PARTS
+    TARGET_BODY_PARTS = prompts.ARM_SEGMENTS_TARGET_BODY_PARTS
     TARGET_IMAGE_SIZE = (200, 200)
     MAX_NUM_ROWS = None
     MAX_WORKERS = 20
@@ -218,7 +224,7 @@ if __name__ == "__main__":
                               output_file=OUTPUT_FILE,
                               use_png=USE_PNG,
                               column_name_to_add=COLUMN_NAME_TO_ADD,
-                              target_dicom_body_parts=TARGET_DICOM_BODY_PARTS,
+                              target_body_parts=TARGET_BODY_PARTS,
                               target_image_size=TARGET_IMAGE_SIZE,
                               max_num_rows=MAX_NUM_ROWS,
                               max_workers=MAX_WORKERS,
