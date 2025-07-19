@@ -17,61 +17,6 @@ from epsutils.image import image_utils
 import prompts
 
 
-def main(args):
-    if gcs_utils.is_gcs_uri(args.reports_file):
-        print(f"Downloading reports file {args.reports_file}")
-        gcs_data = gcs_utils.split_gcs_uri(args.reports_file)
-        content = StringIO(gcs_utils.download_file_as_string(gcs_bucket_name=gcs_data["gcs_bucket_name"], gcs_file_name=gcs_data["gcs_path"]))
-    else:
-        content = args.reports_file
-
-    print("Loading reports file")
-    df = pd.read_csv(content, low_memory=False)
-
-    print("Filtering reports")
-    filtered_reports = filter_reports(df=df,
-                                      base_path_substitutions=args.base_path_substitutions,
-                                      target_body_parts=args.target_body_parts,
-                                      target_image_size=args.target_image_size,
-                                      use_png=args.use_png)
-
-    if args.max_num_rows is not None:
-        filtered_reports = filtered_reports[:args.max_num_rows]
-
-    print("Filtered reports samples:")
-    print(filtered_reports[:10])
-
-    print("")
-    print(f"Number of filtered reports: {len(filtered_reports)}")
-
-    print("Running batches")
-    input_file_names, output_file_names = run_batches(filtered_reports=filtered_reports, gpt_prompt=args.gpt_prompt, gpt_config=args.gpt_config, max_workers=args.max_workers)
-
-    print("Assemble results")
-    results = assemble_results(output_file_names)
-
-    print("Updating reports")
-    mapping = {item["index"]: item["result"] for item in results}
-    df[args.column_name_to_add] = pd.Series(mapping).reindex(df.index)
-
-    print("Saving output file")
-    df.to_csv(args.output_file, index=False)
-
-    if args.clean_up_files:
-        print("Cleaning up files")
-        files_to_delete = input_file_names + output_file_names
-        for file_to_delete in files_to_delete:
-            if os.path.exists(file_to_delete):
-                os.remove(file_to_delete)
-
-    if args.gpt_config["clean_up_azure_files"]:
-        print("Cleaning up Azure files")
-        gpt_utils.delete_files(endpoint=args.gpt_config["endpoint"],
-                               api_key=args.gpt_config["api_key"],
-                               api_version=args.gpt_config["api_version"],
-                               purpose="batch")
-
-
 def process_row(row, base_path_substitutions, target_body_parts, target_image_size, use_png):
     if pd.isna(row.report_text):
         return None
@@ -186,12 +131,67 @@ def assemble_results(output_file_names):
     return results
 
 
+def main(args):
+    if gcs_utils.is_gcs_uri(args.reports_file):
+        print(f"Downloading reports file {args.reports_file}")
+        gcs_data = gcs_utils.split_gcs_uri(args.reports_file)
+        content = StringIO(gcs_utils.download_file_as_string(gcs_bucket_name=gcs_data["gcs_bucket_name"], gcs_file_name=gcs_data["gcs_path"]))
+    else:
+        content = args.reports_file
+
+    print("Loading reports file")
+    df = pd.read_csv(content, low_memory=False)
+
+    print("Filtering reports")
+    filtered_reports = filter_reports(df=df,
+                                      base_path_substitutions=args.base_path_substitutions,
+                                      target_body_parts=args.target_body_parts,
+                                      target_image_size=args.target_image_size,
+                                      use_png=args.use_png)
+
+    if args.max_num_rows is not None:
+        filtered_reports = filtered_reports[:args.max_num_rows]
+
+    print("Filtered reports samples:")
+    print(filtered_reports[:10])
+
+    print("")
+    print(f"Number of filtered reports: {len(filtered_reports)}")
+
+    print("Running batches")
+    input_file_names, output_file_names = run_batches(filtered_reports=filtered_reports, gpt_prompt=args.gpt_prompt, gpt_config=args.gpt_config, max_workers=args.max_workers)
+
+    print("Assemble results")
+    results = assemble_results(output_file_names)
+
+    print("Updating reports")
+    mapping = {item["index"]: item["result"] for item in results}
+    df[args.column_name_to_add] = pd.Series(mapping).reindex(df.index)
+
+    print("Saving output file")
+    df.to_csv(args.output_file, index=False)
+
+    if args.clean_up_files:
+        print("Cleaning up files")
+        files_to_delete = input_file_names + output_file_names
+        for file_to_delete in files_to_delete:
+            if os.path.exists(file_to_delete):
+                os.remove(file_to_delete)
+
+    if args.gpt_config["clean_up_azure_files"]:
+        print("Cleaning up Azure files")
+        gpt_utils.delete_files(endpoint=args.gpt_config["endpoint"],
+                               api_key=args.gpt_config["api_key"],
+                               api_version=args.gpt_config["api_version"],
+                               purpose="batch")
+
+
 if __name__ == "__main__":
-    REPORTS_FILE = "/mnt/training/splits/gradient_batches_1-5_segmed_batches_1-4_simonmed_batches_1-10_reports_with_labels_test.csv"  # Reports CSV file. Can be local file or GCS URI.
-    OUTPUT_FILE = "/mnt/training/splits/gradient_batches_1-5_segmed_batches_1-4_simonmed_batches_1-10_reports_with_labels_with_is_spine_test.csv"
+    REPORTS_FILE = "/mnt/training/splits/gradient_batches_1-5_segmed_batches_1-4_simonmed_batches_1-10_reports_with_labels_train.csv"  # Reports CSV file. Can be local file or GCS URI.
+    OUTPUT_FILE = "/mnt/training/splits/gradient_batches_1-5_segmed_batches_1-4_simonmed_batches_1-10_reports_with_labels_with_all_extremity_segments_train.csv"
     USE_PNG = True
-    COLUMN_NAME_TO_ADD = "is_spine"
-    TARGET_BODY_PARTS = prompts.IS_SPINE_TARGET_BODY_PARTS
+    COLUMN_NAME_TO_ADD = "all_extremity_segments"
+    TARGET_BODY_PARTS = prompts.ALL_EXTREMITY_SEGMENTS_TARGET_BODY_PARTS
     TARGET_IMAGE_SIZE = (200, 200)
     MAX_NUM_ROWS = None
     MAX_WORKERS = 20
@@ -208,7 +208,7 @@ if __name__ == "__main__":
         "segmed/batch4": "/mnt/png/512x512/segmed/batch4",
         "simonmed": "/mnt/png/512x512/simonmed"
     }
-    GPT_PROMPT = prompts.IS_SPINE_GPT_PROMPT
+    GPT_PROMPT = prompts.ALL_EXTREMITY_SEGMENTS_GPT_PROMPT
     GPT_CONFIG = {
         "endpoint": "https://epsilon-eastus.openai.azure.com/",
         "api_key": "9b568fdffb144272811cb5fad8b584a0",
