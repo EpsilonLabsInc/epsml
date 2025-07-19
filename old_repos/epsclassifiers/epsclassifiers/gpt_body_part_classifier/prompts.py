@@ -39,7 +39,7 @@ in accompanying medical reports. Follow these strict guidelines:
    Respond with one of the following labels only: "Arm", "Hand", "Shoulder", "Leg", "Foot", "Ankle", "Knee", or "Other". Include fingers under "Hand".
    Include elbows under "Arm". Use "Other" if the body part is not one of the above or cannot be determined.
 3. Respond concisely.
-   Your entire output should be a single word: one of the four category labels.
+   Your entire output should be a single word: one of the eight category labels.
 """
 
 ALL_EXTREMITY_SEGMENTS_TARGET_BODY_PARTS = TargetBodyParts(read_location=ReadLocation.REPORT, values=["extremities"])
