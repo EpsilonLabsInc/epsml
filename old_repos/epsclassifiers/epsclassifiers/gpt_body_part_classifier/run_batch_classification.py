@@ -14,6 +14,8 @@ from epsutils.gcs import gcs_utils
 from epsutils.gpt import gpt_utils
 from epsutils.image import image_utils
 
+import prompts
+
 
 def main(args):
     if gcs_utils.is_gcs_uri(args.reports_file):
@@ -183,7 +185,7 @@ if __name__ == "__main__":
     OUTPUT_FILE = "/mnt/training/splits/gradient_batches_1-5_segmed_batches_1-4_simonmed_batches_1-10_reports_with_labels_with_arm_segment_train.csv"
     USE_PNG = True
     COLUMN_NAME_TO_ADD = "arm_segment"
-    TARGET_DICOM_BODY_PARTS = ["shoulder", "arm", "elbow", "hand", "palm", "finger"]
+    TARGET_DICOM_BODY_PARTS = prompts.ARM_SEGMENTS_TARGET_DICOM_BODY_PARTS
     TARGET_IMAGE_SIZE = (200, 200)
     MAX_NUM_ROWS = None
     MAX_WORKERS = 20
@@ -200,17 +202,7 @@ if __name__ == "__main__":
         "segmed/batch4": "/mnt/png/512x512/segmed/batch4",
         "simonmed": "/mnt/png/512x512/simonmed"
     }
-    GPT_PROMPT = """
-You are a medical imaging assistant tasked with identifying the body part shown in X-ray images and/or described
-in accompanying medical reports. Follow these strict guidelines:
-1. Prioritize visual data.
-   Always analyze the X-ray image first. Use the report only if the image is unclear, missing, or inconclusive.
-2. Categorize explicitly.
-   Respond with one of the following labels only: "Shoulder", "Arm", "Hand", or "Other". Include fingers under "Hand".
-   Include elbows under "Arm". Use "Other" if the body part is not one of the above or cannot be determined.
-3. Respond concisely.
-   Your entire output should be a single word: one of the four category labels.
-"""
+    GPT_PROMPT = prompts.ARM_SEGMENTS_GPT_PROMPT
     GPT_CONFIG = {
         "endpoint": "https://epsilon-eastus.openai.azure.com/",
         "api_key": "9b568fdffb144272811cb5fad8b584a0",
