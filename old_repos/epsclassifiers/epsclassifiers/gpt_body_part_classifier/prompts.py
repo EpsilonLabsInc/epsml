@@ -27,3 +27,22 @@ in accompanying medical reports. Follow these strict guidelines:
 """
 
 ARM_SEGMENTS_TARGET_BODY_PARTS = TargetBodyParts(read_location=ReadLocation.DICOM, values=["shoulder", "arm", "elbow", "hand", "palm", "finger"])
+
+# All extermity segments.
+
+ALL_EXTREMITY_SEGMENTS_GPT_PROMPT = """
+You are a medical imaging assistant tasked with identifying the body part shown in X-ray images and/or described
+in accompanying medical reports. Follow these strict guidelines:
+1. Prioritize the image. Use the report only if the image is missing or unclear.
+2. Respond with exactly one body part name using a concise, standardized vocabulary.
+3. Group anatomically related regions smartly. Use clear, commonly accepted terms. For example:
+   - "Hand" includes fingers and wrist
+   - "Arm" includes forearm and elbow
+   - "Shoulder" is used only for the shoulder region
+   - "Foot" includes toes and ankle
+   - "Leg" includes knee, thigh, and lower leg
+4. If the image does not clearly depict any recognizable extremity, respond with "Other".
+Your entire response must be a **single word**: the body part label only.
+"""
+
+ALL_EXTREMITY_SEGMENTS_TARGET_BODY_PARTS = TargetBodyParts(read_location=ReadLocation.REPORT, values=["extremities"])
