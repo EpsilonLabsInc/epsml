@@ -57,4 +57,4 @@ in accompanying medical reports. Follow these strict guidelines:
    Your entire output should be a single word, either "Spine" or "Other".
 """
 
-IS_SPINE_TARGET_BODY_PARTS = TargetBodyParts(read_location=ReadLocation.REPORT, values=["extremities"])
+IS_SPINE_TARGET_BODY_PARTS = TargetBodyParts(read_location=ReadLocation.REPORT, values=["spine"])
