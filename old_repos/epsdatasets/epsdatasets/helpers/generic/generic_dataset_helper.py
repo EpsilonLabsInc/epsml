@@ -5,6 +5,7 @@ from io import BytesIO
 import datasets
 import pandas as pd
 import torch
+from PIL import Image
 from torch.utils.data import Dataset, DataLoader
 from tqdm import tqdm
 
@@ -29,6 +30,7 @@ class GenericDatasetHelper(BaseDatasetHelper):
                  perform_label_balancing=True,
                  num_data_augmentations=0,
                  convert_images_to_rgb=True,
+                 replace_dicom_with_png=False,
                  custom_labels=None,
                  seed=42):
 
@@ -43,6 +45,7 @@ class GenericDatasetHelper(BaseDatasetHelper):
                          perform_label_balancing=perform_label_balancing,
                          num_data_augmentations=num_data_augmentations,
                          convert_images_to_rgb=convert_images_to_rgb,
+                         replace_dicom_with_png=replace_dicom_with_png,
                          custom_labels=custom_labels,
                          seed=seed)
 
@@ -59,6 +62,7 @@ class GenericDatasetHelper(BaseDatasetHelper):
         self.__perform_label_balancing = kwargs["perform_label_balancing"] if "perform_label_balancing" in kwargs else next((arg for arg in args if arg == "perform_label_balancing"), None)
         self.__num_data_augmentations = kwargs["num_data_augmentations"] if "num_data_augmentations" in kwargs else next((arg for arg in args if arg == "num_data_augmentations"), None)
         self.__convert_images_to_rgb = kwargs["convert_images_to_rgb"] if "convert_images_to_rgb" in kwargs else next((arg for arg in args if arg == "convert_images_to_rgb"), None)
+        self.__replace_dicom_with_png = kwargs["replace_dicom_with_png"] if "replace_dicom_with_png" in kwargs else next((arg for arg in args if arg == "replace_dicom_with_png"), None)
         self.__custom_labels = kwargs["custom_labels"] if "custom_labels" in kwargs else next((arg for arg in args if arg == "custom_labels"), None)
         self.__seed = kwargs["seed"] if "seed" in kwargs else next((arg for arg in args if arg == "seed"), None)
 
@@ -183,8 +187,15 @@ class GenericDatasetHelper(BaseDatasetHelper):
             try:
                 subst = self.__base_path_substitutions[base_path]
                 image_path = os.path.join(subst, image_path)
-                image = dicom_utils.get_dicom_image_fail_safe(image_path, custom_windowing_parameters={"window_center": 0, "window_width": 0})
-                image = image_utils.numpy_array_to_pil_image(image, convert_to_rgb=self.__convert_images_to_rgb)
+
+                if self.__replace_dicom_with_png:
+                    image_path = image_path.replace(".dcm", ".png")
+
+                if image_path.endswith(".dcm"):
+                    image = dicom_utils.get_dicom_image_fail_safe(image_path, custom_windowing_parameters={"window_center": 0, "window_width": 0})
+                    image = image_utils.numpy_array_to_pil_image(image, convert_to_rgb=self.__convert_images_to_rgb)
+                else:
+                    image = Image.open(image_path)
 
                 if "augmentation_params" in item and item["augmentation_params"] is not None:
                     image = image_augmentation.augment_image(image=image,
