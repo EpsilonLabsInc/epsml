@@ -37,7 +37,7 @@ def process_row(row, base_path_substitutions, target_body_parts, target_image_si
     else:
         raise ValueError(f"Unknown read location: {target_body_parts.read_location}")
 
-    if not any(item in body_part for item in target_body_parts.values):
+    if not any(item.lower() in body_part for item in target_body_parts.values):
         return None
 
     # Get all study images and convert them to JPEG.
@@ -187,11 +187,11 @@ def main(args):
 
 
 if __name__ == "__main__":
-    REPORTS_FILE = "/mnt/training/splits/gradient_batches_1-5_segmed_batches_1-4_simonmed_batches_1-10_reports_with_labels_train.csv"  # Reports CSV file. Can be local file or GCS URI.
-    OUTPUT_FILE = "/mnt/training/splits/gradient_batches_1-5_segmed_batches_1-4_simonmed_batches_1-10_reports_with_labels_with_all_extremity_segments_train.csv"
+    REPORTS_FILE = "/mnt/training/splits/gradient_batches_1-5_segmed_batches_1-4_simonmed_batches_1-10_reports_with_labels_test.csv"  # Reports CSV file. Can be local file or GCS URI.
+    OUTPUT_FILE = "/mnt/training/splits/gradient_batches_1-5_segmed_batches_1-4_simonmed_batches_1-10_reports_with_labels_with_is_spine_test.csv"
     USE_PNG = True
-    COLUMN_NAME_TO_ADD = "all_extremity_segments"
-    TARGET_BODY_PARTS = prompts.ALL_EXTREMITY_SEGMENTS_TARGET_BODY_PARTS
+    COLUMN_NAME_TO_ADD = "is_spine"
+    TARGET_BODY_PARTS = prompts.IS_SPINE_TARGET_BODY_PARTS
     TARGET_IMAGE_SIZE = (200, 200)
     MAX_NUM_ROWS = None
     MAX_WORKERS = 20
@@ -208,7 +208,7 @@ if __name__ == "__main__":
         "segmed/batch4": "/mnt/png/512x512/segmed/batch4",
         "simonmed": "/mnt/png/512x512/simonmed"
     }
-    GPT_PROMPT = prompts.ALL_EXTREMITY_SEGMENTS_GPT_PROMPT
+    GPT_PROMPT = prompts.IS_SPINE_GPT_PROMPT
     GPT_CONFIG = {
         "endpoint": "https://epsilon-eastus.openai.azure.com/",
         "api_key": "9b568fdffb144272811cb5fad8b584a0",
