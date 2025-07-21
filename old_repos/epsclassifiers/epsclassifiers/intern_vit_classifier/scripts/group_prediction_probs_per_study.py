@@ -79,8 +79,8 @@ def main(args):
 
 
 if __name__ == "__main__":
-    MASTER_CSV_FILE = "s3://epsilonlabs-datasets/combined/gradient_batches_1-5_segmed_batches_1-4_simonmed_batches_1-10_reports_with_labels_all.csv"
-    PREDICTION_PROBS_DIR = "gs://epsilonlabs-models/intern-vit-classifier/non-chest"
+    MASTER_CSV_FILE = "/mnt/training/splits/gradient_batches_1-5_segmed_batches_1-4_simonmed_batches_1-10_reports_with_labels_all.csv"  # Can be a local file or an AWS S3 URI.
+    PREDICTION_PROBS_DIR = "epsilonlabs-models/intern-vit-classifier/validation-tmp/gpt-filtered/extremities/arm"
 
     args = argparse.Namespace(master_csv_file=MASTER_CSV_FILE,
                               prediction_probs_dir=PREDICTION_PROBS_DIR)
