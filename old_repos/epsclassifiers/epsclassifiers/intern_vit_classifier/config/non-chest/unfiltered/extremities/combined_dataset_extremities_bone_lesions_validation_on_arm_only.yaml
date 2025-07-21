@@ -1,6 +1,6 @@
 general:
   model_name: intern_vit_extremities_classifier
-  dataset_name: combined_arm_only
+  dataset_name: combined_arm_only_bone_lesions
   run_name: Bone lesions - training on all extremities, validation on arm
   notes: Balanced labels with 0x pos data augmentation
   custom_labels:
