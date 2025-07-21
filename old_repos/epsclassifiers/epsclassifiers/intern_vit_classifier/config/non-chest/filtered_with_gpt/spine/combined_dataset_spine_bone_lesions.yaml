@@ -1,10 +1,10 @@
 general:
   model_name: cls_nonchest
-  dataset_name: combined_spine_scoliosis
-  run_name: spine scoliosis - release run with 0x pos data aug
+  dataset_name: combined_spine_bone_lesions
+  run_name: spine bone lesions - release run with 0x pos data aug
   notes: Balanced labels with 0x pos data augmentation
   custom_labels:
-  - scoliosis
+  - Bone lesions
   body_part: Spine
   sub_body_part: null
   treat_uncertain_as_positive: true
