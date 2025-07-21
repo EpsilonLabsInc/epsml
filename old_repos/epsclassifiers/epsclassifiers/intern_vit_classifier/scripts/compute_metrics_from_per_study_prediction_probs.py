@@ -69,8 +69,8 @@ def main(args):
 
 
 if __name__ == "__main__":
-    PER_STUDY_PREDICTION_PROBS_DIR = "gs://epsilonlabs-models/intern-vit-classifier/non-chest"
-    EXPERIMENT_NAME = "intern-vit-classifier-release-version-per-study-non-chest-validation"
+    PER_STUDY_PREDICTION_PROBS_DIR = "gs://epsilonlabs-models/intern-vit-classifier/validation-tmp/gpt-filtered/extremities/arm"
+    EXPERIMENT_NAME = "intern-vit-classifier-release-version-arm-per-study-validation"
     PROBABILITIES_REDUCTION_STRATEGY = ProbabilitiesReductionStrategy.MAX
 
     args = argparse.Namespace(per_study_prediction_probs_dir=PER_STUDY_PREDICTION_PROBS_DIR,
