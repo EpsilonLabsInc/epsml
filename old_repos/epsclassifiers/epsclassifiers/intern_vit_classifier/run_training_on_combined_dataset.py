@@ -130,11 +130,6 @@ def main(config_path):
                                 num_multi_images=num_multi_images,
                                 use_text_encodings=False)
 
-    classifier_checkpoint = "/mnt/training/classifier/checkpoints/non-chest/cls_nonchest-training-on-combined_extremities_bony_mineralization/checkpoint/checkpoint_epoch_2_20250622_064207_utc.pt"
-    print(f"Loading binary classifier checkpoint")
-    state_dict = torch.load(classifier_checkpoint)
-    model.load_state_dict(state_dict["model_state_dict"])
-
     model = model.to("cuda")
     image_processor = model.get_image_processor()
 
@@ -223,8 +218,7 @@ def main(config_path):
 
         return data, labels
 
-    # training_helper.start_training(collate_function_for_training=collate_function)
-    training_helper.run_validation(collate_function_for_validation=collate_function)
+    training_helper.start_training(collate_function_for_training=collate_function)
 
     if save_full_model:
         training_helper.save_model(model_file_name=save_model_filename, parallel_model_file_name=save_parallel_model_filename)
