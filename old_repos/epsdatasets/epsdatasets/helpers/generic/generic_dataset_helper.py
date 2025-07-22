@@ -213,6 +213,9 @@ class GenericDatasetHelper(BaseDatasetHelper):
     def get_torch_image(self, item, processor):
         raise NotImplementedError("Not implemented")
 
+    def get_report_text(self, item):
+        return item["report_text"].replace("\\n", "\n") if item["report_text"] is not None else None
+
     def get_labels(self):
         if self.__custom_labels:
             return self.__custom_labels
