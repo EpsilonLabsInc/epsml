@@ -53,6 +53,7 @@ def process_row(row, base_path_substitutions, target_body_parts, target_image_si
                 image = dicom_utils.get_dicom_image_fail_safe(image_path, custom_windowing_parameters={"window_center": 0, "window_width": 0})
                 image = image_utils.numpy_array_to_pil_image(image, convert_to_uint8=True, convert_to_rgb=True)
         except Exception as e:
+            print(str(e))
             continue
 
         image = image.resize(target_image_size)
@@ -188,7 +189,7 @@ def main(args):
 
 if __name__ == "__main__":
     REPORTS_FILE = "/mnt/training/splits/gradient_batches_1-5_segmed_batches_1-4_simonmed_batches_1-10_reports_with_labels_test.csv"  # Reports CSV file. Can be local file or GCS URI.
-    OUTPUT_FILE = "/mnt/training/splits/gradient_batches_1-5_segmed_batches_1-4_simonmed_batches_1-10_reports_with_labels_with_is_spine_test.csv"
+    OUTPUT_FILE = "/mnt/training/splits/gradient_batches_1-5_segmed_batches_1-4_simonmed_batches_1-10_reports_with_labels_spine_test.csv"
     USE_PNG = True
     COLUMN_NAME_TO_ADD = "is_spine"
     TARGET_BODY_PARTS = prompts.IS_SPINE_TARGET_BODY_PARTS
