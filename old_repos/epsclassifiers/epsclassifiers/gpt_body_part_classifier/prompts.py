@@ -28,6 +28,24 @@ in accompanying medical reports. Follow these strict guidelines:
 
 ARM_SEGMENTS_TARGET_BODY_PARTS = TargetBodyParts(read_location=ReadLocation.DICOM, values=["shoulder", "arm", "elbow", "hand", "palm", "finger"])
 
+# Hand segments.
+
+HAND_SEGMENTS_GPT_PROMPT = """
+You are a medical imaging assistant tasked with identifying the body part shown in X-ray images and/or described
+in accompanying medical reports. Follow these strict guidelines:
+1. Prioritize visual data.
+   Always analyze the X-ray images first. Use the report only if the images are missing, unclear, or inconclusive.
+2. Categorize explicitly.
+   Respond with one of the following labels only: "Hand" or "Other". Use "Hand" only if all images clearly depict
+   a hand and only a hand — no arm, elbow, fingers-only, or other body parts may be visible. If any image shows only
+   fingers, or shows both a hand and another body part (e.g. arm or elbow), label as "Other". If the visible content
+   cannot be confidently identified as a hand, label as "Other".
+3. Respond concisely.
+   Your entire output should be a single word, either "Hand" or "Other".
+"""
+
+HAND_SEGMENTS_TARGET_BODY_PARTS = TargetBodyParts(read_location=ReadLocation.REPORT, values=["extremities"])
+
 # All extermity segments.
 
 ALL_EXTREMITY_SEGMENTS_GPT_PROMPT = """
