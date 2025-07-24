@@ -38,7 +38,7 @@ training:
   num_validation_workers_per_gpu: 32
   learning_rate: 0.01
   warmup_ratio: 0.05
-  num_epochs: 10
+  num_epochs: 2
   training_batch_size: 128
   validation_batch_size: 32
   min_allowed_batch_size: 2
