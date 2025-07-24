@@ -36,6 +36,7 @@ def main(config_path):
     treat_uncertain_as_positive    = config["general"].get("treat_uncertain_as_positive", False)
     perform_label_balancing        = config["general"].get("perform_label_balancing", False)
     num_data_augmentations         = config["general"].get("num_data_augmentations", 0)
+    max_study_images_to_unroll     = convert_none(config["general"].get("max_study_images_to_unroll", None))
     use_report_text                = config["general"].get("use_report_text", False)
     save_full_model                = config["general"].get("save_full_model", False)
     intern_vl_checkpoint_dir       = config["paths"].get("intern_vl_checkpoint_dir", "")
@@ -73,6 +74,7 @@ def main(config_path):
     print(f"+ treat_uncertain_as_positive: {treat_uncertain_as_positive}")
     print(f"+ perform_label_balancing: {perform_label_balancing}")
     print(f"+ num_data_augmentations: {num_data_augmentations}")
+    print(f"+ max_study_images_to_unroll: {max_study_images_to_unroll}")
     print(f"+ use_report_text: {use_report_text}")
     print(f"+ save_full_model: {save_full_model}")
     print(f"+ intern_vl_checkpoint_dir: {intern_vl_checkpoint_dir}")
@@ -119,6 +121,7 @@ def main(config_path):
         treat_uncertain_as_positive=treat_uncertain_as_positive,
         perform_label_balancing=perform_label_balancing,
         num_data_augmentations=num_data_augmentations,
+        max_study_images_to_unroll=max_study_images_to_unroll,
         convert_images_to_rgb=True,
         custom_labels=custom_labels)
 
