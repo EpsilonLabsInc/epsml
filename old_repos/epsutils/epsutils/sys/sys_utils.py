@@ -33,3 +33,19 @@ def add_suffix_to_file_path(file_path, suffix):
     base_name, extension = os.path.splitext(os.path.basename(file_path))
     new_file_name = f"{base_name}{suffix}{extension}"
     return os.path.join(dir_name, new_file_name)
+
+
+def figure_out_full_path(relative_file_path, base_paths):
+    if isinstance(base_paths, dict):
+        base_paths = base_paths.values()
+
+    for base_path in base_paths:
+        try:
+            full_path = os.path.join(base_path, relative_file_path)
+        except:
+            continue
+
+        if os.path.exists(full_path):
+            return True, full_path
+
+    return False, relative_file_path
