@@ -187,6 +187,10 @@ def main(config_path):
                                           mlops_parameters=mlops_parameters,
                                           config_file_content=config_file_content)
 
+    device_ids_used = training_helper.get_device_ids_used()
+    if multi_image_input and num_multi_images is None and len(device_ids_used) > 1:
+        raise ValueError(f"Multi image training with variable number of images per study is supported only on a single GPU (currently used GPU devices: {device_ids_used})")
+
     def get_torch_images(samples):
         if multi_image_input and num_multi_images is not None:
             try:
