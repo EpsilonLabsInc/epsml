@@ -378,6 +378,12 @@ class TorchTrainingHelper:
         torch.save(self.__parallel_model.module.state_dict(), model_weights_file_name)
         print(f"Model weights saved as '{model_weights_file_name}'")
 
+    def get_device_ids_used(self):
+        if self.__device_ids is None:
+            return list(range(torch.cuda.device_count()))
+        else:
+            return self.__device_ids
+
     def __train_epoch(self, epoch):
         self.__parallel_model.train()
 
