@@ -29,6 +29,7 @@ class GenericDatasetHelper(BaseDatasetHelper):
                  treat_uncertain_as_positive=True,
                  perform_label_balancing=True,
                  num_data_augmentations=0,
+                 unroll_images = True,
                  max_study_images_to_unroll=None,
                  convert_images_to_rgb=True,
                  replace_dicom_with_png=False,
@@ -45,6 +46,7 @@ class GenericDatasetHelper(BaseDatasetHelper):
                          treat_uncertain_as_positive=treat_uncertain_as_positive,
                          perform_label_balancing=perform_label_balancing,
                          num_data_augmentations=num_data_augmentations,
+                         unroll_images=unroll_images,
                          max_study_images_to_unroll=max_study_images_to_unroll,
                          convert_images_to_rgb=convert_images_to_rgb,
                          replace_dicom_with_png=replace_dicom_with_png,
@@ -63,6 +65,7 @@ class GenericDatasetHelper(BaseDatasetHelper):
         self.__treat_uncertain_as_positive = kwargs["treat_uncertain_as_positive"] if "treat_uncertain_as_positive" in kwargs else next((arg for arg in args if arg == "treat_uncertain_as_positive"), None)
         self.__perform_label_balancing = kwargs["perform_label_balancing"] if "perform_label_balancing" in kwargs else next((arg for arg in args if arg == "perform_label_balancing"), None)
         self.__num_data_augmentations = kwargs["num_data_augmentations"] if "num_data_augmentations" in kwargs else next((arg for arg in args if arg == "num_data_augmentations"), None)
+        self.__unroll_images = kwargs["unroll_images"] if "unroll_images" in kwargs else next((arg for arg in args if arg == "unroll_images"), None)
         self.__max_study_images_to_unroll = kwargs["max_study_images_to_unroll"] if "max_study_images_to_unroll" in kwargs else next((arg for arg in args if arg == "max_study_images_to_unroll"), None)
         self.__convert_images_to_rgb = kwargs["convert_images_to_rgb"] if "convert_images_to_rgb" in kwargs else next((arg for arg in args if arg == "convert_images_to_rgb"), None)
         self.__replace_dicom_with_png = kwargs["replace_dicom_with_png"] if "replace_dicom_with_png" in kwargs else next((arg for arg in args if arg == "replace_dicom_with_png"), None)
@@ -461,8 +464,8 @@ class GenericDatasetHelper(BaseDatasetHelper):
 
                 selected_rows.append(row)
 
-            # For body parts other than chest, unroll images.
-            else:
+            # For body parts other than chest, either unroll images if unrolling is enabled...
+            elif self.__unroll_images:
                 if self.__max_study_images_to_unroll is not None and len(image_paths) > self.__max_study_images_to_unroll:
                     continue
 
@@ -470,6 +473,10 @@ class GenericDatasetHelper(BaseDatasetHelper):
                     new_row = row.copy()
                     new_row["image_paths"] = [image_path]
                     selected_rows.append(new_row)
+
+            # ... or keep all study images as they are.
+            else:
+                selected_rows.append(row)
 
         df = pd.DataFrame(selected_rows)
         print(f"Filtered dataset has {len(df)} rows")
