@@ -1,3 +1,5 @@
+from itertools import accumulate
+
 import torch
 import torch.nn as nn
 from transformers import DistilBertModel
@@ -29,7 +31,7 @@ class InternVitClassifier(nn.Module):
         if multi_image_input:
             print(f"INFO: InternVitClassifier will be using multi image input of size {num_multi_images}")
             self.__image_processor = self.intern_vit.get_image_processor()
-            output_dim = intern_vit_output_dim * num_multi_images
+            output_dim = intern_vit_output_dim * num_multi_images if num_multi_images is not None else intern_vit_output_dim
         elif use_tiles:
             print(f"INFO: InternVitClassifier will be using {num_tiles_x}x{num_tiles_y} tile splitting")
             self.__image_processor = TileSplittingImageProcessor(
@@ -64,18 +66,42 @@ class InternVitClassifier(nn.Module):
         self.classifier = self.classifier.to(dtype)
 
         self.__multi_image_input = multi_image_input
+        self.__num_multi_images = num_multi_images
         self.__use_tiles = use_tiles
         self.__use_text_encodings = use_text_encodings
 
     def forward(self, images, text_encodings=None, **kwargs):
-        if self.__multi_image_input or self.__use_tiles:
-            # 5 dimensions indicate use of multi image input or tiles: (batch_num, num_tiles, num_channels, img_height, img_width)
+        if self.__multi_image_input and self.__num_multi_images is not None:
+            # 5 dimensions indicate use of multi image input: (batch_num, num_multi_images, num_channels, img_height, img_width)
             assert len(images.shape) == 5
             batch, group, num_channels, height, width = images.shape
             images_reshaped = images.view(batch * group, num_channels, height, width)
             output = self.intern_vit(images_reshaped)
             embeddings = output.pooler_output.reshape(batch, -1)
             last_hidden_state = output.last_hidden_state.reshape(batch, -1)
+
+        elif self.__multi_image_input and self.__num_multi_images is None:
+            assert isinstance(images, list)
+            flat_tensor_list = [tensor for tensors in images for tensor in tensors]
+            images_reshaped = torch.stack(flat_tensor_list)
+            output = self.intern_vit(images_reshaped)
+
+            group_sizes = [len(tensors) for tensors in images]
+            ends = list(accumulate(group_sizes))
+            starts = [0] + ends[:-1]
+
+            embeddings = torch.stack([output.pooler_output[s:e].max(dim=0).values for s, e in zip(starts, ends)])
+            last_hidden_state = torch.stack([output.last_hidden_state[s:e].max(dim=0).values for s, e in zip(starts, ends)])
+
+        elif self.__use_tiles:
+            # 5 dimensions indicate use of tiles: (batch_num, num_tiles, num_channels, img_height, img_width)
+            assert len(images.shape) == 5
+            batch, group, num_channels, height, width = images.shape
+            images_reshaped = images.view(batch * group, num_channels, height, width)
+            output = self.intern_vit(images_reshaped)
+            embeddings = output.pooler_output.reshape(batch, -1)
+            last_hidden_state = output.last_hidden_state.reshape(batch, -1)
+
         else:
             output = self.intern_vit(images)
             embeddings = output.pooler_output

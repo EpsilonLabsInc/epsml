@@ -36,6 +36,7 @@ def main(config_path):
     treat_uncertain_as_positive    = config["general"].get("treat_uncertain_as_positive", False)
     perform_label_balancing        = config["general"].get("perform_label_balancing", False)
     num_data_augmentations         = config["general"].get("num_data_augmentations", 0)
+    unroll_images                  = config["general"].get("unroll_images", True)
     max_study_images_to_unroll     = convert_none(config["general"].get("max_study_images_to_unroll", None))
     use_report_text                = config["general"].get("use_report_text", False)
     save_full_model                = config["general"].get("save_full_model", False)
@@ -74,6 +75,7 @@ def main(config_path):
     print(f"+ treat_uncertain_as_positive: {treat_uncertain_as_positive}")
     print(f"+ perform_label_balancing: {perform_label_balancing}")
     print(f"+ num_data_augmentations: {num_data_augmentations}")
+    print(f"+ unroll_images: {unroll_images}")
     print(f"+ max_study_images_to_unroll: {max_study_images_to_unroll}")
     print(f"+ use_report_text: {use_report_text}")
     print(f"+ save_full_model: {save_full_model}")
@@ -121,6 +123,7 @@ def main(config_path):
         treat_uncertain_as_positive=treat_uncertain_as_positive,
         perform_label_balancing=perform_label_balancing,
         num_data_augmentations=num_data_augmentations,
+        unroll_images=unroll_images,
         max_study_images_to_unroll=max_study_images_to_unroll,
         convert_images_to_rgb=True,
         custom_labels=custom_labels)
@@ -185,7 +188,7 @@ def main(config_path):
                                           config_file_content=config_file_content)
 
     def get_torch_images(samples):
-        if multi_image_input:
+        if multi_image_input and num_multi_images is not None:
             try:
                 stack = []
                 for item in samples:
@@ -197,6 +200,18 @@ def main(config_path):
                 pixel_values = torch.stack(stack)
                 pixel_values = pixel_values.to(torch.bfloat16)
                 return pixel_values
+            except:
+                return None
+
+        elif multi_image_input and num_multi_images is None:
+            try:
+                image_list = []
+                for item in samples:
+                    images = dataset_helper.get_pil_image(item)
+                    pixel_values = image_processor(images=images, return_tensors="pt").pixel_values
+                    pixel_values = pixel_values.to(torch.bfloat16)
+                    image_list.append(pixel_values)
+                return image_list
             except:
                 return None
 
