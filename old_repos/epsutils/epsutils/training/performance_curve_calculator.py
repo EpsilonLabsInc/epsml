@@ -81,7 +81,7 @@ class PerformanceCurveCalculator:
 
         return curves
 
-    def create_plot(self, curves, titles=None, grid_shape=(3, 7)):
+    def create_plot(self, curves, titles=None, grid_shape=(3, 7), show_grid=False, x_axis_markers=None, y_axis_markers=None):
         curves = curves if isinstance(curves, list) else [curves]
         num_curves = len(curves)
 
@@ -123,10 +123,27 @@ class PerformanceCurveCalculator:
 
                 prev_bb = bb
 
+            # Plot threshold closest to 0.5.
+            closest_idx = np.argmin(np.abs(thresholds - 0.5))
+            axes[i].axvline(x=x_vals[closest_idx], color="green", linestyle="--", linewidth=1)
+            axes[i].axhline(y=y_vals[closest_idx], color="green", linestyle="--", linewidth=1)
+
             # Set text.
             axes[i].set_xlabel("FPR" if curve_type == PerformanceCurveType.ROC else "Recall")
             axes[i].set_ylabel("TPR" if curve_type == PerformanceCurveType.ROC else "Precision")
             axes[i].set_title(f"{title} (AUC: {auc_value:.2f})")
+
+            # Show grid.
+            if show_grid:
+                axes[i].grid(True, linestyle="--", linewidth=0.5)
+
+            # Show markers.
+            if x_axis_markers is not None:
+                for marker in x_axis_markers:
+                    axes[i].axvline(x=marker, color="orange", linestyle="--", linewidth=1)
+            if y_axis_markers is not None:
+                for marker in y_axis_markers:
+                    axes[i].axhline(y=marker, color="orange", linestyle="--", linewidth=1)
 
         # Remove empty subplots (if any).
         for i in range(num_curves, len(axes)):

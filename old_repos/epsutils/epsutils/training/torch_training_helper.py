@@ -354,12 +354,17 @@ class TorchTrainingHelper:
 
         # Log PRC.
         prc = calc.compute_curve(curve_type=PerformanceCurveType.PRC, y_true=targets, y_prob=probs)
-        plot = calc.create_plot(curves=[prc], titles=["All labels"], grid_shape=(1, 1))
+        titles = [f"{self.__mlops_parameters.run_name}\nAll labels"]
+        plot = calc.create_plot(curves=[prc], titles=titles, grid_shape=(1, 1), show_grid=True, x_axis_markers=[0.8, 0.9], y_axis_markers=[0.8, 0.9])
         self.__log_performance_curve(plot, "PRC")
 
         # Log per-label PRCs.
         prcs = calc.compute_per_class_curves(curve_type=PerformanceCurveType.PRC, y_true=targets, y_prob=probs)
-        plot = calc.create_plot(curves=prcs, titles=self.__mlops_parameters.label_names)
+        if self.__mlops_parameters.label_names is not None:
+            titles = [f"{self.__mlops_parameters.run_name}\n{label_name}" for label_name in self.__mlops_parameters.label_names]
+        else:
+            titles = [f"{self.__mlops_parameters.run_name}\n{None}"] * len(prcs)
+        plot = calc.create_plot(curves=prcs, titles=titles, show_grid=True, x_axis_markers=[0.8, 0.9], y_axis_markers=[0.8, 0.9])
         self.__log_performance_curve(plot, "Per-Label PRCs")
 
         # Log scores distribution.
