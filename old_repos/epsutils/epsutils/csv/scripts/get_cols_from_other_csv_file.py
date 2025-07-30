@@ -17,6 +17,7 @@ def main(args):
 
     print("Looking for matches and filling missing data")
     num_missing_rows = 0
+    num_mismatches = 0
     for index, row in tqdm(target_df.iterrows(), total=len(target_df), desc="Processing"):
         pid = row["patient_id"]
         sid = row["study_uid"]
@@ -24,14 +25,22 @@ def main(args):
         match = filtered_src_df[(filtered_src_df["patient_id"] == pid) & (filtered_src_df["study_uid"] == sid)]
 
         if match.empty:
-            print(f"Unable to find row with patient_id = {pid} and study_uid = {sid} in the source dataset")
+            # print(f"Unable to find row with patient_id = {pid} and study_uid = {sid} in the source dataset")
             num_missing_rows += 1
+            if num_missing_rows % 100 == 0:
+                print(f"Number of missing rows so far: {num_missing_rows}")
+            continue
+
+        if row["filtered_image_paths"] != match.iloc[0]["image_paths"]:
+            print(f"Image paths mismatch")
+            num_mismatches += 1
             continue
 
         for col in args.cols_to_get:
             target_df.at[index, col] = match.iloc[0][col]
 
     print(f"Number of missing rows: {num_missing_rows}")
+    print(f"Number of mismatches: {num_mismatches}")
 
     print(f"Saving updated content to {args.csv_to_add_cols_to}")
     target_df.to_csv(args.csv_to_add_cols_to, index=False)
