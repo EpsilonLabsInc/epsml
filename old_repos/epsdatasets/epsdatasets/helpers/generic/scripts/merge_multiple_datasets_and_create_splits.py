@@ -172,7 +172,7 @@ if __name__ == "__main__":
         },
         {
             "dataset_name": "segmed_batch_6",
-            "file_name": "/mnt/sfs-segmed567/segmed_5/reports/segmed_batch_6_merged_reports_with_image_paths_filtered_standardized_with_dicom_data_mapped_modalities_mapped_body_parts_with_uncertain_labels_cleaned_unflagged.csv",
+            "file_name": "/mnt/sfs-segmed567/segmed_6/reports/segmed_batch_6_merged_reports_with_image_paths_filtered_standardized_with_dicom_data_mapped_modalities_mapped_body_parts_with_uncertain_labels_cleaned_unflagged.csv",
             "images_base_path": "segmed/batch6",
             "report_text_column": "cleaned_report_text",
             "labels_column": "labels",
@@ -180,7 +180,7 @@ if __name__ == "__main__":
         },
         {
             "dataset_name": "segmed_batch_7",
-            "file_name": "/mnt/sfs-segmed567/segmed_5/reports/segmed_batch_7_merged_reports_with_image_paths_filtered_standardized_with_dicom_data_mapped_modalities_mapped_body_parts_with_uncertain_labels_cleaned_unflagged.csv",
+            "file_name": "/mnt/sfs-segmed567/segmed_7/reports/segmed_batch_7_merged_reports_with_image_paths_filtered_standardized_with_dicom_data_mapped_modalities_mapped_body_parts_with_uncertain_labels_cleaned_unflagged.csv",
             "images_base_path": "segmed/batch7",
             "report_text_column": "cleaned_report_text",
             "labels_column": "labels",
