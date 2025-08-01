@@ -187,6 +187,22 @@ if __name__ == "__main__":
             "image_paths_column": "filtered_image_paths"
         },
         {
+            "dataset_name": "segmed_batch_8",
+            "file_name": "/mnt/misc/segmed/batch8/reports/segmed_batch_8_merged_reports_with_image_paths_filtered_standardized_with_dicom_data_mapped_modalities_mapped_body_parts_with_uncertain_labels_cleaned_unflagged.csv",
+            "images_base_path": "segmed/batch8",
+            "report_text_column": "cleaned_report_text",
+            "labels_column": "labels",
+            "image_paths_column": "filtered_image_paths"
+        },
+        {
+            "dataset_name": "segmed_batch_9",
+            "file_name": "/mnt/misc/segmed/batch9/reports/segmed_batch_9_merged_reports_with_image_paths_filtered_standardized_with_dicom_data_mapped_modalities_mapped_body_parts_with_uncertain_labels_cleaned_unflagged.csv",
+            "images_base_path": "segmed/batch9",
+            "report_text_column": "cleaned_report_text",
+            "labels_column": "labels",
+            "image_paths_column": "filtered_image_paths"
+        },
+        {
             "dataset_name": "simonmed_batch_1",
             "file_name": "/mnt/sfs-simonmed/reports/batch1/simonmed_batch_1_reports_with_image_paths_filtered_standardized_with_dicom_data_mapped_modalities_mapped_body_parts_with_uncertain_labels_cleaned_unflagged.csv",
             "images_base_path": "simonmed",
@@ -268,9 +284,9 @@ if __name__ == "__main__":
         }
     ]
 
-    TRAIN_OUTPUT_FILE_PATH = "gradient_batches_1-5_segmed_batches_1-7_simonmed_batches_1-10_reports_with_labels_train.csv"
-    VAL_OUTPUT_FILE_PATH = "gradient_batches_1-5_segmed_batches_1-7_simonmed_batches_1-10_reports_with_labels_val.csv"
-    TEST_OUTPUT_FILE_PATH = "gradient_batches_1-5_segmed_batches_1-7_simonmed_batches_1-10_reports_with_labels_test.csv"
+    TRAIN_OUTPUT_FILE_PATH = "gradient_batches_1-5_segmed_batches_1-9_simonmed_batches_1-10_reports_with_labels_train.csv"
+    VAL_OUTPUT_FILE_PATH = "gradient_batches_1-5_segmed_batches_1-9_simonmed_batches_1-10_reports_with_labels_val.csv"
+    TEST_OUTPUT_FILE_PATH = "gradient_batches_1-5_segmed_batches_1-9_simonmed_batches_1-10_reports_with_labels_test.csv"
     GRADIENT_HAS_DICOM_COLUMNS = False
     SEED = 42
 
