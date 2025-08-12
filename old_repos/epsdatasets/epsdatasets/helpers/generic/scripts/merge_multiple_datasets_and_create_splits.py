@@ -50,7 +50,9 @@ def merge_datasets(datasets_info):
             "sex_dicom",
             "body_part_dicom",
             "modality_dicom",
-            "study_description_dicom"
+            "study_description_dicom",
+            "chest_classification",
+            "projection_classification"
         ]
         if dataset_name.startswith("segmed_"):
             columns_to_use.extend(["meta_data_on_study_level", "meta_data_on_series_level"])
