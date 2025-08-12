@@ -13,17 +13,20 @@ def assign_chest_classifications(args):
     # Update image paths.
     print("Updating image paths")
     image_paths = df[args.image_paths_column_name].tolist()
-    image_paths = [ast.literal_eval(image_path) for image_path in image_paths]
+    image_paths = [ast.literal_eval(image_path) if not pd.isna(image_path) else None for image_path in image_paths]
 
-    # Load chest classifications CSV file.
-    print(f"Loading chest classifications CSV file {args.chest_classifications_csv_path}")
-    with open(args.chest_classifications_csv_path, "r") as f:
-        filtered_lines = [line for line in f if ";" in line]
-    chest_classifications_df = pd.read_csv(StringIO("".join(filtered_lines)), low_memory=False, header=None, sep=";")
+    # Load chest classifications CSV file(s).
+    chest_classifications_dict = {}
+    for i in range(len(args.chest_classifications_csv_paths)):
+        print(f"Loading chest classifications CSV file {args.chest_classifications_csv_paths[i]}")
+        with open(args.chest_classifications_csv_paths[i], "r") as f:
+            filtered_lines = [line for line in f if ";" in line]
+        chest_classifications_df = pd.read_csv(StringIO("".join(filtered_lines)), low_memory=False, header=None, sep=";")
 
-    # Create chest classifications dict.
-    print("Creating chest classifications dict")
-    chest_classifications_dict = dict(zip(chest_classifications_df[0], chest_classifications_df[1]))
+        curr_dict = dict(zip(chest_classifications_df[0], chest_classifications_df[1]))
+        overlap = set(chest_classifications_dict) & set(curr_dict)
+        assert not overlap, f"Duplicate keys found in chest classifications: {overlap}"
+        chest_classifications_dict = chest_classifications_dict | curr_dict
 
     # Assign chest classifications.
     chest_classifications = []
@@ -50,13 +53,17 @@ def main(args):
 
 
 if __name__ == "__main__":
-    INPUT_CSV_PATH = "/mnt/all-data/reports/segmed/batch1/segmed_batch_1_merged_reports_with_image_paths_filtered_standardized_with_dicom_data_mapped_modalities_mapped_body_parts_with_uncertain_labels_cleaned_unflagged.csv"
-    CHEST_CLASSIFICATIONS_CSV_PATH = "/mnt/all-data/reports/segmed/batch1/chest_non_chest_classificaton_results.csv"
-    IMAGE_PATHS_COLUMN_NAME = "filtered_image_paths"
-    OUTPUT_CSV_PATH = "/mnt/all-data/reports/segmed/batch1/segmed_batch_1_tmp.csv"
+    INPUT_CSV_PATH = "/mnt/all-data/reports/gradient/GRADIENT_CR_ALL_BATCHES_cleaned_standardized_mapped_modalities_mapped_body_parts_with_uncertain_labels_cleaned_unflagged.csv"
+    CHEST_CLASSIFICATIONS_CSV_PATHS = [
+        "/mnt/all-data/reports/gradient/09JAN2025/chest_non_chest_classificaton_results.csv",
+        "/mnt/all-data/reports/gradient/20DEC2024/chest_non_chest_classificaton_results.csv",
+        "/mnt/all-data/reports/gradient/22JUL2024/chest_non_chest_classificaton_results.csv"
+    ]
+    IMAGE_PATHS_COLUMN_NAME = "relative_image_paths"
+    OUTPUT_CSV_PATH = "/mnt/all-data/reports/gradient/gradient_cr_all_batches_tmp.csv"
 
     args = argparse.Namespace(input_csv_path=INPUT_CSV_PATH,
-                              chest_classifications_csv_path=CHEST_CLASSIFICATIONS_CSV_PATH,
+                              chest_classifications_csv_paths=CHEST_CLASSIFICATIONS_CSV_PATHS,
                               image_paths_column_name=IMAGE_PATHS_COLUMN_NAME,
                               output_csv_path=OUTPUT_CSV_PATH)
 

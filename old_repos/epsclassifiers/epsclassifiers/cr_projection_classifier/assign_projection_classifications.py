@@ -13,17 +13,20 @@ def assign_projection_classifications(args):
     # Update image paths.
     print("Updating image paths")
     image_paths = df[args.image_paths_column_name].tolist()
-    image_paths = [ast.literal_eval(image_path) for image_path in image_paths]
+    image_paths = [ast.literal_eval(image_path) if not pd.isna(image_path) else None for image_path in image_paths]
 
-    # Load projection classifications CSV file.
-    print(f"Loading projection classifications CSV file {args.projection_classifications_csv_path}")
-    with open(args.projection_classifications_csv_path, "r") as f:
-        filtered_lines = [line for line in f if ";" in line]
-    projection_classifications_df = pd.read_csv(StringIO("".join(filtered_lines)), low_memory=False, header=None, sep=";")
+    # Load projection classifications CSV file(s).
+    projection_classifications_dict = {}
+    for i in range(len(args.projection_classifications_csv_paths)):
+        print(f"Loading projection classifications CSV file {args.projection_classifications_csv_paths[i]}")
+        with open(args.projection_classifications_csv_paths[i], "r") as f:
+            filtered_lines = [line for line in f if ";" in line]
+        projection_classifications_df = pd.read_csv(StringIO("".join(filtered_lines)), low_memory=False, header=None, sep=";")
 
-    # Create projection classifications dict.
-    print("Creating projection classifications dict")
-    projection_classifications_dict = dict(zip(projection_classifications_df[0], projection_classifications_df[1]))
+        curr_dict = dict(zip(projection_classifications_df[0], projection_classifications_df[1]))
+        overlap = set(projection_classifications_dict) & set(curr_dict)
+        assert not overlap, f"Duplicate keys found in projection classifications: {overlap}"
+        projection_classifications_dict = projection_classifications_dict | curr_dict
 
     # Assign projection classifications.
     projection_classifications = []
@@ -50,13 +53,17 @@ def main(args):
 
 
 if __name__ == "__main__":
-    INPUT_CSV_PATH = "/mnt/all-data/reports/segmed/batch1/segmed_batch_1_tmp.csv"
-    PROJECTION_CLASSIFICATIONS_CSV_PATH = "/mnt/all-data/reports/segmed/batch1/projection_classificaton_results.csv"
-    IMAGE_PATHS_COLUMN_NAME = "filtered_image_paths"
-    OUTPUT_CSV_PATH = "/mnt/all-data/reports/segmed/batch1/segmed_batch_1_final.csv"
+    INPUT_CSV_PATH = "/mnt/all-data/reports/gradient/gradient_cr_all_batches_tmp.csv"
+    PROJECTION_CLASSIFICATIONS_CSV_PATHS = [
+        "/mnt/all-data/reports/gradient/09JAN2025/projection_classificaton_results.csv",
+        "/mnt/all-data/reports/gradient/20DEC2024/projection_classificaton_results.csv",
+        "/mnt/all-data/reports/gradient/22JUL2024/projection_classificaton_results.csv"
+    ]
+    IMAGE_PATHS_COLUMN_NAME = "relative_image_paths"
+    OUTPUT_CSV_PATH = "/mnt/all-data/reports/gradient/gradient_cr_all_batches_final.csv"
 
     args = argparse.Namespace(input_csv_path=INPUT_CSV_PATH,
-                              projection_classifications_csv_path=PROJECTION_CLASSIFICATIONS_CSV_PATH,
+                              projection_classifications_csv_paths=PROJECTION_CLASSIFICATIONS_CSV_PATHS,
                               image_paths_column_name=IMAGE_PATHS_COLUMN_NAME,
                               output_csv_path=OUTPUT_CSV_PATH)
 
