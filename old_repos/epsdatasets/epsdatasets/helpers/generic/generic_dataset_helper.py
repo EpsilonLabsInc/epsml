@@ -420,6 +420,9 @@ class GenericDatasetHelper(BaseDatasetHelper):
             if body_part not in df_body_parts:
                 continue
 
+            if pd.isna(row["image_paths"]):
+                continue
+
             image_paths = ast.literal_eval(row["image_paths"])
 
             # For chest perform additonal checks.
