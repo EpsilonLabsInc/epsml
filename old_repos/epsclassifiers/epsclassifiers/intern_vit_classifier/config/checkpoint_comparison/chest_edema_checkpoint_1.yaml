@@ -1,7 +1,7 @@
 general:
   model_name: "intern_vit_classifier"
   dataset_name: "combined_dataset_edema"
-  run_name: "Edema - release run with 5x data aug"
+  run_name: "Checkpoints comparison on Edema: Checkpoint 1"
   notes: "Balanced labels with 5x data augmentation"
   custom_labels: ["Edema"]
   body_part: "Chest"
@@ -11,21 +11,26 @@ general:
   save_full_model: False
 
 paths:
-  intern_vl_checkpoint_dir: "/mnt/efs/models/internvl/release_candidate_no_label/internvl3_chimera_20250609_233409_1e-5_epsilon_all_0608/checkpoint-24934"
-  train_file: "/mnt/efs/all-cxr/combined/gradient_batches_1-5_segmed_batches_1-4_simonmed_batches_1-10_reports_with_labels_train.csv"
-  validation_file: "/mnt/efs/all-cxr/combined/gradient_batches_1-5_segmed_batches_1-4_simonmed_batches_1-10_reports_with_labels_val.csv"
-  test_file: "/mnt/efs/all-cxr/combined/gradient_batches_1-5_segmed_batches_1-4_simonmed_batches_1-10_reports_with_labels_test.csv"
+  intern_vl_checkpoint_dir: "/mnt/training/internvl_weights/internvl3_chimera_20250810_083849_1e-5_0810_no_label_gpt_bodypart/checkpoint-10466"
+  train_file: "/mnt/training/splits/gradient_batches_1-5_segmed_batches_1-9_simonmed_batches_1-10_reports_with_labels_train.csv"
+  validation_file: "/mnt/training/splits/gradient_batches_1-5_segmed_batches_1-9_simonmed_batches_1-10_reports_with_labels_val.csv"
+  test_file: "/mnt/training/splits/gradient_batches_1-5_segmed_batches_1-9_simonmed_batches_1-10_reports_with_labels_test.csv"
   base_path_substitutions:
-    "gradient/22JUL2024": "/mnt/efs/all-cxr/gradient/22JUL2024"
-    "gradient/20DEC2024": "/mnt/efs/all-cxr/gradient/20DEC2024/deid"
-    "gradient/09JAN2025": "/mnt/efs/all-cxr/gradient/09JAN2025/deid"
+    "gradient/22JUL2024": "/mnt/all-data/sfs-gradient-chest/22JUL2024"
+    "gradient/20DEC2024": "/mnt/all-data/sfs-gradient-chest/20DEC2024"
+    "gradient/09JAN2025": "/mnt/all-data/sfs-gradient-chest/09JAN2025"
     "gradient/16AUG2024": null
     "gradient/13JAN2025": null
-    "segmed/batch1": "/mnt/efs/all-cxr/segmed/batch1"
-    "segmed/batch2": "/mnt/efs/all-cxr/segmed/batch2"
-    "segmed/batch3": "/mnt/efs/all-cxr/segmed/batch3"
-    "segmed/batch4": "/mnt/efs/all-cxr/segmed/batch4"
-    "simonmed": "/mnt/efs/all-cxr/simonmed/images/422ca224-a9f2-4c64-bf7c-bb122ae2a7bb"
+    "segmed/batch1": "/mnt/all-data/sfs-segmed-1"
+    "segmed/batch2": "/mnt/all-data/sfs-segmed-2"
+    "segmed/batch3": "/mnt/all-data/sfs-segmed-34/segmed_3"
+    "segmed/batch4": "/mnt/all-data/sfs-segmed-34/segmed_4"
+    "segmed/batch5": "/mnt/all-data/sfs-segmed567/segmed_5"
+    "segmed/batch6": "/mnt/all-data/sfs-segmed567/segmed_6"
+    "segmed/batch7": "/mnt/all-data/sfs-segmed567/segmed_7"
+    "segmed/batch8": "/mnt/all-data/sfs-segmed89/batch8"
+    "segmed/batch9": "/mnt/all-data/sfs-segmed89/batch9"
+    "simonmed": "/mnt/all-data/sfs-simonmed"
   output_dir: "./output"
 
 training:
@@ -40,7 +45,7 @@ training:
   learning_rate:  0.01
   warmup_ratio: 0.05  # = 1/20
   num_epochs: 2
-  training_batch_size: 32
+  training_batch_size: 128
   validation_batch_size: 32
   min_allowed_batch_size: 2  # In order for batch norm in the InternVitClassifier model to work.
   multi_image_input: True
