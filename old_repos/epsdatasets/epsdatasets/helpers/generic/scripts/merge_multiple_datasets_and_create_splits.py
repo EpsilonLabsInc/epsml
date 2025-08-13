@@ -51,6 +51,7 @@ def merge_datasets(datasets_info):
             "body_part_dicom",
             "modality_dicom",
             "study_description_dicom",
+            "view_position_dicom",
             "chest_classification",
             "projection_classification"
         ]
@@ -63,6 +64,7 @@ def merge_datasets(datasets_info):
             columns_to_use.remove("body_part_dicom")
             columns_to_use.remove("modality_dicom")
             columns_to_use.remove("study_description_dicom")
+            columns_to_use.remove("view_position_dicom")
 
         df = df[columns_to_use]
         print(f"Using the following columns: {df.columns}")
@@ -73,6 +75,7 @@ def merge_datasets(datasets_info):
             df["body_part_dicom"] = None
             df["modality_dicom"] = None
             df["study_description_dicom"] = None
+            df["view_position_dicom"] = None
 
         # Rename columns.
         df.rename(columns={report_text_column: "report_text", labels_column: "labels", image_paths_column: "image_paths"}, inplace=True)
