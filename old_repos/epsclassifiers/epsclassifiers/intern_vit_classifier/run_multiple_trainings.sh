@@ -25,5 +25,5 @@ fi
 
 # Loop through the config files and run training.
 for config_file in "${config_files[@]}"; do
-  python ../run_training_on_combined_dataset.py "$config_file"
+  python ./run_training_on_combined_dataset.py "$config_file"
 done
