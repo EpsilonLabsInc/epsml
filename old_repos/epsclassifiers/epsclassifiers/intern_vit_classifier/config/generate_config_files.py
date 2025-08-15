@@ -5,6 +5,7 @@ import yaml
 
 from epsutils.labels.labels_by_body_part import LABELS_BY_BODY_PART
 
+
 def main(args):
     # Check if body part is valid.
     valid_body_parts = LABELS_BY_BODY_PART.keys()
@@ -38,7 +39,7 @@ def main(args):
         new_config["general"]["custom_labels"] = [label]
         new_config["general"]["body_part"] = args.body_part
 
-        if label in args.num_data_augmentations:
+        if args.num_data_augmentations is not None and label in args.num_data_augmentations:
             new_config["general"]["num_data_augmentations"] = args.num_data_augmentations[label]
 
         output_dir = os.path.join(args.output_dir, formatted_body_part)
@@ -47,22 +48,22 @@ def main(args):
         new_config_file_name = os.path.abspath(
             os.path.join(output_dir, f"{formatted_body_part}_{formatted_label}_config.yaml"))
 
+        print(f"Saving config file {new_config_file_name}")
         with open(new_config_file_name, "w") as f:
-            print("Saving config file:", new_config_file_name)
             yaml.safe_dump(new_config, f, sort_keys=False)
 
     print("Generation of config files completed successfully.")
 
 
 if __name__ == "__main__":
-    BODY_PART = "Head"
+    BODY_PART = "Chest"
     CHEST_CONFIG_TEMPLATE = "./template/chest_config_template.yaml"
     NON_CHEST_CONFIG_TEMPLATE = "./template/non_chest_config_template.yaml"
     RUN_NAME = "Release models training"
-    # NUM_DATA_AUGMENTATIONS = None
-    NUM_DATA_AUGMENTATIONS = {
-        "Adenopathy": 1
-    }
+    NUM_DATA_AUGMENTATIONS = None
+    # NUM_DATA_AUGMENTATIONS = {
+    #     "Adenopathy": 1
+    # }
     OUTPUT_DIR = "./generated"
 
     args = argparse.Namespace(body_part=BODY_PART,
