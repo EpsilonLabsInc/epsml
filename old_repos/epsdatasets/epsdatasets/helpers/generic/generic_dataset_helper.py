@@ -29,6 +29,9 @@ class GenericDatasetHelper(BaseDatasetHelper):
                  treat_uncertain_as_positive=True,
                  perform_label_balancing=True,
                  num_data_augmentations=0,
+                 compute_num_data_augmentations=False,
+                 data_augmentation_target=0,
+                 data_augmentation_min=0,
                  unroll_images = True,
                  max_study_images_to_unroll=None,
                  convert_images_to_rgb=True,
@@ -46,6 +49,9 @@ class GenericDatasetHelper(BaseDatasetHelper):
                          treat_uncertain_as_positive=treat_uncertain_as_positive,
                          perform_label_balancing=perform_label_balancing,
                          num_data_augmentations=num_data_augmentations,
+                         compute_num_data_augmentations=compute_num_data_augmentations,
+                         data_augmentation_target=data_augmentation_target,
+                         data_augmentation_min=data_augmentation_min,
                          unroll_images=unroll_images,
                          max_study_images_to_unroll=max_study_images_to_unroll,
                          convert_images_to_rgb=convert_images_to_rgb,
@@ -65,6 +71,9 @@ class GenericDatasetHelper(BaseDatasetHelper):
         self.__treat_uncertain_as_positive = kwargs["treat_uncertain_as_positive"] if "treat_uncertain_as_positive" in kwargs else next((arg for arg in args if arg == "treat_uncertain_as_positive"), None)
         self.__perform_label_balancing = kwargs["perform_label_balancing"] if "perform_label_balancing" in kwargs else next((arg for arg in args if arg == "perform_label_balancing"), None)
         self.__num_data_augmentations = kwargs["num_data_augmentations"] if "num_data_augmentations" in kwargs else next((arg for arg in args if arg == "num_data_augmentations"), None)
+        self.__compute_num_data_augmentations = kwargs["compute_num_data_augmentations"] if "compute_num_data_augmentations" in kwargs else next((arg for arg in args if arg == "compute_num_data_augmentations"), None)
+        self.__data_augmentation_target = kwargs["data_augmentation_target"] if "data_augmentation_target" in kwargs else next((arg for arg in args if arg == "data_augmentation_target"), None)
+        self.__data_augmentation_min = kwargs["data_augmentation_min"] if "data_augmentation_min" in kwargs else next((arg for arg in args if arg == "data_augmentation_min"), None)
         self.__unroll_images = kwargs["unroll_images"] if "unroll_images" in kwargs else next((arg for arg in args if arg == "unroll_images"), None)
         self.__max_study_images_to_unroll = kwargs["max_study_images_to_unroll"] if "max_study_images_to_unroll" in kwargs else next((arg for arg in args if arg == "max_study_images_to_unroll"), None)
         self.__convert_images_to_rgb = kwargs["convert_images_to_rgb"] if "convert_images_to_rgb" in kwargs else next((arg for arg in args if arg == "convert_images_to_rgb"), None)
@@ -105,6 +114,17 @@ class GenericDatasetHelper(BaseDatasetHelper):
             print("Generating balancing statistics for the training dataset")
             num_pos, pos_percent, num_neg, neg_percent = self.__balancing_statistics(self.__pandas_train_dataset)
             print(f"There are {num_pos} ({pos_percent:.2f}%) positive and {num_neg} ({neg_percent:.2f}%) negative samples in the training dataset")
+
+        if self.__uses_single_label and self.__compute_num_data_augmentations:
+            if num_pos < self.__data_augmentation_min:
+                raise ValueError("At least {self.__auto_data_augmentation_min} positive training samples required to apply data augmentation")
+
+            if num_pos >= self.__data_augmentation_target:
+                self.__num_data_augmentations = 0
+                print(f"Data augmenation is not necessary, there are ({num_pos}) training samples in the training dataset which is enough")
+            else:
+                self.__num_data_augmentations = self.__auto_data_augmentation_target // num_pos
+                print(f"Number of data augmentations computed: {self.__num_data_augmentations}")
 
         if self.__perform_label_balancing and self.__uses_single_label:
             print("Balancing training dataset")
