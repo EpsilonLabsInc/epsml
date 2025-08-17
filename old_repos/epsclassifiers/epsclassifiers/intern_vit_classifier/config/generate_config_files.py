@@ -57,7 +57,7 @@ if __name__ == "__main__":
     CHEST_CONFIG_TEMPLATE = "./template/chest_config_template.yaml"
     NON_CHEST_CONFIG_TEMPLATE = "./template/non_chest_config_template.yaml"
     RUN_NAME = "Release models training"
-    OUTPUT_DIR = "./config/generated/chest"
+    OUTPUT_DIR = "./generated/chest"
 
     args = argparse.Namespace(body_part=BODY_PART,
                               chest_config_template=CHEST_CONFIG_TEMPLATE,
