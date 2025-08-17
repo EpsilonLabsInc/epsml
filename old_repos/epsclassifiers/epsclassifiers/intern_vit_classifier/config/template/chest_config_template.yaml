@@ -7,9 +7,9 @@ general:
   body_part: ""
   treat_uncertain_as_positive: True
   perform_label_balancing: True
-  apply_auto_data_augmentation: True
-  auto_data_augmentation_target: 10000
-  auto_data_augmentation_min: 2000
+  compute_num_data_augmentations: True
+  data_augmentation_target: 10000
+  data_augmentation_min: 2000
   save_full_model: False
 
 paths:
