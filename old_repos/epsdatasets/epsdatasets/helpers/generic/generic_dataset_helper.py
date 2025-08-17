@@ -117,13 +117,13 @@ class GenericDatasetHelper(BaseDatasetHelper):
 
         if self.__uses_single_label and self.__compute_num_data_augmentations:
             if num_pos < self.__data_augmentation_min:
-                raise ValueError("At least {self.__auto_data_augmentation_min} positive training samples required to apply data augmentation")
+                raise ValueError("At least {self.__data_augmentation_min} positive training samples required to apply data augmentation")
 
             if num_pos >= self.__data_augmentation_target:
                 self.__num_data_augmentations = 0
-                print(f"Data augmenation is not necessary, there are ({num_pos}) training samples in the training dataset which is enough")
+                print(f"Data augmenation is not necessary, there are {num_pos} training samples in the training dataset which is enough")
             else:
-                self.__num_data_augmentations = self.__auto_data_augmentation_target // num_pos
+                self.__num_data_augmentations = self.__data_augmentation_target // num_pos
                 print(f"Number of data augmentations computed: {self.__num_data_augmentations}")
 
         if self.__perform_label_balancing and self.__uses_single_label:
