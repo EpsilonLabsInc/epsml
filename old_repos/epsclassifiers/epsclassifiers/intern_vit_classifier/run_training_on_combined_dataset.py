@@ -36,6 +36,9 @@ def main(config_path):
     treat_uncertain_as_positive    = config["general"].get("treat_uncertain_as_positive", False)
     perform_label_balancing        = config["general"].get("perform_label_balancing", False)
     num_data_augmentations         = config["general"].get("num_data_augmentations", 0)
+    compute_num_data_augmentations = config["general"].get("compute_num_data_augmentations", False)
+    data_augmentation_target       = config["general"].get("data_augmentation_target", 0)
+    data_augmentation_min          = config["general"].get("data_augmentation_min", 0)            
     unroll_images                  = config["general"].get("unroll_images", True)
     max_study_images_to_unroll     = convert_none(config["general"].get("max_study_images_to_unroll", None))
     use_report_text                = config["general"].get("use_report_text", False)
@@ -75,6 +78,9 @@ def main(config_path):
     print(f"+ treat_uncertain_as_positive: {treat_uncertain_as_positive}")
     print(f"+ perform_label_balancing: {perform_label_balancing}")
     print(f"+ num_data_augmentations: {num_data_augmentations}")
+    print(f"+ compute_num_data_augmentations: {compute_num_data_augmentations}")
+    print(f"+ data_augmentation_target: {data_augmentation_target}")
+    print(f"+ data_augmentation_min: {data_augmentation_min}")            
     print(f"+ unroll_images: {unroll_images}")
     print(f"+ max_study_images_to_unroll: {max_study_images_to_unroll}")
     print(f"+ use_report_text: {use_report_text}")
@@ -123,6 +129,9 @@ def main(config_path):
         treat_uncertain_as_positive=treat_uncertain_as_positive,
         perform_label_balancing=perform_label_balancing,
         num_data_augmentations=num_data_augmentations,
+        compute_num_data_augmentations=compute_num_data_augmentations,
+        data_augmentation_target=data_augmentation_target,
+        data_augmentation_min=data_augmentation_min,        
         unroll_images=unroll_images,
         max_study_images_to_unroll=max_study_images_to_unroll,
         convert_images_to_rgb=True,
