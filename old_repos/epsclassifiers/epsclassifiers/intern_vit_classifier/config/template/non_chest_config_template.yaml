@@ -11,7 +11,7 @@ general:
   save_full_model: False
 
 paths:
-  intern_vl_checkpoint_dir: "/mnt/training/internvl_weights/internvl3_chimera_20250810_083849_1e-5_0810_no_label_gpt_bodypart/checkpoint-20932"
+  intern_vl_checkpoint_dir: "/mnt/training/internvl_weights/internvl3_chimera_20250810_083849_1e-5_0810_no_label_gpt_bodypart/checkpoint-10466"
   train_file: "/mnt/training/splits/gradient_batches_1-5_segmed_batches_1-9_simonmed_batches_1-10_reports_with_labels_train.csv"
   validation_file: "/mnt/training/splits/gradient_batches_1-5_segmed_batches_1-9_simonmed_batches_1-10_reports_with_labels_val.csv"
   test_file: "/mnt/training/splits/gradient_batches_1-5_segmed_batches_1-9_simonmed_batches_1-10_reports_with_labels_test.csv"
