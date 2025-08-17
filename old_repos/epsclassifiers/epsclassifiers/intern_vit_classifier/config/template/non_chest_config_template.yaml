@@ -1,5 +1,5 @@
 general:
-  model_name: "intern_vit_classifier"
+  model_name: "release_intern_vit_classifier"
   dataset_name: ""
   run_name: ""
   notes: ""

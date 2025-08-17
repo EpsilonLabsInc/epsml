@@ -39,9 +39,6 @@ def main(args):
         new_config["general"]["custom_labels"] = [label]
         new_config["general"]["body_part"] = args.body_part
 
-        if args.num_data_augmentations is not None and label in args.num_data_augmentations:
-            new_config["general"]["num_data_augmentations"] = args.num_data_augmentations[label]
-
         output_dir = os.path.join(args.output_dir, formatted_body_part)
         os.makedirs(output_dir, exist_ok=True)
 
@@ -60,17 +57,12 @@ if __name__ == "__main__":
     CHEST_CONFIG_TEMPLATE = "./template/chest_config_template.yaml"
     NON_CHEST_CONFIG_TEMPLATE = "./template/non_chest_config_template.yaml"
     RUN_NAME = "Release models training"
-    NUM_DATA_AUGMENTATIONS = None
-    # NUM_DATA_AUGMENTATIONS = {
-    #     "Adenopathy": 1
-    # }
-    OUTPUT_DIR = "./generated"
+    OUTPUT_DIR = "./config/generated/chest"
 
     args = argparse.Namespace(body_part=BODY_PART,
                               chest_config_template=CHEST_CONFIG_TEMPLATE,
                               non_chest_config_template=NON_CHEST_CONFIG_TEMPLATE,
                               run_name=RUN_NAME,
-                              num_data_augmentations=NUM_DATA_AUGMENTATIONS,
                               output_dir=OUTPUT_DIR)
 
     main(args)
