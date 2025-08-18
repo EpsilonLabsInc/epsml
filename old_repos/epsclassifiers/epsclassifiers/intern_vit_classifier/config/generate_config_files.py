@@ -53,7 +53,7 @@ def main(args):
 
 
 if __name__ == "__main__":
-    BODY_PART = "Chest"
+    BODY_PART = "Foot"
     CHEST_CONFIG_TEMPLATE = "./template/chest_config_template.yaml"
     NON_CHEST_CONFIG_TEMPLATE = "./template/non_chest_config_template.yaml"
     RUN_NAME = "Release models training"
