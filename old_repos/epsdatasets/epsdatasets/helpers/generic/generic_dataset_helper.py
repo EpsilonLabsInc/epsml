@@ -117,7 +117,7 @@ class GenericDatasetHelper(BaseDatasetHelper):
 
         if self.__uses_single_label and self.__compute_num_data_augmentations:
             if num_pos < self.__data_augmentation_min:
-                raise ValueError("At least {self.__data_augmentation_min} positive training samples required to apply data augmentation")
+                raise ValueError(f"At least {self.__data_augmentation_min} positive training samples required to apply data augmentation")
 
             if num_pos >= self.__data_augmentation_target:
                 self.__num_data_augmentations = 0
