@@ -33,7 +33,7 @@ paths:
     "segmed/batch8": "/mnt/all-data/sfs-segmed89/batch8"
     "segmed/batch9": "/mnt/all-data/sfs-segmed89/batch9"
     "simonmed": "/mnt/all-data/sfs-simonmed"
-  output_dir: "./output"
+  output_dir: "/mnt/training/checkpoints"
 
 training:
   perform_intra_epoch_validation: True
