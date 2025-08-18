@@ -24,6 +24,14 @@ else
 fi
 
 # Loop through the config files and run training.
-for config_file in "${config_files[@]}"; do
+total_files=${#config_files[@]}
+for i in "${!config_files[@]}"; do
+  index=$((i + 1))
+  config_file="${config_files[$i]}"
+  echo ""
+  echo "=============================================================================================================================="
+  echo "($index/$total_files) Running training using $config_file"
+  echo "=============================================================================================================================="
+  echo ""
   python ./run_training_on_combined_dataset.py "$config_file"
 done
