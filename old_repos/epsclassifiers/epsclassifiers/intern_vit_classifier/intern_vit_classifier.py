@@ -9,15 +9,15 @@ from intern_vit import InternVit
 
 
 class AttentionalPooling(nn.Module):
-    def __init__(self, hidden_size, num_heads=8):
+    def __init__(self, hidden_size, dims_per_head=64):
         super().__init__()
         self.hidden_size = hidden_size
-        self.num_heads = num_heads
+        self.dims_per_head= dims_per_head
 
         # Learnable parameters (query vector + MHA block).
         self.query = nn.Parameter(torch.randn(1, 1, hidden_size))
         self.multihead_attention = nn.MultiheadAttention(
-            embed_dim=hidden_size, num_heads=num_heads, batch_first=True
+            embed_dim=hidden_size, num_heads=hidden_size // dims_per_head, batch_first=True
         )
 
     def forward(self, last_hidden_state):
@@ -31,7 +31,7 @@ class AttentionalPooling(nn.Module):
         pooled_output, attention_weights = self.multihead_attention(
             query=query, key=last_hidden_state, value=last_hidden_state
         )
-        return pooled_output.squeeze(1)
+        return pooled_output.squeeze(1), attention_weights
 
 
 class InternVitClassifier(nn.Module):
@@ -146,7 +146,10 @@ class InternVitClassifier(nn.Module):
             last_hidden_state = output.last_hidden_state
         
         if self.__use_attentional_pooling:
-            embeddings = self.attentional_pooling(last_hidden_state)  # Overwrite CLS token embedding.
+            last_hidden_state = last_hidden_state[:, 1:, :]  # Remove CLS token.
+            embeddings, attention_weights = self.attentional_pooling(last_hidden_state)  # Overwrite CLS token embedding.
+        else:
+            attention_weights = None
 
         if self.__use_text_encodings:
             text_output = self.__text_embeddings_generator(**text_encodings)
@@ -160,7 +163,7 @@ class InternVitClassifier(nn.Module):
 
         output = self.classifier(embeddings)
 
-        return {"output": output, "embeddings": embeddings, "last_hidden_state": last_hidden_state}
+        return {"output": output, "embeddings": embeddings, "last_hidden_state": last_hidden_state, "attention_weights": attention_weights}
 
     def get_image_processor(self):
         return self.__image_processor
