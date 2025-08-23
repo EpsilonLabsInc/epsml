@@ -64,6 +64,7 @@ def main(config_path):
     min_allowed_batch_size         = config["training"].get("min_allowed_batch_size", 1)
     multi_image_input              = config["training"].get("multi_image_input", False)
     num_multi_images               = convert_none(config["training"].get("num_multi_images", None))
+    use_attentional_pooling        = config["training"].get("use_attentional_pooling", False)
 
     # Print configuration parameters.
     print("----------------------------------------------------------")
@@ -106,6 +107,7 @@ def main(config_path):
     print(f"+ min_allowed_batch_size: {min_allowed_batch_size}")
     print(f"+ multi_image_input: {multi_image_input}")
     print(f"+ num_multi_images: {num_multi_images}")
+    print(f"+ use_attentional_pooling: {use_attentional_pooling}")
     print("----------------------------------------------------------")
 
     # Auto-generated names. Don't change.
@@ -150,7 +152,8 @@ def main(config_path):
                                 intern_vit_output_dim=3200,  # 3200 for InternVL 26B model, 1024 for InternVL 8B model.
                                 multi_image_input=multi_image_input,
                                 num_multi_images=num_multi_images,
-                                use_text_encodings=use_report_text)
+                                use_text_encodings=use_report_text,
+                                use_attentional_pooling=use_attentional_pooling)
 
     model = model.to("cuda")
     image_processor = model.get_image_processor()

@@ -8,6 +8,32 @@ from epsutils.training.tile_splitting_image_processor import TileSplittingImageP
 from intern_vit import InternVit
 
 
+class AttentionalPooling(nn.Module):
+    def __init__(self, hidden_size, num_heads=8):
+        super().__init__()
+        self.hidden_size = hidden_size
+        self.num_heads = num_heads
+
+        # Learnable parameters (query vector + MHA block).
+        self.query = nn.Parameter(torch.randn(1, 1, hidden_size))
+        self.multihead_attention = nn.MultiheadAttention(
+            embed_dim=hidden_size, num_heads=num_heads, batch_first=True
+        )
+
+    def forward(self, last_hidden_state):
+        # last_hidden_state shape: (batch_size, sequence_length, hidden_size)
+        batch_size = last_hidden_state.size(0)
+
+        # Expand query to match batch size
+        query = self.query.expand(batch_size, 1, self.hidden_size)
+
+        # Apply multi-head attention and squeeze to get (batch_size, hidden_size).
+        pooled_output, attention_weights = self.multihead_attention(
+            query=query, key=last_hidden_state, value=last_hidden_state
+        )
+        return pooled_output.squeeze(1)
+
+
 class InternVitClassifier(nn.Module):
     def __init__(self,
                  num_classes,
@@ -20,13 +46,15 @@ class InternVitClassifier(nn.Module):
                  use_text_encodings=False,
                  use_tiles=False,
                  num_tiles_x=None,
-                 num_tiles_y=None):
+                 num_tiles_y=None,
+                 use_attentional_pooling=False):
         super().__init__()
 
         print("WARNING: Because of BatchNorm1d that doesn't work on single element batches, InternVitClassifier currently supports only batch sizes >= 2")
 
         # InternViT model.
         self.intern_vit = InternVit(intern_vl_checkpoint_dir=intern_vl_checkpoint_dir)
+        dtype = next(self.intern_vit.parameters()).dtype
 
         if multi_image_input:
             print(f"INFO: InternVitClassifier will be using multi image input of size {num_multi_images}")
@@ -41,6 +69,16 @@ class InternVitClassifier(nn.Module):
             print(f"INFO: InternVitClassifier will NOT be using multi image input and will NOT be using tile splitting")
             self.__image_processor = self.intern_vit.get_image_processor()
             output_dim = intern_vit_output_dim
+        
+        if use_attentional_pooling:
+            print(f"INFO: InternVitClassifier will be using attentive pooling")
+            self.attentional_pooling = AttentionalPooling(
+                hidden_size=intern_vit_output_dim
+            )
+            self.attentional_pooling = self.attentional_pooling.to(dtype)
+            output_dim = (
+                intern_vit_output_dim  # Attentional pooling outputs single embedding
+            )
 
         # Text embeddings generator.
         if use_text_encodings:
@@ -62,13 +100,13 @@ class InternVitClassifier(nn.Module):
         )
 
         # Set the dtype of the classifier to match the dtype of the InternViT.
-        dtype = next(self.intern_vit.parameters()).dtype
         self.classifier = self.classifier.to(dtype)
 
         self.__multi_image_input = multi_image_input
         self.__num_multi_images = num_multi_images
         self.__use_tiles = use_tiles
         self.__use_text_encodings = use_text_encodings
+        self.__use_attentional_pooling = use_attentional_pooling
 
     def forward(self, images, text_encodings=None, **kwargs):
         if self.__multi_image_input and self.__num_multi_images is not None:
@@ -106,6 +144,9 @@ class InternVitClassifier(nn.Module):
             output = self.intern_vit(images)
             embeddings = output.pooler_output
             last_hidden_state = output.last_hidden_state
+        
+        if self.__use_attentional_pooling:
+            embeddings = self.attentional_pooling(last_hidden_state)  # Overwrite CLS token embedding.
 
         if self.__use_text_encodings:
             text_output = self.__text_embeddings_generator(**text_encodings)
