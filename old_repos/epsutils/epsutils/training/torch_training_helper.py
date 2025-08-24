@@ -10,6 +10,7 @@ import mlflow
 import torch
 import wandb
 from torch.optim import AdamW
+from torch.nn.parallel.scatter_gather import scatter
 from tqdm.auto import tqdm
 
 from epsutils.training import training_utils
@@ -17,6 +18,79 @@ from epsutils.training.confusion_matrix_calculator import ConfusionMatrixCalcula
 from epsutils.training.evaluation_metrics_calculator import EvaluationMetricsCalculator
 from epsutils.training.performance_curve_calculator import PerformanceCurveCalculator, PerformanceCurveType
 from epsutils.training.scores_distribution_generator import ScoresDistributionGenerator
+
+
+def custom_scatter(inputs, target_gpus, dim=0):
+    """Custom scatter function for nested list structures"""
+    if isinstance(inputs, dict):
+        scattered_inputs = {}
+        for key, value in inputs.items():
+            if key == 'images' and isinstance(value, list):
+                # Find max sublist length for padding
+                max_sublist_len = max(len(sublist) for sublist in value)
+                
+                # Split the outer list across devices
+                chunk_size = len(value) // len(target_gpus)
+                remainder = len(value) % len(target_gpus)
+                
+                scattered_images = []
+                scattered_masks = []
+                start_idx = 0
+                for i, gpu_id in enumerate(target_gpus):
+                    # Give remainder to first few GPUs
+                    current_chunk_size = chunk_size + (1 if i < remainder else 0)
+                    end_idx = start_idx + current_chunk_size
+                    
+                    # Get the chunk and move all tensors to the target device
+                    chunk = value[start_idx:end_idx]
+                    device_chunk = []
+                    device_masks = []
+                    
+                    for sublist in chunk:
+                        device_sublist = []
+                        sublist_mask = []
+                        
+                        # Add real images and mark as valid (1)
+                        for tensor in sublist:
+                            if isinstance(tensor, torch.Tensor):
+                                device_sublist.append(tensor.to(f'cuda:{gpu_id}'))
+                                sublist_mask.append(1)
+                            else:
+                                device_sublist.append(tensor)
+                                sublist_mask.append(1)
+                        
+                        # Pad sublist to max length with zeros and mark as invalid (0)
+                        while len(device_sublist) < max_sublist_len:
+                            if len(device_sublist) > 0 and isinstance(device_sublist[0], torch.Tensor):
+                                # Create zero tensor with same shape as first tensor
+                                zero_tensor = torch.zeros_like(device_sublist[0]).to(f'cuda:{gpu_id}')
+                                device_sublist.append(zero_tensor)
+                                sublist_mask.append(0)
+                            else:
+                                break  # Can't pad if we don't know tensor shape
+                        
+                        device_chunk.append(device_sublist)
+                        device_masks.append(sublist_mask)
+                    
+                    scattered_images.append(device_chunk)
+                    scattered_masks.append(device_masks)
+                    start_idx = end_idx
+                
+                scattered_inputs[key] = scattered_images
+                scattered_inputs['image_masks'] = scattered_masks
+            else:
+                # Use default scatter for other keys
+                scattered_inputs[key] = scatter(value, target_gpus, dim)
+        return [dict(zip(scattered_inputs.keys(), values)) 
+                for values in zip(*scattered_inputs.values())]
+    else:
+        return scatter(inputs, target_gpus, dim)
+
+
+class CustomDataParallel(torch.nn.DataParallel):
+    def scatter(self, inputs, kwargs, device_ids):
+        return custom_scatter(inputs, device_ids), \
+               custom_scatter(kwargs, device_ids) if kwargs else [{}] * len(device_ids)
 
 
 class TrainingParameters:
@@ -140,7 +214,7 @@ class DataWrapper:
 
 
 class TorchTrainingHelper:
-    def __init__(self, model, dataset_helper, device, device_ids, training_parameters: TrainingParameters, mlops_parameters: MlopsParameters, **kwargs):
+    def __init__(self, model, dataset_helper, device, device_ids, training_parameters: TrainingParameters, mlops_parameters: MlopsParameters, multi_gpu_padding=False, **kwargs):
         self.__model = model
         self.__parallel_model = None
         self.__optimizer = None
@@ -152,6 +226,7 @@ class TorchTrainingHelper:
         self.__training_parameters = training_parameters
         self.__mlops_parameters = mlops_parameters
         self.__custom_parameters = kwargs
+        self.__multi_gpu_padding = multi_gpu_padding
 
         # Dump training information.
         print("Creating TorchTrainingHelper")
@@ -202,7 +277,10 @@ class TorchTrainingHelper:
             self.__validation_data_loader = None
 
         # Create parallel model.
-        self.__parallel_model = torch.nn.DataParallel(self.__model, device_ids=self.__device_ids)
+        if self.__multi_gpu_padding:
+            self.__parallel_model = CustomDataParallel(self.__model, device_ids=self.__device_ids)
+        else:
+            self.__parallel_model = torch.nn.DataParallel(self.__model, device_ids=self.__device_ids)
         self.__parallel_model.to(self.__device)
         self.__optimizer = AdamW(self.__parallel_model.parameters(), lr=self.__training_parameters.learning_rate)
 
@@ -281,7 +359,10 @@ class TorchTrainingHelper:
                 if self.__device_ids is not None else self.__training_parameters.num_validation_workers_per_gpu)
 
         # Create parallel model.
-        self.__parallel_model = torch.nn.DataParallel(self.__model, device_ids=self.__device_ids)
+        if self.__multi_gpu_padding:
+            self.__parallel_model = CustomDataParallel(self.__model, device_ids=self.__device_ids)
+        else:
+            self.__parallel_model = torch.nn.DataParallel(self.__model, device_ids=self.__device_ids)
         self.__parallel_model.to(self.__device)
 
         # Model statistics.
