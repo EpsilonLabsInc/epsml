@@ -20,8 +20,9 @@ class AttentionalPooling(nn.Module):
             embed_dim=hidden_size, num_heads=hidden_size // dims_per_head, batch_first=True
         )
 
-    def forward(self, last_hidden_state):
+    def forward(self, last_hidden_state, key_padding_mask=None):
         # last_hidden_state shape: (batch_size, sequence_length, hidden_size)
+        # key_padding_mask: (batch_size, sequence_length) - True for positions to ignore
         batch_size = last_hidden_state.size(0)
 
         # Expand query to match batch size
@@ -29,7 +30,8 @@ class AttentionalPooling(nn.Module):
 
         # Apply multi-head attention and squeeze to get (batch_size, hidden_size).
         pooled_output, attention_weights = self.multihead_attention(
-            query=query, key=last_hidden_state, value=last_hidden_state
+            query=query, key=last_hidden_state, value=last_hidden_state, 
+            key_padding_mask=key_padding_mask
         )
         return pooled_output.squeeze(1), attention_weights
 
@@ -115,8 +117,21 @@ class InternVitClassifier(nn.Module):
             batch, group, num_channels, height, width = images.shape
             images_reshaped = images.view(batch * group, num_channels, height, width)
             output = self.intern_vit(images_reshaped)
-            embeddings = output.pooler_output.reshape(batch, -1)
-            last_hidden_state = output.last_hidden_state.reshape(batch, -1)
+            if self.__use_attentional_pooling:
+                # For attentional pooling, keep patch structure for each image but strip CLS tokens
+                # last_hidden_state shape: (batch*group, seq_len, hidden_dim)
+                seq_len = output.last_hidden_state.shape[1]
+                hidden_dim = output.last_hidden_state.shape[2]
+                
+                # Strip CLS tokens (first token of each image) and reshape.
+                patch_tokens = output.last_hidden_state[:, 1:, :]
+                patch_seq_len = patch_tokens.shape[1]
+                
+                # Reshape to (batch, group*(seq_len-1), hidden_dim) to pool over all patch tokens
+                last_hidden_state = patch_tokens.reshape(batch, group * patch_seq_len, hidden_dim)
+            else:
+                embeddings = output.pooler_output.reshape(batch, -1)
+                last_hidden_state = output.last_hidden_state.reshape(batch, -1)
 
         elif self.__multi_image_input and self.__num_multi_images is None:
             assert isinstance(images, list)
@@ -128,8 +143,36 @@ class InternVitClassifier(nn.Module):
             ends = list(accumulate(group_sizes))
             starts = [0] + ends[:-1]
 
-            embeddings = torch.stack([output.pooler_output[s:e].max(dim=0).values for s, e in zip(starts, ends)])
-            last_hidden_state = torch.stack([output.last_hidden_state[s:e].max(dim=0).values for s, e in zip(starts, ends)])
+            if self.__use_attentional_pooling:
+                # For attentional pooling with variable sizes, strip CLS tokens and handle padding.
+                seq_len = output.last_hidden_state.shape[1]
+                hidden_dim = output.last_hidden_state.shape[2]
+                max_images = max(group_sizes)
+                
+                # Strip CLS tokens from all images first.
+                patch_tokens = output.last_hidden_state[:, 1:, :]
+                patch_seq_len = patch_tokens.shape[1]
+                
+                # Create padded tensor and corresponding mask for patch tokens.
+                padded_last_hidden_state = torch.zeros(
+                    len(group_sizes), max_images * patch_seq_len, hidden_dim,
+                    dtype=patch_tokens.dtype, device=patch_tokens.device
+                )
+                padding_mask = torch.ones(len(group_sizes), max_images * patch_seq_len, dtype=torch.bool)
+                
+                # Fill in actual data and create mask.
+                for i, (s, e, size) in enumerate(zip(starts, ends, group_sizes)):
+                    actual_patch_tokens = size * patch_seq_len
+                    padded_last_hidden_state[i, :actual_patch_tokens] = patch_tokens[s:e].reshape(-1, hidden_dim)
+                    padding_mask[i, :actual_patch_tokens] = False
+                
+                last_hidden_state = padded_last_hidden_state
+                self._current_padding_mask = padding_mask.to(patch_tokens.device)
+                
+                embeddings = torch.stack([output.pooler_output[s:e].max(dim=0).values for s, e in zip(starts, ends)])
+            else:
+                embeddings = torch.stack([output.pooler_output[s:e].max(dim=0).values for s, e in zip(starts, ends)])
+                last_hidden_state = torch.stack([output.last_hidden_state[s:e].max(dim=0).values for s, e in zip(starts, ends)])
 
         elif self.__use_tiles:
             # 5 dimensions indicate use of tiles: (batch_num, num_tiles, num_channels, img_height, img_width)
@@ -146,8 +189,18 @@ class InternVitClassifier(nn.Module):
             last_hidden_state = output.last_hidden_state
         
         if self.__use_attentional_pooling:
-            last_hidden_state = last_hidden_state[:, 1:, :]  # Remove CLS token.
-            embeddings, attention_weights = self.attentional_pooling(last_hidden_state)  # Overwrite CLS token embedding.
+            # Apply attentional pooling.
+            if self.__multi_image_input:
+                # For multi-image, CLS tokens have already been stripped, use padding mask if available.
+                padding_mask = getattr(self, '_current_padding_mask', None)
+                embeddings, attention_weights = self.attentional_pooling(last_hidden_state, key_padding_mask=padding_mask)
+                
+                # Clear padding mask
+                if hasattr(self, '_current_padding_mask'):
+                    delattr(self, '_current_padding_mask')
+            else:
+                # Single image case: drop CLS token as before.
+                embeddings, attention_weights = self.attentional_pooling(last_hidden_state[:, 1:, :])
         else:
             attention_weights = None
 
