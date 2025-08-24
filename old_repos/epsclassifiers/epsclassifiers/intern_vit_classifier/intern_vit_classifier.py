@@ -110,7 +110,7 @@ class InternVitClassifier(nn.Module):
         self.__use_text_encodings = use_text_encodings
         self.__use_attentional_pooling = use_attentional_pooling
 
-    def forward(self, images, text_encodings=None, **kwargs):
+    def forward(self, images, text_encodings=None, image_masks=None, **kwargs):
         if self.__multi_image_input and self.__num_multi_images is not None:
             # 5 dimensions indicate use of multi image input: (batch_num, num_multi_images, num_channels, img_height, img_width)
             assert len(images.shape) == 5
@@ -158,13 +158,29 @@ class InternVitClassifier(nn.Module):
                     len(group_sizes), max_images * patch_seq_len, hidden_dim,
                     dtype=patch_tokens.dtype, device=patch_tokens.device
                 )
-                padding_mask = torch.ones(len(group_sizes), max_images * patch_seq_len, dtype=torch.bool)
+                # Create padding mask from provided image_masks or fallback to old behavior.
+                if image_masks is not None:
+                    # Use provided masks to create patch-level padding mask.
+                    padding_mask = torch.ones(len(group_sizes), max_images * patch_seq_len, dtype=torch.bool)
+                    
+                    for i, mask_list in enumerate(image_masks):
+                        # For each image in the group, if mask=1 (valid), mark all its patches as valid
+                        for j, mask_val in enumerate(mask_list):
+                            if j < group_sizes[i]:  # Only process actual images, not padding
+                                start_patch_idx = j * patch_seq_len
+                                end_patch_idx = (j + 1) * patch_seq_len
+                                if mask_val == 1:  # Valid image
+                                    padding_mask[i, start_patch_idx:end_patch_idx] = False
+                else:
+                    # Fallback: create padding mask based on actual data
+                    padding_mask = torch.ones(len(group_sizes), max_images * patch_seq_len, dtype=torch.bool)
                 
-                # Fill in actual data and create mask.
+                # Fill in actual data.
                 for i, (s, e, size) in enumerate(zip(starts, ends, group_sizes)):
                     actual_patch_tokens = size * patch_seq_len
                     padded_last_hidden_state[i, :actual_patch_tokens] = patch_tokens[s:e].reshape(-1, hidden_dim)
-                    padding_mask[i, :actual_patch_tokens] = False
+                    if image_masks is None:
+                        padding_mask[i, :actual_patch_tokens] = False
                 
                 last_hidden_state = padded_last_hidden_state
                 self._current_padding_mask = padding_mask.to(patch_tokens.device)
