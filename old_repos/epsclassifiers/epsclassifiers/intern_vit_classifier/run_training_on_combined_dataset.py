@@ -1,5 +1,6 @@
 import argparse
 import torch
+import torch.multiprocessing
 import yaml
 
 from transformers import DistilBertTokenizer
@@ -18,6 +19,9 @@ def convert_none(value):
 
 
 def main(config_path):
+    # Set the sharing strategy to file system.
+    torch.multiprocessing.set_sharing_strategy('file_system')
+
     # Read the configuration file.
     with open(config_path, "r") as file:
         config_file_content = file.read()
