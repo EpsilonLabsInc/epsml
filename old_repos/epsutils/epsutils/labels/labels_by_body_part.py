@@ -224,7 +224,6 @@ LABELS_BY_BODY_PART = {
         "Consolidation",
         "Congestive heart failure",
         "COVID-19",
-        "Edema",
         "Emphysema",
         "Enlarged mediastinum",
         "Enlarged pulmonary artery",
