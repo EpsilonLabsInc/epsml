@@ -2,6 +2,7 @@ import argparse
 import ast
 import logging
 import os
+import warnings
 from concurrent.futures import ProcessPoolExecutor
 from datetime import datetime
 
@@ -167,6 +168,9 @@ def main(args):
     # Configure logger.
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     logging_utils.configure_logger(logger_file_name=f"{args.output_reports_file_path}_{timestamp}.log")
+
+    # Ignore some pydicom warnings.
+    warnings.filterwarnings("ignore", category=UserWarning, module="pydicom.charset")
 
     # Suppress validation warnings.
     pydicom.config.settings.reading_validation_mode = pydicom.config.IGNORE
