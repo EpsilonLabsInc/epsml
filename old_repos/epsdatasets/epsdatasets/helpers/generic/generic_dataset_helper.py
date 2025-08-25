@@ -37,7 +37,8 @@ class GenericDatasetHelper(BaseDatasetHelper):
                  convert_images_to_rgb=True,
                  replace_dicom_with_png=False,
                  custom_labels=None,
-                 seed=42):
+                 seed=42,
+                 max_multi_images=None):
 
         super().__init__(train_file=train_file,
                          validation_file=validation_file,
@@ -57,7 +58,8 @@ class GenericDatasetHelper(BaseDatasetHelper):
                          convert_images_to_rgb=convert_images_to_rgb,
                          replace_dicom_with_png=replace_dicom_with_png,
                          custom_labels=custom_labels,
-                         seed=seed)
+                         seed=seed,
+                         max_multi_images=max_multi_images)
 
     def _load_dataset(self, *args, **kwargs):
         # Store params.
@@ -80,6 +82,7 @@ class GenericDatasetHelper(BaseDatasetHelper):
         self.__replace_dicom_with_png = kwargs["replace_dicom_with_png"] if "replace_dicom_with_png" in kwargs else next((arg for arg in args if arg == "replace_dicom_with_png"), None)
         self.__custom_labels = kwargs["custom_labels"] if "custom_labels" in kwargs else next((arg for arg in args if arg == "custom_labels"), None)
         self.__seed = kwargs["seed"] if "seed" in kwargs else next((arg for arg in args if arg == "seed"), None)
+        self.__max_multi_images = kwargs["max_multi_images"] if "max_multi_images" in kwargs else next((arg for arg in args if arg == "max_multi_images"), None)
 
         self.__pandas_train_dataset = None
         self.__pandas_validation_dataset = None
@@ -499,6 +502,9 @@ class GenericDatasetHelper(BaseDatasetHelper):
 
             # ... or keep all study images as they are.
             else:
+                if self.__max_multi_images is not None and len(image_paths) > self.__max_multi_images:
+                    continue
+
                 selected_rows.append(row)
 
         df = pd.DataFrame(selected_rows)
