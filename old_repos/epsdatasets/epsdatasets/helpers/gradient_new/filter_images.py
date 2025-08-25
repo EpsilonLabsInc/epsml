@@ -152,7 +152,7 @@ def filter_study_images(args):
             filtered_image_paths.append(image_path)
 
         except Exception as e:
-            logging.error(f"{e} (patient ID: {patient_id}, study instance UID: {study_instance_uid}, image path: {image_path}")
+            logging.error(f"{e} (patient ID: {patient_id}, study instance UID: {study_instance_uid}, image path: {image_path})")
 
     return filtered_image_paths
 
