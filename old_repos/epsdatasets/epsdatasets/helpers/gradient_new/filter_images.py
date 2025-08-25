@@ -58,8 +58,13 @@ def filter_study_images(args):
 
             # Check study description.
 
-            if hasattr(dicom_file, "StudyDescription") and dicom_file.StudyDescription.upper() != study_description.upper():
-                raise ValueError(f"StudyDescription mismatch: {dicom_file.StudyDescription} (DICOM) != {study_description} (report)")
+            if hasattr(dicom_file, "StudyDescription"):
+                if not isinstance(dicom_file.StudyDescription, str):
+                    raise ValueError(f"StudyDescription in DICOM file is not a string: {dicom_file.StudyDescription}")
+                if not isinstance(study_description, str):
+                    raise ValueError(f"Study description in reports file is not a string: {study_description}")
+                if dicom_file.StudyDescription.upper() != study_description.upper():
+                    raise ValueError(f"StudyDescription mismatch: {dicom_file.StudyDescription} (DICOM) != {study_description} (report)")
 
             # Check patient ID.
 
@@ -73,23 +78,41 @@ def filter_study_images(args):
 
             # Check patient sex.
 
+            if not isinstance(dicom_file.PatientSex, str):
+                raise ValueError(f"PatientSex in DICOM file is not a string: {dicom_file.PatientSex}")
+            if not isinstance(patient_sex, str):
+                raise ValueError(f"Patient sex in reports file is not a string: {patient_sex}")
             if dicom_file.PatientSex.upper() != patient_sex.upper():
                 raise ValueError(f"PatientSex mismatch: {dicom_file.PatientSex} (DICOM) != {patient_sex} (report)")
 
             # Check body part.
 
+            if not isinstance(dicom_file.BodyPartExamined, str):
+                raise ValueError(f"BodyPartExamined in DICOM file is not a string: {dicom_file.BodyPartExamined}")
+            if not isinstance(body_part_examined, str):
+                raise ValueError(f"Body part examined in reports file is not a string: {body_part_examined}")
             if dicom_file.BodyPartExamined.upper() != body_part_examined.upper():
                 raise ValueError(f"BodyPart mismatch: {dicom_file.BodyPartExamined} (DICOM) != {body_part_examined} (report)")
 
             # Check manufacturer.
 
-            if hasattr(dicom_file, "Manufacturer") and str(dicom_file.Manufacturer).upper() != str(manufacturer).upper():
-                raise ValueError(f"Manufacturer mismatch: {dicom_file.Manufacturer} (DICOM) != {manufacturer} (report)")
+            if hasattr(dicom_file, "Manufacturer"):
+                if not isinstance(dicom_file.Manufacturer, str):
+                    raise ValueError(f"Manufacturer in DICOM file is not a string: {dicom_file.Manufacturer}")
+                if not isinstance(manufacturer, str):
+                    raise ValueError(f"Manufacturer in reports file is not a string: {manufacturer}")
+                if dicom_file.Manufacturer.upper() != manufacturer.upper():
+                    raise ValueError(f"Manufacturer mismatch: {dicom_file.Manufacturer} (DICOM) != {manufacturer} (report)")
 
             # Check model.
 
-            if hasattr(dicom_file, "ManufacturerModelName") and str(dicom_file.ManufacturerModelName).upper() != str(manufacturer_model_name).upper():
-                raise ValueError(f"Model mismatch: {dicom_file.ManufacturerModelName} (DICOM) != {manufacturer_model_name} (report)")
+            if hasattr(dicom_file, "ManufacturerModelName"):
+                if not isinstance(dicom_file.ManufacturerModelName, str):
+                    raise ValueError(f"ManufacturerModelName in DICOM file is not a string: {dicom_file.ManufacturerModelName}")
+                if not isinstance(manufacturer_model_name, str):
+                    raise ValueError(f"Manufacturer model name in reports file is not a string: {manufacturer_model_name}")
+                if dicom_file.ManufacturerModelName.upper() != manufacturer_model_name.upper():
+                    raise ValueError(f"Model mismatch: {dicom_file.ManufacturerModelName} (DICOM) != {manufacturer_model_name} (report)")
 
             # Ignore non-primary/non-original and localizer image types.
 
@@ -129,7 +152,7 @@ def filter_study_images(args):
             filtered_image_paths.append(image_path)
 
         except Exception as e:
-            logging.error(f"{str(e)} (patient ID: {patient_id}, study instance UID: {study_instance_uid}, image path: {image_path}")
+            logging.error(f"{e} (patient ID: {patient_id}, study instance UID: {study_instance_uid}, image path: {image_path}")
 
     return filtered_image_paths
 
