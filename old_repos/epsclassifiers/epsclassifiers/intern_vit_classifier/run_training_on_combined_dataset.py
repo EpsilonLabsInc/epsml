@@ -68,6 +68,7 @@ def main(config_path):
     min_allowed_batch_size         = config["training"].get("min_allowed_batch_size", 1)
     multi_image_input              = config["training"].get("multi_image_input", False)
     num_multi_images               = convert_none(config["training"].get("num_multi_images", None))
+    max_multi_images               = convert_none(config["training"].get("max_multi_images", None))
     use_attentional_pooling        = config["training"].get("use_attentional_pooling", False)
 
     # Print configuration parameters.
@@ -111,6 +112,7 @@ def main(config_path):
     print(f"+ min_allowed_batch_size: {min_allowed_batch_size}")
     print(f"+ multi_image_input: {multi_image_input}")
     print(f"+ num_multi_images: {num_multi_images}")
+    print(f"+ max_multi_images: {max_multi_images}")
     print(f"+ use_attentional_pooling: {use_attentional_pooling}")
     print("----------------------------------------------------------")
 
@@ -141,7 +143,8 @@ def main(config_path):
         unroll_images=unroll_images,
         max_study_images_to_unroll=max_study_images_to_unroll,
         convert_images_to_rgb=True,
-        custom_labels=custom_labels)
+        custom_labels=custom_labels,
+        max_multi_images=max_multi_images)
 
     print(f"Using the following labels: {dataset_helper.get_labels()}")
 
