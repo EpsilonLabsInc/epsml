@@ -53,7 +53,7 @@ def main(args):
 
 
 if __name__ == "__main__":
-    BODY_PART = "Chest"
+    BODY_PART = "T-spine"
     CHEST_CONFIG_TEMPLATE = "./template/with_attention_pooling/chest_with_attention_pooling_config_template.yaml"
     NON_CHEST_CONFIG_TEMPLATE = "./template/with_attention_pooling/non_chest_with_attention_pooling_config_template.yaml"
     RUN_NAME = "Training with attention pooling"
