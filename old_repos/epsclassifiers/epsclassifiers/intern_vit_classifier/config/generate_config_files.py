@@ -53,11 +53,11 @@ def main(args):
 
 
 if __name__ == "__main__":
-    BODY_PART = "Foot"
-    CHEST_CONFIG_TEMPLATE = "./template/chest_config_template.yaml"
-    NON_CHEST_CONFIG_TEMPLATE = "./template/non_chest_config_template.yaml"
-    RUN_NAME = "Release models training"
-    OUTPUT_DIR = "./generated"
+    BODY_PART = "Chest"
+    CHEST_CONFIG_TEMPLATE = "./template/with_attention_pooling/chest_with_attention_pooling_config_template.yaml"
+    NON_CHEST_CONFIG_TEMPLATE = "./template/with_attention_pooling/non_chest_with_attention_pooling_config_template.yaml"
+    RUN_NAME = "Training with attention pooling"
+    OUTPUT_DIR = "./generated/with_attention_pooling"
 
     args = argparse.Namespace(body_part=BODY_PART,
                               chest_config_template=CHEST_CONFIG_TEMPLATE,

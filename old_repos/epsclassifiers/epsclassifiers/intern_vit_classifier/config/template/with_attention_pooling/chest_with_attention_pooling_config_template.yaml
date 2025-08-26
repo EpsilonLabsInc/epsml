@@ -1,18 +1,20 @@
 general:
-  model_name: cls_nonchest
-  dataset_name: combined_extremities_bony_mineralization
-  run_name: "Checkpoints comparison on Ext Bony mineralization: Checkpoint 2"
-  notes: Balanced labels with 0x pos data augmentation
-  custom_labels:
-  - Bony mineralization
-  body_part: Extremities
-  treat_uncertain_as_positive: true
-  perform_label_balancing: true
-  num_data_augmentations: 0
-  save_full_model: false
+  model_name: "release_intern_vit_classifier"
+  dataset_name: ""
+  run_name: ""
+  notes: ""
+  custom_labels: []
+  body_part: ""
+  treat_uncertain_as_positive: True
+  perform_label_balancing: True
+  compute_num_data_augmentations: True
+  data_augmentation_target: 10000
+  data_augmentation_min: 2000
+  save_full_model: False
+  unroll_images: False
 
 paths:
-  intern_vl_checkpoint_dir: "/mnt/training/internvl_weights/internvl3_chimera_20250810_083849_1e-5_0810_no_label_gpt_bodypart/checkpoint-20932"
+  intern_vl_checkpoint_dir: "/mnt/training/internvl_weights/internvl3_chimera_20250810_083849_1e-5_0810_no_label_gpt_bodypart/checkpoint-10466"
   train_file: "/mnt/training/splits/gradient_batches_1-5_segmed_batches_1-9_simonmed_batches_1-10_reports_with_labels_train.csv"
   validation_file: "/mnt/training/splits/gradient_batches_1-5_segmed_batches_1-9_simonmed_batches_1-10_reports_with_labels_val.csv"
   test_file: "/mnt/training/splits/gradient_batches_1-5_segmed_batches_1-9_simonmed_batches_1-10_reports_with_labels_test.csv"
@@ -32,14 +34,14 @@ paths:
     "segmed/batch8": "/mnt/all-data/sfs-segmed89/batch8"
     "segmed/batch9": "/mnt/all-data/sfs-segmed89/batch9"
     "simonmed": "/mnt/all-data/sfs-simonmed"
-  output_dir: "./output"
+  output_dir: "/mnt/training/checkpoints"
 
 training:
-  perform_intra_epoch_validation: true
+  perform_intra_epoch_validation: True
   intra_epoch_validation_step: 3000
-  send_wandb_notification: false
-  device: cuda
-  device_ids: null
+  send_wandb_notification: False
+  device: "cuda"
+  device_ids: None
   num_training_workers_per_gpu: 32
   num_validation_workers_per_gpu: 32
   learning_rate: 0.01
@@ -48,4 +50,6 @@ training:
   training_batch_size: 128
   validation_batch_size: 32
   min_allowed_batch_size: 2
-  multi_image_input: false
+  multi_image_input: True
+  num_multi_images: 2
+  use_attentional_pooling: True
