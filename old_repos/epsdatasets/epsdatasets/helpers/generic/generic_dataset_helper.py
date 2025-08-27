@@ -504,6 +504,8 @@ class GenericDatasetHelper(BaseDatasetHelper):
             else:
                 if self.__max_multi_images is not None and len(image_paths) > self.__max_multi_images:
                     continue
+                elif len(image_paths) == 0:
+                    continue
 
                 selected_rows.append(row)
 
