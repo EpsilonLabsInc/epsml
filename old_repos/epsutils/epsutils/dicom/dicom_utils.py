@@ -53,7 +53,9 @@ def compare_dates(date_str1, date_str2, allow_empty_dates=True):
 def age_to_years(age):
     age = str(age)
 
-    if age.upper().endswith("M"):
+    if age.upper().endswith("D"):
+        return 0
+    elif age.upper().endswith("M"):
         return 0
     elif age.upper().endswith("Y"):
         return int(age[:-1])
