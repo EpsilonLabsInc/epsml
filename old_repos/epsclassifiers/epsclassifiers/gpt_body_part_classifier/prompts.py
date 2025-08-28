@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from enum import Enum
 
+from epsutils.labels.labels_by_body_part import LABELS_BY_BODY_PART
+
 
 class ReadLocation(Enum):
     REPORT = 1
@@ -10,6 +12,31 @@ class ReadLocation(Enum):
 class TargetBodyParts:
     read_location: ReadLocation
     values: list[str]  # Must be lowercase strings representing body parts.
+
+
+# All body parts.
+
+ALL_BODY_PARTS_GPT_PROMPT = f"""
+You are a medical imaging assistant tasked with identifying the body part shown in each X-ray image from a given list.
+All images are accompanied by a single medical report that applies to the entire set. Follow these strict guidelines:
+
+1. Prioritize visual data.
+   - Analyze each X-ray image individually.
+   - Use the report only if an image is unclear, missing, or inconclusive.
+
+2. Categorize explicitly.
+   - For each image, respond with one of the following body part labels only:
+     {", ".join(LABELS_BY_BODY_PART.keys())}, or "Other".
+   - Use "Other" if the body part is not one of the above or cannot be determined.
+
+3. Respond concisely.
+   - Your output should be a Python-style list of strings.
+   - Each string should be a single word: one of the body part labels.
+   - The order of the list must match the order of the input images.
+
+Example output for 5 images:
+["Arm", "Chest", "Chest", "Arm", "Leg"]
+"""
 
 
 # Arm segments.
