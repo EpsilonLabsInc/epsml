@@ -1,6 +1,6 @@
 #!/bin/bash
 
-BATCH_DIRS=(
+DIRS=(
   "/mnt/all-data/png/org-size/gradient/09JAN2025"
   "/mnt/all-data/png/org-size/gradient/13JAN2025"
   "/mnt/all-data/png/org-size/gradient/16AUG2024"
@@ -20,8 +20,8 @@ BATCH_DIRS=(
   "/mnt/all-data/png/org-size/simonmed"
 )
 
-echo "Batch disk usage report:"
-for dir in "${BATCH_DIRS[@]}"; do
+echo "Disk usage report:"
+for dir in "${DIRS[@]}"; do
   (
     if [ -d "$dir" ]; then
       usage=$(du -sh "$dir" 2>/dev/null | cut -f1)
