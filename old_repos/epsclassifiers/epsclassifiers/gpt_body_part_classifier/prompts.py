@@ -38,7 +38,6 @@ Example output for 5 images:
 ["Arm", "Chest", "Chest", "Arm", "Leg"]
 """
 
-
 # Arm segments.
 
 ARM_SEGMENTS_GPT_PROMPT = """
