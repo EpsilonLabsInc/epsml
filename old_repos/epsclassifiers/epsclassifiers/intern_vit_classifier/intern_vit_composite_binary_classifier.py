@@ -10,6 +10,18 @@ from epsutils.training.probabilities_reduction import ProbabilitiesReductionStra
 from intern_vit_classifier import InternVitClassifier
 
 
+class AttentionalPoolingWithClassifierHead(torch.nn.Module):
+    def __init__(self, attentional_pooling: torch.nn.Module, classifier: torch.nn.Module):
+        super().__init__()
+        self.__attentional_pooling = attentional_pooling
+        self.__classifier = classifier
+    
+    def forward(self, x: torch.Tensor):
+        x, attention_weights = self.__attentional_pooling(x)
+        del attention_weights
+        return self.__classifier(x)
+
+
 class InternVitCompositeBinaryClassifier:
     def __init__(self,
                  grouped_binary_classifier_checkpoints,
@@ -17,6 +29,7 @@ class InternVitCompositeBinaryClassifier:
                  intern_vit_output_dim=3200,  # 3200 for InternVL 26B model, 1024 for InternVL 8B model.
                  device="cuda",
                  probabilities_reduction_strategy=ProbabilitiesReductionStrategy.MAX,
+                 use_attentional_pooling=True,
                  **kwargs):
 
         self.__grouped_binary_classifier_checkpoints = grouped_binary_classifier_checkpoints
@@ -24,6 +37,7 @@ class InternVitCompositeBinaryClassifier:
         self.__intern_vit_output_dim = intern_vit_output_dim
         self.__device = device
         self.__probabilities_reduction_strategy = probabilities_reduction_strategy
+        self.__use_attentional_pooling = use_attentional_pooling
 
         self.__backbones = {}
         self.__heads = {}
@@ -46,15 +60,21 @@ class InternVitCompositeBinaryClassifier:
                 print(f"Loading binary classifier checkpoint for '{group}/{name}'")
                 state_dict = torch.load(path)
                 backbone.load_state_dict(state_dict["model_state_dict"])
-                head = copy.deepcopy(backbone.classifier)
+                if self.__use_attentional_pooling:
+                    head = AttentionalPoolingWithClassifierHead(
+                        copy.deepcopy(backbone.attentional_pooling), copy.deepcopy(backbone.classifier)
+                    )
+                else:
+                    head = copy.deepcopy(backbone.classifier)
+                head.to(self.__device)
                 head.eval()
                 self.__heads[group]["heads"].append({"name": name, "model": head})
 
     def predict(self, group, dicom_files):
         num_multi_images = self.__heads[group]["num_multi_images"]
 
-        # In multi-image mode, the number of input images must match.
-        assert num_multi_images == 1 or len(dicom_files) == num_multi_images
+        # In multi-image mode, the number of input images must match (or be None to indicate attention pooling).
+        assert num_multi_images == 1 or len(dicom_files) == num_multi_images or num_multi_images is None
 
         # Convert DICOM files to PIL images.
         images = []
@@ -70,19 +90,23 @@ class InternVitCompositeBinaryClassifier:
         pixel_values = pixel_values.to(torch.bfloat16)
 
         # Add batch dimension.
-        if num_multi_images > 1:
+        if num_multi_images > 1 or num_multi_images is None:
             pixel_values = pixel_values.unsqueeze(0)
 
         # Run prediction using the backbone.
         with torch.no_grad():
             res = backbone(pixel_values.to(self.__device))
             embeddings = res["embeddings"]
+            last_hidden_state = res["last_hidden_state"]
 
         # Pass embeddings into separate heads.
         with torch.no_grad():
             all_probs = []
             for head in self.__heads[group]["heads"]:
-                output = head["model"](embeddings)
+                if self.__use_attentional_pooling:
+                    output = head["model"](last_hidden_state)
+                else:
+                    output = head["model"](embeddings)
                 probs = torch.sigmoid(output)
 
                 if num_multi_images == 1:
@@ -92,7 +116,7 @@ class InternVitCompositeBinaryClassifier:
 
         return all_probs
 
-    def __get_backbone(self, num_multi_images):
+    def __get_backbone(self, num_multi_images: int | None):
         if num_multi_images in self.__backbones:
             return self.__backbones[num_multi_images]
 
@@ -100,8 +124,9 @@ class InternVitCompositeBinaryClassifier:
         backbone = InternVitClassifier(num_classes=1,
                                        intern_vl_checkpoint_dir=self.__intern_vl_checkpoint_dir,
                                        intern_vit_output_dim=self.__intern_vit_output_dim,
-                                       multi_image_input=num_multi_images > 1,
-                                       num_multi_images=num_multi_images)
+                                       multi_image_input=(num_multi_images > 1) if num_multi_images is not None else True,
+                                       num_multi_images=num_multi_images,
+                                       use_attentional_pooling=True)
 
         backbone.to(self.__device)
         backbone.eval()

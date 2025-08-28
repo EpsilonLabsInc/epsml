@@ -134,7 +134,7 @@ class InternVitClassifier(nn.Module):
                 last_hidden_state = output.last_hidden_state.reshape(batch, -1)
 
         elif self.__multi_image_input and self.__num_multi_images is None:
-            assert isinstance(images, list)
+            assert isinstance(images, list) or (isinstance(images, torch.Tensor) and len(images.shape) == 5 and images.shape[0] == 1)
             flat_tensor_list = [tensor for tensors in images for tensor in tensors]
             images_reshaped = torch.stack(flat_tensor_list)
             output = self.intern_vit(images_reshaped)
