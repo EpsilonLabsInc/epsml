@@ -7,19 +7,10 @@ from epsutils.dicom import dicom_utils
 from epsutils.image import image_utils
 from epsutils.training.probabilities_reduction import ProbabilitiesReductionStrategy, probabilities_reduction
 
-from intern_vit_classifier import InternVitClassifier
-
-
-class AttentionalPoolingWithClassifierHead(torch.nn.Module):
-    def __init__(self, attentional_pooling: torch.nn.Module, classifier: torch.nn.Module):
-        super().__init__()
-        self.__attentional_pooling = attentional_pooling
-        self.__classifier = classifier
-    
-    def forward(self, x: torch.Tensor):
-        x, attention_weights = self.__attentional_pooling(x)
-        del attention_weights
-        return self.__classifier(x)
+from intern_vit_classifier import (
+    AttentionalPoolingWithClassifierHead,
+    InternVitClassifier,
+)
 
 
 class InternVitCompositeBinaryClassifier:
@@ -126,7 +117,7 @@ class InternVitCompositeBinaryClassifier:
                                        intern_vit_output_dim=self.__intern_vit_output_dim,
                                        multi_image_input=(num_multi_images > 1) if num_multi_images is not None else True,
                                        num_multi_images=num_multi_images,
-                                       use_attentional_pooling=True)
+                                       use_attentional_pooling=self.__use_attentional_pooling)
 
         backbone.to(self.__device)
         backbone.eval()
@@ -138,35 +129,35 @@ class InternVitCompositeBinaryClassifier:
 if __name__ == "__main__":
     # InternVitCompositeBinaryClassifier example.
 
-    INTERN_VL_CHECKPOINT_DIR = "/mnt/data/intervl_weights/no_labels/internvl3_chimera_20250810_083849_1e-5_0810_no_label_gpt_bodypart/checkpoint-10466"
+    INTERN_VL_CHECKPOINT_DIR = "/mnt/training/internvl_weights/internvl3_chimera_20250810_083849_1e-5_0810_no_label_gpt_bodypart/checkpoint-10466"
     GROUPED_BINARY_CLASSIFIER_CHECKPOINTS = {
         "chest": {
             "num_multi_images": 2,
             "checkpoints": [
-                {"name": "emphysema", "path": "/home/arjun/rui/release_intern_vit_classifier-training-on-chest_emphysema/checkpoint/checkpoint_epoch_1_20250828_122548_utc.pt"},
-                {"name": "support_devices", "path": "/home/arjun/rui/release_intern_vit_classifier-training-on-chest_support_devices/checkpoint/checkpoint_epoch_1_20250827_155454_utc.pt"},
+                {"name": "emphysema", "path": "/mnt/training/attention_pooling_checkpoints/chest/release_intern_vit_classifier-training-on-chest_emphysema/checkpoint/checkpoint_epoch_1_20250828_122548_utc.pt"},
+                {"name": "support_devices", "path": "/release_intern_vit_classifier-training-on-chest_support_devices/checkpoint/checkpoint_epoch_1_20250827_155454_utc.pt"},
             ]
         },
         "head": {
             "num_multi_images": None,
             "checkpoints": [
-                {"name": "fracture", "path": "/home/arjun/rui/release_intern_vit_classifier-training-on-chest_emphysema/checkpoint/checkpoint_epoch_1_20250828_122548_utc.pt"},
-                {"name": "no_findings", "path": "/home/arjun/rui/release_intern_vit_classifier-training-on-chest_emphysema/checkpoint/checkpoint_epoch_1_20250828_122548_utc.pt"},
+                {"name": "fracture", "path": "/mnt/training/attention_pooling_checkpoints/head/release_intern_vit_classifier-training-on-chest_emphysema/checkpoint/checkpoint_epoch_1_20250828_122548_utc.pt"},
+                {"name": "no_findings", "path": "/mnt/training/attention_pooling_checkpoints/head/release_intern_vit_classifier-training-on-chest_emphysema/checkpoint/checkpoint_epoch_1_20250828_122548_utc.pt"},
             ]
         },
         "pelvis": {
             "num_multi_images": 1,
             "checkpoints": [
-                {"name": "fracture", "path": "/home/arjun/rui/release_intern_vit_classifier-training-on-chest_emphysema/checkpoint/checkpoint_epoch_1_20250828_122548_utc.pt"},
-                {"name": "no_findings", "path": "/home/arjun/rui/release_intern_vit_classifier-training-on-chest_emphysema/checkpoint/checkpoint_epoch_1_20250828_122548_utc.pt"},
+                {"name": "fracture", "path": "/mnt/training/attention_pooling_checkpoints/pelvis/release_intern_vit_classifier-training-on-chest_emphysema/checkpoint/checkpoint_epoch_1_20250828_122548_utc.pt"},
+                {"name": "no_findings", "path": "/mnt/training/attention_pooling_checkpoints/pelvis/release_intern_vit_classifier-training-on-chest_emphysema/checkpoint/checkpoint_epoch_1_20250828_122548_utc.pt"},
             ]
         },
     }
 
     # Edema.
     DICOM_FILES = [
-        "/home/arjun/tmp/dcm/1.2.826.0.1.3680043.8.498.13418427961977328036029752570867031541.dcm",
-        "/home/arjun/tmp/dcm/1.2.826.0.1.3680043.8.498.83519664942235257620802927312300077032.dcm"
+        "/mnt/sfs-gradient-chest/22JUL2024/GRDN87VZUPS8K1XS/GRDNJ7GNGOQI87RV/studies/1.2.826.0.1.3680043.8.498.43077057944350341201820145574876698829/series/1.2.826.0.1.3680043.8.498.71619914322538516903099898284356295253/instances/1.2.826.0.1.3680043.8.498.13418427961977328036029752570867031541.dcm",
+        "/mnt/sfs-gradient-chest/22JUL2024/GRDN87VZUPS8K1XS/GRDNJ7GNGOQI87RV/studies/1.2.826.0.1.3680043.8.498.43077057944350341201820145574876698829/series/1.2.826.0.1.3680043.8.498.96671321347557557720154152227531287229/instances/1.2.826.0.1.3680043.8.498.83519664942235257620802927312300077032.dcm"
     ]
 
     # Consolidation.

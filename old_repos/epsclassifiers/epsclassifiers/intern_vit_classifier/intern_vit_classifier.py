@@ -8,6 +8,17 @@ from epsutils.training.tile_splitting_image_processor import TileSplittingImageP
 from intern_vit import InternVit
 
 
+class AttentionalPoolingWithClassifierHead(torch.nn.Module):
+    def __init__(self, attentional_pooling: torch.nn.Module, classifier: torch.nn.Module):
+        super().__init__()
+        self.__attentional_pooling = attentional_pooling
+        self.__classifier = classifier
+    
+    def forward(self, x: torch.Tensor):
+        x, _ = self.__attentional_pooling(x)
+        return self.__classifier(x)
+
+
 class AttentionalPooling(nn.Module):
     def __init__(self, hidden_size, dims_per_head=64):
         super().__init__()
