@@ -154,6 +154,13 @@ if __name__ == "__main__":
                 {"name": "no_findings", "path": "/home/arjun/rui/release_intern_vit_classifier-training-on-chest_emphysema/checkpoint/checkpoint_epoch_1_20250828_122548_utc.pt"},
             ]
         },
+        "pelvis": {
+            "num_multi_images": 1,
+            "checkpoints": [
+                {"name": "fracture", "path": "/home/arjun/rui/release_intern_vit_classifier-training-on-chest_emphysema/checkpoint/checkpoint_epoch_1_20250828_122548_utc.pt"},
+                {"name": "no_findings", "path": "/home/arjun/rui/release_intern_vit_classifier-training-on-chest_emphysema/checkpoint/checkpoint_epoch_1_20250828_122548_utc.pt"},
+            ]
+        },
     }
 
     # Edema.
@@ -186,6 +193,7 @@ if __name__ == "__main__":
     output = {}
     output["chest"] = classifier.predict(group="chest", dicom_files=DICOM_FILES)
     output["head"] = classifier.predict(group="head", dicom_files=DICOM_FILES)
+    output["pelvis"] = classifier.predict(group="pelvis", dicom_files=DICOM_FILES)
 
     import pprint
     print("Predicted values:")
