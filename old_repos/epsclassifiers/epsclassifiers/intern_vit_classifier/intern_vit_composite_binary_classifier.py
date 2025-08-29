@@ -90,7 +90,7 @@ class InternVitCompositeBinaryClassifier:
         pixel_values = pixel_values.to(torch.bfloat16)
 
         # Add batch dimension.
-        if num_multi_images > 1 or num_multi_images is None:
+        if num_multi_images is None or num_multi_images > 1:
             pixel_values = pixel_values.unsqueeze(0)
 
         # Run prediction using the backbone.
