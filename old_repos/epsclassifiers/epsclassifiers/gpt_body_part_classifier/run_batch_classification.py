@@ -134,7 +134,11 @@ def assemble_results(output_file_names):
                 data = json.loads(line)
                 index = data["custom_id"]
                 result = data["response"]["body"]["choices"][0]["message"]["content"].strip().strip("\"")
-                results.append({"index": index, "result": result})
+                try:
+                    parsed_result = ast.literal_eval(result)
+                except:
+                    parsed_result = result
+                results.append({"index": index, "result": parsed_result})
 
     return results
 
