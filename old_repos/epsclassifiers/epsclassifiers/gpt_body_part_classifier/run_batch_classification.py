@@ -16,6 +16,31 @@ from epsutils.image import image_utils
 
 import prompts
 
+DEFAULT_CONFIG = {
+    "reports_file": "/mnt/all-data/reports/segmed/batch1/segmed_batch_1_final.csv",  # Reports CSV file. Can be local file or GCS URI.
+    "output_file": "/mnt/all-data/reports/segmed/batch1/segmed_batch_1_final_with_body_parts.csv",
+    "image_paths_column": "filtered_image_paths",
+    "base_images_path": "/mnt/all-data/png/512x512/segmed/batch1",
+    "use_png": True,
+    "target_image_size": (200, 200),
+    "per_image_classification": True,
+    "column_name_to_add": "body_part",
+    "max_num_rows": None,
+    "max_workers": 20,
+    "clean_up_files": True,
+    "gpt_prompt": prompts.ALL_BODY_PARTS_GPT_PROMPT,
+    "gpt_config": {
+        "endpoint": "https://epsilon-eastus.openai.azure.com/",
+        "api_key": "9b568fdffb144272811cb5fad8b584a0",
+        "api_version": "2024-12-01-preview",
+        "batch_deployment": "gpt-4.1",
+        "batch_mini_deployment": "gpt-4.1",
+        "standard_deployment": "gpt-4o-standard",
+        "standard_mini_deployment": "gpt-4o-mini-standard",
+        "clean_up_azure_files": True
+    }
+}
+
 
 def process_row(row, image_paths_column, base_images_path, use_png, target_image_size):
     if pd.isna(row["report_text"]):
@@ -224,41 +249,25 @@ def main(args):
 
 
 if __name__ == "__main__":
-    REPORTS_FILE = "/mnt/all-data/reports/segmed/batch1/segmed_batch_1_final.csv"  # Reports CSV file. Can be local file or GCS URI.
-    OUTPUT_FILE = "/mnt/all-data/reports/segmed/batch1/segmed_batch_1_final_with_gpt_body_parts.csv"
-    IMAGE_PATHS_COLUMN = "filtered_image_paths"
-    BASE_IMAGES_PATH = "/mnt/all-data/png/512x512/segmed/batch1"
-    USE_PNG = True
-    TARGET_IMAGE_SIZE = (200, 200)
-    PER_IMAGE_CLASSIFICATION = True
-    COLUMN_NAME_TO_ADD = "body_part_gpt"
-    MAX_NUM_ROWS = None
-    MAX_WORKERS = 20
-    CLEAN_UP_FILES = True
-    GPT_PROMPT = prompts.ALL_BODY_PARTS_GPT_PROMPT
-    GPT_CONFIG = {
-        "endpoint": "https://epsilon-eastus.openai.azure.com/",
-        "api_key": "9b568fdffb144272811cb5fad8b584a0",
-        "api_version": "2024-12-01-preview",
-        "batch_deployment": "gpt-4.1",
-        "batch_mini_deployment": "gpt-4.1",
-        "standard_deployment": "gpt-4o-standard",
-        "standard_mini_deployment": "gpt-4o-mini-standard",
-        "clean_up_azure_files": True
-    }
+    parser = argparse.ArgumentParser(description="Run GPT-based body part classification on X-ray images & reports.")
+    parser.add_argument("--reports_file", type=str, help="Path to the reports CSV file.")
+    parser.add_argument("--output_file", type=str, help="Path to the output CSV file.")
+    parser.add_argument("--image_paths_column", type=str, help="Column name containing image paths.")
+    parser.add_argument("--base_images_path", type=str, help="Base directory for image files.")
+    parser.add_argument("--use_png", action="store_true", help="Use PNG images instead of DICOM?")
+    parser.add_argument("--column_name_to_add", type=str, help="Name of the column with GPT results to add.")
+    parser.add_argument("--gpt_prompt", type=str, help="Custom GPT prompt string.")
+    args = parser.parse_args()
 
-    args = argparse.Namespace(reports_file=REPORTS_FILE,
-                              output_file=OUTPUT_FILE,
-                              image_paths_column=IMAGE_PATHS_COLUMN,
-                              base_images_path=BASE_IMAGES_PATH,
-                              use_png=USE_PNG,
-                              target_image_size=TARGET_IMAGE_SIZE,
-                              per_image_classification=PER_IMAGE_CLASSIFICATION,
-                              column_name_to_add=COLUMN_NAME_TO_ADD,
-                              max_num_rows=MAX_NUM_ROWS,
-                              max_workers=MAX_WORKERS,
-                              clean_up_files=CLEAN_UP_FILES,
-                              gpt_prompt=GPT_PROMPT,
-                              gpt_config=GPT_CONFIG)
+    # Fill in missing values from defaults.
+    args_dict = vars(args)
+    for key, value in DEFAULT_CONFIG.items():
+        if args_dict.get(key) is None:
+            args_dict[key] = value
+
+    args = argparse.Namespace(**args_dict)
+
+    print("GPT body part classifier will be using the following configuration:")
+    print(f"{json.dumps(vars(args), indent=4)}")
 
     main(args)
