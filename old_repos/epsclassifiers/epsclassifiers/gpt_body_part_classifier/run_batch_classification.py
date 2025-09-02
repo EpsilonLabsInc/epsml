@@ -17,33 +17,16 @@ from epsutils.image import image_utils
 import prompts
 
 
-def process_row(row, base_path_substitutions, target_body_parts, target_image_size, use_png):
-    if pd.isna(row.report_text):
+def process_row(row, image_paths_column, base_images_path, use_png, target_image_size):
+    if pd.isna(row["report_text"]):
         return None
 
-    # Get base path substitution.
-    base_path = row.base_path
-    if base_path not in base_path_substitutions:
-        return None
-    elif base_path_substitutions[base_path] is None:
-        return None
-    subst = base_path_substitutions[base_path]
-
-    # Compare body part with target body parts.
-    if target_body_parts.read_location == prompts.ReadLocation.REPORT:
-        body_part = row.body_part.lower() if pd.notna(row.body_part) else ""
-    elif target_body_parts.read_location == prompts.ReadLocation.DICOM:
-        body_part = row.body_part_dicom.lower() if pd.notna(row.body_part_dicom) else ""
-    else:
-        raise ValueError(f"Unknown read location: {target_body_parts.read_location}")
-
-    if not any(item.lower() in body_part for item in target_body_parts.values):
-        return None
+    image_paths = ast.literal_eval(row[image_paths_column])
+    images = []
 
     # Get all study images and convert them to JPEG.
-    images = []
-    for image_path in ast.literal_eval(row.image_paths):
-        image_path = os.path.join(subst, image_path)
+    for image_path in image_paths:
+        image_path = os.path.join(base_images_path, image_path)
 
         try:
             if use_png:
@@ -67,32 +50,56 @@ def process_row(row, base_path_substitutions, target_body_parts, target_image_si
         return None
 
     return {
-        "index": row.Index,
+        "index": row["index"],
         "images": images,
-        "report_text": row.report_text,
-        "body_part_dicom": row.body_part_dicom
+        "report_text": row["report_text"]
     }
 
+def process_row_wrapper(args):
+    row, image_paths_column, base_images_path, use_png, target_image_size = args
+    return process_row(row, image_paths_column, base_images_path, use_png, target_image_size)
 
-def filter_reports(df, base_path_substitutions, target_body_parts, target_image_size, use_png):
-    with ThreadPoolExecutor() as executor:
-        results = list(tqdm(executor.map(lambda row: process_row(row, base_path_substitutions, target_body_parts, target_image_size, use_png), [row for row in df.itertuples()]),
+def extract_data(df, image_paths_column, base_images_path, use_png, target_image_size, per_image_classification):
+    rows = [{**row, "index": idx} for idx, row in zip(df.index, df.to_dict(orient="records"))]
+    args_list = [(row, image_paths_column, base_images_path, use_png, target_image_size) for row in rows]
+
+    with ProcessPoolExecutor() as executor:
+        results = list(tqdm(executor.map(process_row_wrapper, args_list),
                             total=len(df),
                             desc="Processing"))
 
-    filtered_reports = [item for item in results if item is not None]
+    # Get rid of invalid items.
+    data = [item for item in results if item is not None]
 
-    return filtered_reports
+    # In case of per-image classification, data needs to be flattened so that each study image is a separate entry.
+    if per_image_classification:
+        data = [
+            {
+                "index": item["index"],
+                "image_index": i,
+                "images": [image],
+                "report_text": item["report_text"],
+            }
+            for item in data
+            for i, image in enumerate(item["images"])
+        ]
 
+    return data
 
-def run_batches(filtered_reports, gpt_prompt, gpt_config, max_workers):
+def generate_request_id(item):
+        if "image_index" in item:
+            return f"{item['index']}_{item['image_index']}"
+        else:
+            return f"{item['index']}"
+
+def run_batches(data, gpt_prompt, gpt_config, max_workers):
     requests = []
 
-    for item in filtered_reports:
+    for item in data:
         request = gpt_utils.create_request(system_prompt=gpt_prompt,
                                            user_prompt=item["report_text"],
                                            images=item["images"],
-                                           request_id=str(item["index"]),
+                                           request_id=generate_request_id(item),
                                            deployment=gpt_config["batch_deployment"])
         requests.append(request)
 
@@ -125,12 +132,36 @@ def assemble_results(output_file_names):
         with open(output_file_name, "r") as file:
             for line in file:
                 data = json.loads(line)
-                index = int(data["custom_id"])
+                index = data["custom_id"]
                 result = data["response"]["body"]["choices"][0]["message"]["content"].strip().strip("\"")
                 results.append({"index": index, "result": result})
 
     return results
 
+def aggregate_per_image_results_to_per_study(results):
+    aggregated_results = {}
+
+    for item in results:
+        # Split index like "5_3" into study_index=5 and image_index=3
+        study_index_str, image_index_str = item["index"].split("_")
+        study_index = int(study_index_str)
+        image_index = int(image_index_str)
+
+        if study_index not in aggregated_results:
+            aggregated_results[study_index] = []
+
+        aggregated_results[study_index].append((image_index, item["result"]))
+
+    # Sort each study's results by image_index and flatten the result list.
+    results = [
+        {
+            "index": study_index,
+            "result": [result for _, result in sorted(body_parts)]
+        }
+        for study_index, body_parts in aggregated_results.items()
+    ]
+
+    return results
 
 def main(args):
     if gcs_utils.is_gcs_uri(args.reports_file):
@@ -143,27 +174,28 @@ def main(args):
     print("Loading reports file")
     df = pd.read_csv(content, low_memory=False)
 
-    print("Filtering reports")
-    filtered_reports = filter_reports(df=df,
-                                      base_path_substitutions=args.base_path_substitutions,
-                                      target_body_parts=args.target_body_parts,
-                                      target_image_size=args.target_image_size,
-                                      use_png=args.use_png)
-
     if args.max_num_rows is not None:
-        filtered_reports = filtered_reports[:args.max_num_rows]
+        df = df.iloc[:args.max_num_rows]
 
-    print("Filtered reports samples:")
-    print(filtered_reports[:10])
+    print("Extracting data from reports")
+    extracted_data = extract_data(df=df,
+                                  image_paths_column=args.image_paths_column,
+                                  base_images_path=args.base_images_path,
+                                  use_png=args.use_png,
+                                  target_image_size=args.target_image_size,
+                                  per_image_classification=args.per_image_classification)
 
-    print("")
-    print(f"Number of filtered reports: {len(filtered_reports)}")
+    print(f"Extracted data has {len(extracted_data)} rows")
 
     print("Running batches")
-    input_file_names, output_file_names = run_batches(filtered_reports=filtered_reports, gpt_prompt=args.gpt_prompt, gpt_config=args.gpt_config, max_workers=args.max_workers)
+    input_file_names, output_file_names = run_batches(data=extracted_data, gpt_prompt=args.gpt_prompt, gpt_config=args.gpt_config, max_workers=args.max_workers)
 
     print("Assemble results")
     results = assemble_results(output_file_names)
+
+    if args.per_image_classification:
+        print("Aggregating per-image results back to per-study")
+        results = aggregate_per_image_results_to_per_study(results)
 
     print("Updating reports")
     mapping = {item["index"]: item["result"] for item in results}
@@ -188,28 +220,18 @@ def main(args):
 
 
 if __name__ == "__main__":
-    REPORTS_FILE = "/mnt/training/splits/gradient_batches_1-5_segmed_batches_1-4_simonmed_batches_1-10_reports_with_labels_test.csv"  # Reports CSV file. Can be local file or GCS URI.
-    OUTPUT_FILE = "/mnt/training/splits/gradient_batches_1-5_segmed_batches_1-4_simonmed_batches_1-10_reports_with_labels_spine_test.csv"
+    REPORTS_FILE = "/mnt/all-data/reports/segmed/batch1/segmed_batch_1_final.csv"  # Reports CSV file. Can be local file or GCS URI.
+    OUTPUT_FILE = "/mnt/all-data/reports/segmed/batch1/segmed_batch_1_final_with_gpt_body_parts.csv"
+    IMAGE_PATHS_COLUMN = "filtered_image_paths"
+    BASE_IMAGES_PATH = "/mnt/all-data/png/512x512/segmed/batch1"
     USE_PNG = True
-    COLUMN_NAME_TO_ADD = "is_spine"
-    TARGET_BODY_PARTS = prompts.IS_SPINE_TARGET_BODY_PARTS
     TARGET_IMAGE_SIZE = (200, 200)
+    PER_IMAGE_CLASSIFICATION = True
+    COLUMN_NAME_TO_ADD = "body_part_gpt"
     MAX_NUM_ROWS = None
     MAX_WORKERS = 20
     CLEAN_UP_FILES = True
-    BASE_PATH_SUBSTITUTIONS = {
-        "gradient/22JUL2024": None,
-        "gradient/20DEC2024": None,
-        "gradient/09JAN2025": None,
-        "gradient/16AUG2024": "/mnt/png/512x512/gradient/16AUG2024",
-        "gradient/13JAN2025": "/mnt/png/512x512/gradient/13JAN2025/deid",
-        "segmed/batch1": "/mnt/png/512x512/segmed/batch1",
-        "segmed/batch2": "/mnt/png/512x512/segmed/batch2",
-        "segmed/batch3": "/mnt/png/512x512/segmed/batch3",
-        "segmed/batch4": "/mnt/png/512x512/segmed/batch4",
-        "simonmed": "/mnt/png/512x512/simonmed"
-    }
-    GPT_PROMPT = prompts.IS_SPINE_GPT_PROMPT
+    GPT_PROMPT = prompts.ALL_BODY_PARTS_GPT_PROMPT
     GPT_CONFIG = {
         "endpoint": "https://epsilon-eastus.openai.azure.com/",
         "api_key": "9b568fdffb144272811cb5fad8b584a0",
@@ -223,14 +245,15 @@ if __name__ == "__main__":
 
     args = argparse.Namespace(reports_file=REPORTS_FILE,
                               output_file=OUTPUT_FILE,
+                              image_paths_column=IMAGE_PATHS_COLUMN,
+                              base_images_path=BASE_IMAGES_PATH,
                               use_png=USE_PNG,
-                              column_name_to_add=COLUMN_NAME_TO_ADD,
-                              target_body_parts=TARGET_BODY_PARTS,
                               target_image_size=TARGET_IMAGE_SIZE,
+                              per_image_classification=PER_IMAGE_CLASSIFICATION,
+                              column_name_to_add=COLUMN_NAME_TO_ADD,
                               max_num_rows=MAX_NUM_ROWS,
                               max_workers=MAX_WORKERS,
                               clean_up_files=CLEAN_UP_FILES,
-                              base_path_substitutions=BASE_PATH_SUBSTITUTIONS,
                               gpt_prompt=GPT_PROMPT,
                               gpt_config=GPT_CONFIG)
 
