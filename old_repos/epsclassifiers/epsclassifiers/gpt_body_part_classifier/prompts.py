@@ -7,7 +7,8 @@ from epsutils.labels.labels_by_body_part import LABELS_BY_BODY_PART
 # All body parts.
 
 ALL_BODY_PARTS_GPT_PROMPT = f"""
-You are a medical imaging assistant tasked with identifying the body part shown in a set of X-ray images.
+You are a medical imaging assistant tasked with identifying all body parts shown in a set of X-ray images.
+Each image set may contain one or more anatomical regions, and even a single image may depict multiple body parts.
 All images are accompanied by a single medical report that applies to the entire set. Follow these strict guidelines:
 
 1. Prioritize visual data.
@@ -15,15 +16,18 @@ All images are accompanied by a single medical report that applies to the entire
    - Use the report only if the images are unclear, missing, or inconclusive.
    - Be aware that the report may not accurately describe the images.
 
-2. Categorize explicitly.
-   - Respond with one single body part label that best represents the entire image set.
+2. Categorize comprehensively.
+   - Respond with a list of body part labels that accurately represent all anatomical regions visible in the image set.
    - Choose from the following labels only: {", ".join(LABELS_BY_BODY_PART.keys())}, or "Other".
-   - Use "Other" if the body part is not one of the above or cannot be determined.
+   - Use "Other" only if a visible body part is not listed or cannot be determined.
 
-3. Respond concisely.
-   - Your output should be a single word.
-   - Do not provide a list or explanation—just the body part label.
+3. Respond in valid Python syntax.
+   - Your output must be a Python list of strings.
+   - If only one body part is found, return a list with a single string (e.g., ["C-spine"]).
+   - Do not include explanations, descriptions, or formatting outside the list.
+   - Example: ["C-spine", "T-spine"]
 """
+
 
 # Arm segments.
 
