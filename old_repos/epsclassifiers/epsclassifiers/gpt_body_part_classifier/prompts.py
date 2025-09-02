@@ -28,7 +28,6 @@ All images are accompanied by a single medical report that applies to the entire
    - Example: ["C-spine", "T-spine"]
 """
 
-
 # Arm segments.
 
 ARM_SEGMENTS_GPT_PROMPT = """
