@@ -2,7 +2,7 @@ import argparse
 import ast
 import json
 import os
-from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from io import StringIO, BytesIO
 
 import pandas as pd
@@ -215,7 +215,8 @@ def main(args):
 
     print("Updating reports")
     mapping = {item["index"]: item["result"] for item in results}
-    df[args.column_name_to_add] = pd.Series(mapping).reindex(df.index)
+    df[args.structured_body_part_column_to_add] = pd.Series(mapping).reindex(df.index)
+    df[args.body_part_column_to_add] = df[args.structured_body_part_column_to_add].apply(lambda parts: ",".join(sorted(set(part for sublist in parts for part in sublist))))
 
     print("Saving output file")
     df.to_csv(args.output_file, index=False)
@@ -243,7 +244,8 @@ if __name__ == "__main__":
     parser.add_argument("--base_images_path", type=str, default="/mnt/all-data/png/512x512/segmed/batch1", help="Base directory for image files.")
     parser.add_argument("--use_png", action="store_true", help="Use PNG images instead of DICOM?")
     parser.add_argument("--per_image_classification", action="store_true", help="Run per-image classification instead of per-study?")
-    parser.add_argument("--column_name_to_add", type=str, default="body_part", help="Name of the column with GPT results to add.")
+    parser.add_argument("--structured_body_part_column_to_add", type=str, default="body_part", help="Name of the column with structured GPT classified body parts to add.")
+    parser.add_argument("--body_part_column_to_add", type=str, default="body_part", help="Name of the column with GPT classified body parts to add.")
     parser.add_argument("--clean_up_files", action="store_true", help="Clean up local files after processing?")
     parser.add_argument("--gpt_prompt", type=str, default=prompts.ALL_BODY_PARTS_GPT_PROMPT, help="Custom GPT prompt string.")
     args = parser.parse_args()
