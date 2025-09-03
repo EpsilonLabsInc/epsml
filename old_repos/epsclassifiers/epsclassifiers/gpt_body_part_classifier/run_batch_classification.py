@@ -228,9 +228,9 @@ def main(args):
                 os.remove(file_to_delete)
 
     print("Cleaning up Azure files")
-    gpt_utils.delete_files(endpoint=args.gpt_config["endpoint"],
-                           api_key=args.gpt_config["api_key"],
-                           api_version=args.gpt_config["api_version"],
+    gpt_utils.delete_files(endpoint=GPT_CONFIG["endpoint"],
+                           api_key=GPT_CONFIG["api_key"],
+                           api_version=GPT_CONFIG["api_version"],
                            force=True,
                            purpose="batch")
 
