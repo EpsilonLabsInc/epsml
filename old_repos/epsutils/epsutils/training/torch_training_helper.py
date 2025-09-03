@@ -28,11 +28,11 @@ def custom_scatter(inputs, target_gpus, dim=0):
             if key == 'images' and isinstance(value, list):
                 # Find max sublist length for padding
                 max_sublist_len = max(len(sublist) for sublist in value)
-                
+
                 # Split the outer list across devices
                 chunk_size = len(value) // len(target_gpus)
                 remainder = len(value) % len(target_gpus)
-                
+
                 scattered_images = []
                 scattered_masks = []
                 start_idx = 0
@@ -40,16 +40,16 @@ def custom_scatter(inputs, target_gpus, dim=0):
                     # Give remainder to first few GPUs
                     current_chunk_size = chunk_size + (1 if i < remainder else 0)
                     end_idx = start_idx + current_chunk_size
-                    
+
                     # Get the chunk and move all tensors to the target device
                     chunk = value[start_idx:end_idx]
                     device_chunk = []
                     device_masks = []
-                    
+
                     for sublist in chunk:
                         device_sublist = []
                         sublist_mask = []
-                        
+
                         # Add real images and mark as valid (1)
                         for tensor in sublist:
                             if isinstance(tensor, torch.Tensor):
@@ -58,7 +58,7 @@ def custom_scatter(inputs, target_gpus, dim=0):
                             else:
                                 device_sublist.append(tensor)
                                 sublist_mask.append(1)
-                        
+
                         # Pad sublist to max length with zeros and mark as invalid (0)
                         while len(device_sublist) < max_sublist_len:
                             if len(device_sublist) > 0 and isinstance(device_sublist[0], torch.Tensor):
@@ -68,20 +68,20 @@ def custom_scatter(inputs, target_gpus, dim=0):
                                 sublist_mask.append(0)
                             else:
                                 break  # Can't pad if we don't know tensor shape
-                        
+
                         device_chunk.append(device_sublist)
                         device_masks.append(sublist_mask)
-                    
+
                     scattered_images.append(device_chunk)
                     scattered_masks.append(device_masks)
                     start_idx = end_idx
-                
+
                 scattered_inputs[key] = scattered_images
                 scattered_inputs['image_masks'] = scattered_masks
             else:
                 # Use default scatter for other keys
                 scattered_inputs[key] = scatter(value, target_gpus, dim)
-        return [dict(zip(scattered_inputs.keys(), values)) 
+        return [dict(zip(scattered_inputs.keys(), values))
                 for values in zip(*scattered_inputs.values())]
     else:
         return scatter(inputs, target_gpus, dim)
@@ -107,6 +107,7 @@ class TrainingParameters:
             criterion=torch.nn.CrossEntropyLoss(),
             checkpoint_dir="checkpoint",
             last_checkpoint=None,
+            save_stripped_checkpoint=True,
             moving_average_window_width=100,
             perform_intra_epoch_validation=False,
             intra_epoch_validation_step=1000,
@@ -128,6 +129,7 @@ class TrainingParameters:
         self.criterion = criterion
         self.checkpoint_dir = checkpoint_dir
         self.last_checkpoint = last_checkpoint
+        self.save_stripped_checkpoint = save_stripped_checkpoint
         self.moving_average_window_width = moving_average_window_width
         self.perform_intra_epoch_validation = perform_intra_epoch_validation
         self.intra_epoch_validation_step = intra_epoch_validation_step
@@ -735,15 +737,20 @@ class TorchTrainingHelper:
                 self.__save_embeddings(embeddings=all_embeddings, epoch=step)
 
     def __save_checkpoint(self, epoch, step=None):
-        checkpoint = {
-            "epoch": epoch + 1,
-            "step": None if step is None else step + 1,
-            "parallel_model_state_dict": self.__parallel_model.state_dict(),
-            "model_state_dict": self.__parallel_model.module.state_dict(),
-            "optimizer_state_dict": self.__optimizer.state_dict(),
-            "training_parameters_dict": self.__training_parameters.__dict__,
-            "mlops_parameters_dict": self.__mlops_parameters.__dict__ if self.__mlops_parameters is not None else None
-        }
+        if self.__training_parameters.save_stripped_checkpoint:
+            checkpoint = {
+                "model_state_dict": self.__parallel_model.module.state_dict()
+            }
+        else:
+            checkpoint = {
+                "epoch": epoch + 1,
+                "step": None if step is None else step + 1,
+                "parallel_model_state_dict": self.__parallel_model.state_dict(),
+                "model_state_dict": self.__parallel_model.module.state_dict(),
+                "optimizer_state_dict": self.__optimizer.state_dict(),
+                "training_parameters_dict": self.__training_parameters.__dict__,
+                "mlops_parameters_dict": self.__mlops_parameters.__dict__ if self.__mlops_parameters is not None else None
+            }
 
         timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S") + "_utc"
 
