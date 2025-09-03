@@ -14,35 +14,23 @@ from epsutils.gcs import gcs_utils
 from epsutils.gpt import gpt_utils
 from epsutils.image import image_utils
 
-import prompts
+from epsclassifiers.gpt_body_part_classifier import prompts
 
-DEFAULT_CONFIG = {
-    "reports_file": "/mnt/all-data/reports/segmed/batch1/segmed_batch_1_final.csv",  # Reports CSV file. Can be local file or GCS URI.
-    "output_file": "/mnt/all-data/reports/segmed/batch1/segmed_batch_1_final_with_body_parts.csv",
-    "image_paths_column": "filtered_image_paths",
-    "base_images_path": "/mnt/all-data/png/512x512/segmed/batch1",
-    "use_png": True,
-    "target_image_size": (200, 200),
-    "per_image_classification": True,
-    "column_name_to_add": "body_part",
-    "max_num_rows": None,
-    "max_workers": 20,
-    "clean_up_files": True,
-    "gpt_prompt": prompts.ALL_BODY_PARTS_GPT_PROMPT,
-    "gpt_config": {
-        "endpoint": "https://epsilon-eastus.openai.azure.com/",
-        "api_key": "9b568fdffb144272811cb5fad8b584a0",
-        "api_version": "2024-12-01-preview",
-        "batch_deployment": "gpt-4.1",
-        "batch_mini_deployment": "gpt-4.1",
-        "standard_deployment": "gpt-4o-standard",
-        "standard_mini_deployment": "gpt-4o-mini-standard",
-        "clean_up_azure_files": True
-    }
+TARGET_IMAGE_SIZE = (200, 200)
+MAX_WORKERS = 20  # Should not be more than 20 due to GPT API concurrency limitation.
+
+GPT_CONFIG = {
+    "endpoint": "https://epsilon-eastus.openai.azure.com/",
+    "api_key": "9b568fdffb144272811cb5fad8b584a0",
+    "api_version": "2024-12-01-preview",
+    "batch_deployment": "gpt-4.1",
+    "batch_mini_deployment": "gpt-4.1",
+    "standard_deployment": "gpt-4o-standard",
+    "standard_mini_deployment": "gpt-4o-mini-standard"
 }
 
 
-def process_row(row, image_paths_column, base_images_path, use_png, target_image_size):
+def process_row(row, image_paths_column, base_images_path, use_png):
     if pd.isna(row["report_text"]):
         return None
 
@@ -64,7 +52,7 @@ def process_row(row, image_paths_column, base_images_path, use_png, target_image
             print(str(e))
             continue
 
-        image = image.resize(target_image_size)
+        image = image.resize(TARGET_IMAGE_SIZE)
 
         buffer = BytesIO()
         image.save(buffer, format="JPEG")
@@ -81,12 +69,12 @@ def process_row(row, image_paths_column, base_images_path, use_png, target_image
     }
 
 def process_row_wrapper(args):
-    row, image_paths_column, base_images_path, use_png, target_image_size = args
-    return process_row(row, image_paths_column, base_images_path, use_png, target_image_size)
+    row, image_paths_column, base_images_path, use_png = args
+    return process_row(row, image_paths_column, base_images_path, use_png)
 
-def extract_data(df, image_paths_column, base_images_path, use_png, target_image_size, per_image_classification):
+def extract_data(df, image_paths_column, base_images_path, use_png, per_image_classification):
     rows = [{**row, "index": idx} for idx, row in zip(df.index, df.to_dict(orient="records"))]
-    args_list = [(row, image_paths_column, base_images_path, use_png, target_image_size) for row in rows]
+    args_list = [(row, image_paths_column, base_images_path, use_png) for row in rows]
 
     with ProcessPoolExecutor() as executor:
         results = list(tqdm(executor.map(process_row_wrapper, args_list),
@@ -117,7 +105,7 @@ def generate_request_id(item):
         else:
             return f"{item['index']}"
 
-def run_batches(data, gpt_prompt, gpt_config, max_workers):
+def run_batches(data, gpt_prompt):
     requests = []
 
     for item in data:
@@ -125,22 +113,22 @@ def run_batches(data, gpt_prompt, gpt_config, max_workers):
                                            user_prompt=item["report_text"],
                                            images=item["images"],
                                            request_id=generate_request_id(item),
-                                           deployment=gpt_config["batch_deployment"])
+                                           deployment=GPT_CONFIG["batch_deployment"])
         requests.append(request)
 
     input_file_names = gpt_utils.save_requests_as_jsonl(requests=requests, file_name="input.jsonl")
     output_file_names = [input_file_name.replace("input", "output") for input_file_name in input_file_names]
 
-    with ProcessPoolExecutor(max_workers=max_workers) as executor:
+    with ProcessPoolExecutor(max_workers=MAX_WORKERS) as executor:
         futures = []
         for index, input_file_name in enumerate(input_file_names):
             futures.append(executor.submit(
                     gpt_utils.run_batch,
                     input_file_name,
                     output_file_names[index],
-                    gpt_config["endpoint"],
-                    gpt_config["api_key"],
-                    gpt_config["api_version"]
+                    GPT_CONFIG["endpoint"],
+                    GPT_CONFIG["api_key"],
+                    GPT_CONFIG["api_version"]
                 )
             )
 
@@ -193,6 +181,9 @@ def aggregate_per_image_results_to_per_study(results):
     return results
 
 def main(args):
+    print("GPT body part classifier will be using the following configuration:")
+    print(f"{json.dumps(vars(args), indent=4)}")
+
     if gcs_utils.is_gcs_uri(args.reports_file):
         print(f"Downloading reports file {args.reports_file}")
         gcs_data = gcs_utils.split_gcs_uri(args.reports_file)
@@ -203,21 +194,17 @@ def main(args):
     print("Loading reports file")
     df = pd.read_csv(content, low_memory=False)
 
-    if args.max_num_rows is not None:
-        df = df.iloc[:args.max_num_rows]
-
     print("Extracting data from reports")
     extracted_data = extract_data(df=df,
                                   image_paths_column=args.image_paths_column,
                                   base_images_path=args.base_images_path,
                                   use_png=args.use_png,
-                                  target_image_size=args.target_image_size,
                                   per_image_classification=args.per_image_classification)
 
     print(f"Extracted data has {len(extracted_data)} rows")
 
     print("Running batches")
-    input_file_names, output_file_names = run_batches(data=extracted_data, gpt_prompt=args.gpt_prompt, gpt_config=args.gpt_config, max_workers=args.max_workers)
+    input_file_names, output_file_names = run_batches(data=extracted_data, gpt_prompt=args.gpt_prompt)
 
     print("Assemble results")
     results = assemble_results(output_file_names)
@@ -240,34 +227,25 @@ def main(args):
             if os.path.exists(file_to_delete):
                 os.remove(file_to_delete)
 
-    if args.gpt_config["clean_up_azure_files"]:
-        print("Cleaning up Azure files")
-        gpt_utils.delete_files(endpoint=args.gpt_config["endpoint"],
-                               api_key=args.gpt_config["api_key"],
-                               api_version=args.gpt_config["api_version"],
-                               purpose="batch")
+    print("Cleaning up Azure files")
+    gpt_utils.delete_files(endpoint=args.gpt_config["endpoint"],
+                            api_key=args.gpt_config["api_key"],
+                            api_version=args.gpt_config["api_version"],
+                            force=True,
+                            purpose="batch")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run GPT-based body part classification on X-ray images & reports.")
-    parser.add_argument("--reports_file", type=str, help="Path to the reports CSV file.")
-    parser.add_argument("--output_file", type=str, help="Path to the output CSV file.")
-    parser.add_argument("--image_paths_column", type=str, help="Column name containing image paths.")
-    parser.add_argument("--base_images_path", type=str, help="Base directory for image files.")
+    parser.add_argument("--reports_file", type=str, default="/mnt/all-data/reports/segmed/batch1/segmed_batch_1_final.csv", help="Path to the reports CSV file. Can be local file or GCS URI.")
+    parser.add_argument("--output_file", type=str, default="/mnt/all-data/reports/segmed/batch1/segmed_batch_1_final_with_body_parts.csv", help="Path to the output CSV file.")
+    parser.add_argument("--image_paths_column", type=str, default="image_paths", help="Column name containing image paths.")
+    parser.add_argument("--base_images_path", type=str, default="/mnt/all-data/png/512x512/segmed/batch1", help="Base directory for image files.")
     parser.add_argument("--use_png", action="store_true", help="Use PNG images instead of DICOM?")
-    parser.add_argument("--column_name_to_add", type=str, help="Name of the column with GPT results to add.")
-    parser.add_argument("--gpt_prompt", type=str, help="Custom GPT prompt string.")
+    parser.add_argument("--per_image_classification", action="store_true", help="Run per-image classification instead of per-study?")
+    parser.add_argument("--column_name_to_add", type=str, default="body_part", help="Name of the column with GPT results to add.")
+    parser.add_argument("--clean_up_files", action="store_true", help="Clean up local files after processing?")
+    parser.add_argument("--gpt_prompt", type=str, default=prompts.ALL_BODY_PARTS_GPT_PROMPT, help="Custom GPT prompt string.")
     args = parser.parse_args()
-
-    # Fill in missing values from defaults.
-    args_dict = vars(args)
-    for key, value in DEFAULT_CONFIG.items():
-        if args_dict.get(key) is None:
-            args_dict[key] = value
-
-    args = argparse.Namespace(**args_dict)
-
-    print("GPT body part classifier will be using the following configuration:")
-    print(f"{json.dumps(vars(args), indent=4)}")
 
     main(args)
