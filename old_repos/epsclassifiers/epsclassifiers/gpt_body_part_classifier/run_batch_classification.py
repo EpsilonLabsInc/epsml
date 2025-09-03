@@ -229,10 +229,10 @@ def main(args):
 
     print("Cleaning up Azure files")
     gpt_utils.delete_files(endpoint=args.gpt_config["endpoint"],
-                            api_key=args.gpt_config["api_key"],
-                            api_version=args.gpt_config["api_version"],
-                            force=True,
-                            purpose="batch")
+                           api_key=args.gpt_config["api_key"],
+                           api_version=args.gpt_config["api_version"],
+                           force=True,
+                           purpose="batch")
 
 
 if __name__ == "__main__":
