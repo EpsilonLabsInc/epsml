@@ -24,7 +24,7 @@ def run_single_query(system_prompt, user_prompt, images, endpoint, api_key, api_
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_content}
         ],
-        temperature=0
+        temperature=0  # TODO: GPT o3 deployment does not support temperature so handle this correctly.
     )
 
     return response.choices[0].message.content
@@ -36,19 +36,25 @@ def create_request(system_prompt, user_prompt, images, request_id, deployment):
     # Create user content.
     user_content = create_user_content(user_prompt=user_prompt, images=images)
 
+    # Create request body.
+    body = {
+        "model": deployment,
+        "messages": [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_content}
+        ]
+    }
+
+    # Only set temperature for non-o3 deployments, o3 doesn't take temperature param.
+    if deployment != "o3":
+        body["temperature"] = 0
+
     # Create request.
     request = {
         "custom_id": request_id,
         "method": "POST",
         "url": "/chat/completions",
-        "body": {
-            "model": deployment,
-            "messages": [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_content}
-            ],
-            "temperature": 0,
-        }
+        "body": body
     }
 
     return request
