@@ -5,6 +5,7 @@ import os
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from io import StringIO, BytesIO
 
+import numpy as np
 import pandas as pd
 from PIL import Image
 from tqdm import tqdm
@@ -15,6 +16,7 @@ from epsutils.gpt import gpt_utils
 from epsutils.image import image_utils
 
 from epsclassifiers.gpt_body_part_classifier import prompts
+from epsutils.labels.labels_by_body_part import LABELS_BY_BODY_PART
 
 TARGET_IMAGE_SIZE = (200, 200)
 MAX_WORKERS = 20  # Should not be more than 20 due to GPT API concurrency limitation.
@@ -23,8 +25,8 @@ GPT_CONFIG = {
     "endpoint": "https://epsilon-eastus.openai.azure.com/",
     "api_key": "9b568fdffb144272811cb5fad8b584a0",
     "api_version": "2024-12-01-preview",
-    "batch_deployment": "gpt-4.1",
-    "batch_mini_deployment": "gpt-4.1",
+    "batch_deployment": "o3",  # "gpt-4.1"
+    "batch_mini_deployment": "o3",  # "gpt-4.1"
     "standard_deployment": "gpt-4o-standard",
     "standard_mini_deployment": "gpt-4o-mini-standard"
 }
@@ -138,7 +140,7 @@ def run_batches(data, gpt_prompt):
     return input_file_names, output_file_names
 
 
-def assemble_results(output_file_names):
+def assemble_results(output_file_names, valid_body_parts):
     results = []
 
     for output_file_name in output_file_names:
@@ -147,10 +149,18 @@ def assemble_results(output_file_names):
                 data = json.loads(line)
                 index = data["custom_id"]
                 result = data["response"]["body"]["choices"][0]["message"]["content"].strip().strip("\"")
+
                 try:
                     parsed_result = ast.literal_eval(result)
                 except:
                     parsed_result = result
+
+                if valid_body_parts is not None:
+                    if isinstance(parsed_result, list):
+                        parsed_result = [item if item in valid_body_parts else np.nan for item in parsed_result]
+                    else:
+                        parsed_result = parsed_result if parsed_result in valid_body_parts else np.nan
+
                 results.append({"index": index, "result": parsed_result})
 
     return results
@@ -193,6 +203,9 @@ def safely_flatten_structured_body_parts(structured_body_parts):
     else:
         flat_body_parts = str(structured_body_parts)
 
+    if "nan" in flat_body_parts:
+        flat_body_parts = np.nan
+
     return flat_body_parts
 
 
@@ -223,7 +236,8 @@ def main(args):
     input_file_names, output_file_names = run_batches(data=extracted_data, gpt_prompt=args.gpt_prompt)
 
     print("Assemble results")
-    results = assemble_results(output_file_names)
+    valid_body_parts = [item.strip() for item in args.valid_body_parts.split(",")]
+    results = assemble_results(output_file_names, valid_body_parts)
 
     if args.per_image_classification:
         print("Aggregating per-image results back to per-study")
@@ -266,6 +280,8 @@ if __name__ == "__main__":
     parser.add_argument("--body_part_column_to_add", type=str, default="body_part", help="Name of the column with GPT-classified body parts to add.")
     parser.add_argument("--clean_up_files", action="store_true", help="Clean up local files after processing?")
     parser.add_argument("--gpt_prompt", type=str, default=prompts.ALL_BODY_PARTS_GPT_PROMPT, help="Custom GPT prompt string.")
+    parser.add_argument("--valid_body_parts", type=str, default=",".join(LABELS_BY_BODY_PART.keys()), help="List of valid body parts. If hallucinated body part returned " \
+                                                                                                           "differs from the ones in this list, it is set to nan")
     args = parser.parse_args()
 
     main(args)
