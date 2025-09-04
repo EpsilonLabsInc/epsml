@@ -180,6 +180,22 @@ def aggregate_per_image_results_to_per_study(results):
 
     return results
 
+def safely_flatten_structured_body_parts(structured_body_parts):
+    if isinstance(structured_body_parts, list):
+        body_part_list = []
+        for item in structured_body_parts:
+            if isinstance(item, list):
+                body_part_list.extend(item)
+            else:
+                body_part_list.append(item)
+        body_part_list = [str(item) for item in body_part_list]
+        flat_body_parts = ",".join(sorted(set(body_part_list)))
+    else:
+        flat_body_parts = str(structured_body_parts)
+
+    return flat_body_parts
+
+
 def main(args):
     print("GPT body part classifier will be using the following configuration:")
     print(f"{json.dumps(vars(args), indent=4)}")
@@ -213,10 +229,12 @@ def main(args):
         print("Aggregating per-image results back to per-study")
         results = aggregate_per_image_results_to_per_study(results)
 
-    print("Updating reports")
+    print(f"Updating {args.structured_body_part_column_to_add} column")
     mapping = {item["index"]: item["result"] for item in results}
     df[args.structured_body_part_column_to_add] = pd.Series(mapping).reindex(df.index)
-    df[args.body_part_column_to_add] = df[args.structured_body_part_column_to_add].apply(lambda parts: ",".join(sorted(set(part for sublist in parts for part in sublist))))
+
+    print(f"Updating {args.body_part_column_to_add} column")
+    df[args.body_part_column_to_add] = df[args.structured_body_part_column_to_add].apply(safely_flatten_structured_body_parts)
 
     print("Saving output file")
     df.to_csv(args.output_file, index=False)
