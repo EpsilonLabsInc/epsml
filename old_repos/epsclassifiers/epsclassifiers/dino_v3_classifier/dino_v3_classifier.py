@@ -4,20 +4,18 @@ from dino_v3 import DinoV3, DinoV3Type
 
 
 class DinoV3Classifier(nn.Module):
-    def __init__(self, num_classes, dino_v3_checkpoint=None, dino_v3_output_dim=4096, hidden_dim=1024, dropout_rate=0.2, dino_v3_type=DinoV3Type.GIANT):
+    def __init__(self, num_classes, dino_v3_checkpoint=None, dino_v3_output_dim=4096, hidden_dim=1024, dropout_rate=0.2, dino_v3_type=DinoV3Type.GIANT, img_size=1024):
         super().__init__()
         
-        print("WARNING: Because of BatchNorm1d that doesn't work on single element batches, DinoV3Classifier currently supports only batch sizes >= 2")
-        
-        self.dino_v3 = DinoV3(dino_v3_type=dino_v3_type, dino_v3_checkpoint=dino_v3_checkpoint)
+        self.dino_v3 = DinoV3(dino_v3_type=dino_v3_type, dino_v3_checkpoint=dino_v3_checkpoint, img_size=img_size)
         
         self.classifier = nn.Sequential(
             nn.Linear(dino_v3_output_dim, hidden_dim),
-            nn.BatchNorm1d(hidden_dim),
+            nn.LayerNorm(hidden_dim),
             nn.GELU(),
             nn.Dropout(dropout_rate),
             nn.Linear(hidden_dim, hidden_dim // 2),
-            nn.BatchNorm1d(hidden_dim // 2),
+            nn.LayerNorm(hidden_dim // 2),
             nn.GELU(),
             nn.Dropout(dropout_rate),
             nn.Linear(hidden_dim // 2, num_classes)
@@ -33,9 +31,6 @@ class DinoV3Classifier(nn.Module):
             x = images
         elif x is None:
             raise ValueError("Either x or images must be provided")
-        
-        if x.shape[0] < 2:
-            raise ValueError("Because of BatchNorm1d that doesn't work on single element batches, DinoV3Classifier currently supports only batch sizes >= 2")
         
         output = self.dino_v3(x)
         return self.classifier(output)

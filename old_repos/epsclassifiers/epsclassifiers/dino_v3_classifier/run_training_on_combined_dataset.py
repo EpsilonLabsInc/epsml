@@ -43,6 +43,7 @@ def main(config_path):
     dino_v3_checkpoint_path        = config["paths"].get("dino_v3_checkpoint_path", "")
     dino_v3_type                   = config["general"].get("dino_v3_type", "giant")
     dino_v3_output_dim             = config["general"].get("dino_v3_output_dim", 4096)  # 384 for small, 768 for base, 1024 for large, 4096 for giant (7B)
+    dino_v3_img_size               = config["general"].get("dino_v3_img_size", 1024)  # Image size for DINOv3 model
     train_file                     = config["paths"].get("train_file", "")
     validation_file                = config["paths"].get("validation_file", "")
     test_file                      = config["paths"].get("test_file", "")
@@ -94,6 +95,7 @@ def main(config_path):
     print(f"+ dino_v3_checkpoint_path: {dino_v3_checkpoint_path}")
     print(f"+ dino_v3_type: {dino_v3_type}")
     print(f"+ dino_v3_output_dim: {dino_v3_output_dim}")
+    print(f"+ dino_v3_img_size: {dino_v3_img_size}")
     print(f"+ train_file: {train_file}")
     print(f"+ validation_file: {validation_file}")
     print(f"+ test_file: {test_file}")
@@ -157,7 +159,8 @@ def main(config_path):
         num_classes=len(dataset_helper.get_labels()),
         dino_v3_checkpoint=dino_v3_checkpoint_path if dino_v3_checkpoint_path else None,
         dino_v3_output_dim=dino_v3_output_dim,
-        dino_v3_type=dino_v3_type_enum
+        dino_v3_type=dino_v3_type_enum,
+        img_size=dino_v3_img_size
     )
     
     model = model.to("cuda")

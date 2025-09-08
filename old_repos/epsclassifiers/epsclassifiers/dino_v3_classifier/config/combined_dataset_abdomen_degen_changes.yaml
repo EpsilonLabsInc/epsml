@@ -53,8 +53,8 @@ training:
   learning_rate: 0.0002
   warmup_ratio: 0.1
   num_epochs: 3
-  training_batch_size: 32
-  validation_batch_size: 32
+  training_batch_size: 8
+  validation_batch_size: 8
   min_allowed_batch_size: 2  # Minimum 2 for batch norm in classifier
   multi_image_input: false
   num_multi_images: None
