@@ -19,7 +19,7 @@ class DinoV3Type(Enum):
 
 
 class DinoV3(nn.Module):
-    def __init__(self, dino_v3_type: DinoV3Type, dino_v3_checkpoint=None, img_size=512):
+    def __init__(self, dino_v3_type: DinoV3Type, dino_v3_checkpoint=None, img_size=1024):
         super().__init__()
         
         if dino_v3_type == DinoV3Type.SMALL:
