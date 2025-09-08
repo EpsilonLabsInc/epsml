@@ -4,10 +4,10 @@ from dino_v3 import DinoV3, DinoV3Type
 
 
 class DinoV3Classifier(nn.Module):
-    def __init__(self, num_classes, dino_v3_checkpoint=None, dino_v3_output_dim=4096, hidden_dim=1024, dropout_rate=0.2, dino_v3_type=DinoV3Type.GIANT, img_size=1024):
+    def __init__(self, num_classes, dino_v3_checkpoint=None, dino_v3_output_dim=4096, hidden_dim=1024, dropout_rate=0.2, dino_v3_type=DinoV3Type.GIANT, img_size=1024, use_attention_pooling=False):
         super().__init__()
         
-        self.dino_v3 = DinoV3(dino_v3_type=dino_v3_type, dino_v3_checkpoint=dino_v3_checkpoint, img_size=img_size)
+        self.dino_v3 = DinoV3(dino_v3_type=dino_v3_type, dino_v3_checkpoint=dino_v3_checkpoint, img_size=img_size, use_attention_pooling=use_attention_pooling)
         
         self.classifier = nn.Sequential(
             nn.Linear(dino_v3_output_dim, hidden_dim),
