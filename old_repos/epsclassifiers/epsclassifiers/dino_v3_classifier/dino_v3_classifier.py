@@ -45,11 +45,11 @@ class DinoV3Classifier(nn.Module):
         
         self.classifier = nn.Sequential(
             nn.Linear(dino_v3_output_dim, hidden_dim),
-            nn.LayerNorm(hidden_dim),
+            nn.BatchNorm1d(hidden_dim),
             nn.GELU(),
             nn.Dropout(dropout_rate),
             nn.Linear(hidden_dim, hidden_dim // 2),
-            nn.LayerNorm(hidden_dim // 2),
+            nn.BatchNorm1d(hidden_dim // 2),
             nn.GELU(),
             nn.Dropout(dropout_rate),
             nn.Linear(hidden_dim // 2, num_classes)
@@ -61,6 +61,7 @@ class DinoV3Classifier(nn.Module):
     
     def forward(self, x=None, images=None, **kwargs):
         # Handle both direct tensor input and dictionary input from training
+        breakpoint()
         if x is None and images is not None:
             x = images
         elif x is None:
