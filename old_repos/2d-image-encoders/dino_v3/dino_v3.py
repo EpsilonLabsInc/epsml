@@ -11,6 +11,35 @@ sys.path.insert(0, '/home/yan/work/dinov3')
 from dinov3.models import vision_transformer
 
 
+class AttentionalPooling(nn.Module):
+    """Attention pooling module that uses multi-head attention with a learnable query."""
+    def __init__(self, hidden_size, dims_per_head=64):
+        super().__init__()
+        self.hidden_size = hidden_size
+        self.dims_per_head = dims_per_head
+
+        # Learnable parameters (query vector + MHA block)
+        self.query = nn.Parameter(torch.randn(1, 1, hidden_size))
+        self.multihead_attention = nn.MultiheadAttention(
+            embed_dim=hidden_size, num_heads=hidden_size // dims_per_head, batch_first=True
+        )
+
+    def forward(self, last_hidden_state, key_padding_mask=None):
+        # last_hidden_state shape: (batch_size, sequence_length, hidden_size)
+        # key_padding_mask: (batch_size, sequence_length) - True for positions to ignore
+        batch_size = last_hidden_state.size(0)
+
+        # Expand query to match batch size
+        query = self.query.expand(batch_size, 1, self.hidden_size)
+
+        # Apply multi-head attention and squeeze to get (batch_size, hidden_size)
+        pooled_output, attention_weights = self.multihead_attention(
+            query=query, key=last_hidden_state, value=last_hidden_state, 
+            key_padding_mask=key_padding_mask
+        )
+        return pooled_output.squeeze(1), attention_weights
+
+
 class DinoV3Type(Enum):
     SMALL = 1
     BASE = 2
@@ -19,15 +48,18 @@ class DinoV3Type(Enum):
 
 
 class DinoV3(nn.Module):
-    def __init__(self, dino_v3_type: DinoV3Type, dino_v3_checkpoint=None, img_size=1024):
+    def __init__(self, dino_v3_type: DinoV3Type, dino_v3_checkpoint=None, img_size=1024, use_attention_pooling=False):
         super().__init__()
+        self.use_attention_pooling = use_attention_pooling
+        self.dino_v3_type = dino_v3_type
         
         if dino_v3_type == DinoV3Type.SMALL:
             # ViT-S/14 configuration
+            embed_dim = 384
             self.__model = vision_transformer.DinoVisionTransformer(
                 img_size=img_size,
                 patch_size=14,
-                embed_dim=384,
+                embed_dim=embed_dim,
                 depth=12,
                 num_heads=6,
                 ffn_ratio=4.0,
@@ -39,10 +71,11 @@ class DinoV3(nn.Module):
             
         elif dino_v3_type == DinoV3Type.BASE:
             # ViT-B/14 configuration  
+            embed_dim = 768
             self.__model = vision_transformer.DinoVisionTransformer(
                 img_size=img_size,
                 patch_size=14,
-                embed_dim=768,
+                embed_dim=embed_dim,
                 depth=12,
                 num_heads=12,
                 ffn_ratio=4.0,
@@ -52,10 +85,11 @@ class DinoV3(nn.Module):
             self.__image_processor = AutoImageProcessor.from_pretrained("facebook/dinov2-base")
             
         elif dino_v3_type == DinoV3Type.LARGE:
+            embed_dim = 1024
             self.__model = vision_transformer.DinoVisionTransformer(
                 img_size=img_size,
                 patch_size=16,
-                embed_dim=1024,
+                embed_dim=embed_dim,
                 depth=24,
                 num_heads=16,
                 ffn_ratio=4.0,
@@ -69,10 +103,11 @@ class DinoV3(nn.Module):
             self.__image_processor = AutoImageProcessor.from_pretrained("facebook/dinov2-large")
             
         elif dino_v3_type == DinoV3Type.GIANT:
+            embed_dim = 4096
             self.__model = vision_transformer.DinoVisionTransformer(
                 img_size=img_size,
                 patch_size=16,
-                embed_dim=4096,
+                embed_dim=embed_dim,
                 depth=40,
                 num_heads=32,
                 ffn_ratio=3.0,
@@ -88,6 +123,10 @@ class DinoV3(nn.Module):
             self.__image_processor = AutoImageProcessor.from_pretrained("facebook/dinov2-giant")
         else:
             raise ValueError(f"Unsupported Dino V3 type: {dino_v3_type}")
+        
+        # Initialize attention pooling if requested
+        if self.use_attention_pooling:
+            self.attention_pooling = AttentionalPooling(hidden_size=embed_dim)
         
         self.__image_processor.size["shortest_edge"] = img_size
         self.__image_processor.crop_size["height"] = img_size
@@ -125,7 +164,15 @@ class DinoV3(nn.Module):
                 print(f"Unexpected keys: {unexpected}")
     
     def forward(self, x):
-        return self.__model.forward_features(x)["x_norm_clstoken"]
+        features = self.__model.forward_features(x)
+        if self.use_attention_pooling:
+            # Use attention pooling on patch tokens
+            patch_tokens = features["x_norm_patchtokens"]
+            pooled_output, _ = self.attention_pooling(patch_tokens)
+            return pooled_output
+        else:
+            # Use CLS token (default)
+            return features["x_norm_clstoken"]
     
     def get_image_processor(self):
         return self.__image_processor
