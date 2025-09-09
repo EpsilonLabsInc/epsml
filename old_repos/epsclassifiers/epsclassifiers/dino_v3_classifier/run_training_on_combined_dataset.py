@@ -65,6 +65,7 @@ def main(config_path):
     min_allowed_batch_size         = config["training"].get("min_allowed_batch_size", 2)  # Minimum 2 for batch norm
     multi_image_input              = config["training"].get("multi_image_input", False)
     num_multi_images               = convert_none(config["training"].get("num_multi_images", None))
+    max_multi_images               = convert_none(config["training"].get("max_multi_images", None))
     
     dino_v3_type_map = {
         "small": DinoV3Type.SMALL,
@@ -118,6 +119,7 @@ def main(config_path):
     print(f"+ min_allowed_batch_size: {min_allowed_batch_size}")
     print(f"+ multi_image_input: {multi_image_input}")
     print(f"+ num_multi_images: {num_multi_images}")
+    print(f"+ max_multi_images: {max_multi_images}")
     print("----------------------------------------------------------")
     
     # Auto-generated names. Don't change.
@@ -147,7 +149,8 @@ def main(config_path):
         unroll_images=unroll_images,
         max_study_images_to_unroll=max_study_images_to_unroll,
         convert_images_to_rgb=True,
-        custom_labels=custom_labels)
+        custom_labels=custom_labels,
+        max_multi_images=max_multi_images)
     
     print(f"Using the following labels: {dataset_helper.get_labels()}")
     

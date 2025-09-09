@@ -58,5 +58,6 @@ training:
   training_batch_size: 8
   validation_batch_size: 8
   min_allowed_batch_size: 1
-  multi_image_input: false
+  multi_image_input: true
   num_multi_images: None
+  max_multi_images: 8
