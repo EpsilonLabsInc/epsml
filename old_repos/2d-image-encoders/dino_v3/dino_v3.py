@@ -11,35 +11,6 @@ sys.path.insert(0, '/home/yan/work/dinov3')
 from dinov3.models import vision_transformer
 
 
-class AttentionalPooling(nn.Module):
-    """Attention pooling module that uses multi-head attention with a learnable query."""
-    def __init__(self, hidden_size, dims_per_head=64):
-        super().__init__()
-        self.hidden_size = hidden_size
-        self.dims_per_head = dims_per_head
-
-        # Learnable parameters (query vector + MHA block)
-        self.query = nn.Parameter(torch.randn(1, 1, hidden_size))
-        self.multihead_attention = nn.MultiheadAttention(
-            embed_dim=hidden_size, num_heads=hidden_size // dims_per_head, batch_first=True
-        )
-
-    def forward(self, last_hidden_state, key_padding_mask=None):
-        # last_hidden_state shape: (batch_size, sequence_length, hidden_size)
-        # key_padding_mask: (batch_size, sequence_length) - True for positions to ignore
-        batch_size = last_hidden_state.size(0)
-
-        # Expand query to match batch size
-        query = self.query.expand(batch_size, 1, self.hidden_size)
-
-        # Apply multi-head attention and squeeze to get (batch_size, hidden_size)
-        pooled_output, attention_weights = self.multihead_attention(
-            query=query, key=last_hidden_state, value=last_hidden_state, 
-            key_padding_mask=key_padding_mask
-        )
-        return pooled_output.squeeze(1), attention_weights
-
-
 class DinoV3Type(Enum):
     SMALL = 1
     BASE = 2
@@ -161,9 +132,12 @@ class DinoV3(nn.Module):
     
     def forward(self, x):
         features = self.__model.forward_features(x)
-        # Always return CLS token
-        # Attention pooling across multiple images is handled in DinoV3Classifier
+        # Always return CLS token by default
         return features["x_norm_clstoken"]
+    
+    def get_features(self, x):
+        # Return full feature dictionary for attention pooling
+        return self.__model.forward_features(x)
     
     def get_image_processor(self):
         return self.__image_processor
