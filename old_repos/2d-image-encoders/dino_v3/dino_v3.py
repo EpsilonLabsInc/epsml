@@ -124,10 +124,6 @@ class DinoV3(nn.Module):
         else:
             raise ValueError(f"Unsupported Dino V3 type: {dino_v3_type}")
         
-        # Initialize attention pooling if requested
-        if self.use_attention_pooling:
-            self.attention_pooling = AttentionalPooling(hidden_size=embed_dim)
-        
         self.__image_processor.size["shortest_edge"] = img_size
         self.__image_processor.crop_size["height"] = img_size
         self.__image_processor.crop_size["width"] = img_size
@@ -165,14 +161,9 @@ class DinoV3(nn.Module):
     
     def forward(self, x):
         features = self.__model.forward_features(x)
-        if self.use_attention_pooling:
-            # Use attention pooling on patch tokens
-            patch_tokens = features["x_norm_patchtokens"]
-            pooled_output, _ = self.attention_pooling(patch_tokens)
-            return pooled_output
-        else:
-            # Use CLS token (default)
-            return features["x_norm_clstoken"]
+        # Always return CLS token
+        # Attention pooling across multiple images is handled in DinoV3Classifier
+        return features["x_norm_clstoken"]
     
     def get_image_processor(self):
         return self.__image_processor
