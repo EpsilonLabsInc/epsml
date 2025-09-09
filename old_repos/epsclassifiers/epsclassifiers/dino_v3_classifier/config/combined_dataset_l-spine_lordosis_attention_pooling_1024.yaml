@@ -1,11 +1,11 @@
 general:
   model_name: dino_v3_classifier
   dataset_name: sample_dataset
-  run_name: DINOv3 – abdomen - degenerative changes - attention pooling - 1024
-  notes: Training DINOv3 classifier on abdomen - degenerative changes with attention pooling at 1024 resolution
+  run_name: DINOv3 – L-spine - lordosis - attention pooling - 1024
+  notes: Training DINOv3 classifier on L-spine - lordodid with attention pooling at 1024 resolution
   custom_labels:
-  - Degenerative changes
-  body_part: Abdomen
+  - Lordosis
+  body_part: L-spine
   treat_uncertain_as_positive: true
   perform_label_balancing: true
   num_data_augmentations: 0
