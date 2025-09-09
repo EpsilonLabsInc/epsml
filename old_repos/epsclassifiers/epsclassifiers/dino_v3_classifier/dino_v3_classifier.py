@@ -66,9 +66,6 @@ class DinoV3Classifier(nn.Module):
         elif x is None:
             raise ValueError("Either x or images must be provided")
         
-        # We need to get patch tokens, not CLS tokens for attention pooling
-        # So we need to modify DinoV3 to return the full feature dict
-        
         # Handle multi-image input
         if isinstance(x, list):
             # Variable number of images per study (like InternViT)
@@ -79,6 +76,8 @@ class DinoV3Classifier(nn.Module):
             images_stacked = torch.stack(flat_tensor_list)
             
             # Get features from all images
+            if not hasattr(self.dino_v3, 'get_features'):
+                raise NotImplementedError("Variable number of images requires dino_v3.get_features() method for attention pooling")
             features = self.dino_v3.get_features(images_stacked)
             
             # Track group sizes for reconstruction
