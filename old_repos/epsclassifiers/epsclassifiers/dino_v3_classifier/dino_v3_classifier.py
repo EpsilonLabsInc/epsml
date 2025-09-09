@@ -71,9 +71,54 @@ class DinoV3Classifier(nn.Module):
         
         # Handle multi-image input
         if isinstance(x, list):
-            # Variable number of images per study - NOT IMPLEMENTED YET
-            # This would require handling variable-length sequences with padding
-            raise NotImplementedError("Variable number of images not yet supported with attention pooling")
+            # Variable number of images per study (like InternViT)
+            from itertools import accumulate
+            
+            # Flatten all images into a single batch
+            flat_tensor_list = [tensor for tensors in x for tensor in tensors]
+            images_stacked = torch.stack(flat_tensor_list)
+            
+            # Get features from all images
+            features = self.dino_v3.get_features(images_stacked)
+            
+            # Track group sizes for reconstruction
+            group_sizes = [len(tensors) for tensors in x]
+            ends = list(accumulate(group_sizes))
+            starts = [0] + ends[:-1]
+            
+            if self.use_attention_pooling:
+                # Get patch tokens (CLS already excluded)
+                patch_tokens = features['x_norm_patchtokens']
+                seq_len = patch_tokens.shape[1]  # Number of patches per image
+                hidden_dim = patch_tokens.shape[2]
+                max_images = max(group_sizes)
+                
+                # Create padded tensor for all groups
+                padded_patch_tokens = torch.zeros(
+                    len(group_sizes), max_images * seq_len, hidden_dim,
+                    dtype=patch_tokens.dtype, device=patch_tokens.device
+                )
+                
+                # Create padding mask (True = ignore this position)
+                padding_mask = torch.ones(
+                    len(group_sizes), max_images * seq_len,
+                    dtype=torch.bool, device=patch_tokens.device
+                )
+                
+                # Fill in actual patch tokens and update mask
+                for i, (s, e, size) in enumerate(zip(starts, ends, group_sizes)):
+                    actual_patches = size * seq_len
+                    # Reshape patches from this group into a flat sequence
+                    group_patches = patch_tokens[s:e].reshape(-1, hidden_dim)
+                    padded_patch_tokens[i, :actual_patches] = group_patches
+                    padding_mask[i, :actual_patches] = False
+                
+                # Apply attention pooling with padding mask
+                output, _ = self.attentional_pooling(padded_patch_tokens, key_padding_mask=padding_mask)
+            else:
+                # Max pooling over CLS tokens for each group
+                cls_tokens = features['x_norm_clstoken']
+                output = torch.stack([cls_tokens[s:e].max(dim=0).values for s, e in zip(starts, ends)])
                 
         elif len(x.shape) == 5:
             # Fixed number of images: (batch, num_images, C, H, W)
