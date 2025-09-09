@@ -61,7 +61,6 @@ class DinoV3Classifier(nn.Module):
     
     def forward(self, x=None, images=None, **kwargs):
         # Handle both direct tensor input and dictionary input from training
-        breakpoint()
         if x is None and images is not None:
             x = images
         elif x is None:
