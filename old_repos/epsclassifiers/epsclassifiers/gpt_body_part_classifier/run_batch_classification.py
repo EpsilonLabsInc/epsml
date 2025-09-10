@@ -25,8 +25,8 @@ GPT_CONFIG = {
     "endpoint": "https://epsilon-eastus.openai.azure.com/",
     "api_key": "9b568fdffb144272811cb5fad8b584a0",
     "api_version": "2024-12-01-preview",
-    "batch_deployment": "o3",  # "gpt-4.1"
-    "batch_mini_deployment": "o3",  # "gpt-4.1"
+    "batch_deployment": "gpt-4.1",
+    "batch_mini_deployment": "gpt-4.1",
     "standard_deployment": "gpt-4o-standard",
     "standard_mini_deployment": "gpt-4o-mini-standard"
 }
