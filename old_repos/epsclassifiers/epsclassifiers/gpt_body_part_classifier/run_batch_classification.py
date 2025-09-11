@@ -260,12 +260,13 @@ def main(args):
             if os.path.exists(file_to_delete):
                 os.remove(file_to_delete)
 
-    print("Cleaning up Azure files")
-    gpt_utils.delete_files(endpoint=GPT_CONFIG["endpoint"],
-                           api_key=GPT_CONFIG["api_key"],
-                           api_version=GPT_CONFIG["api_version"],
-                           force=True,
-                           purpose="batch")
+    if args.delete_azure_files:
+        print("Cleaning up Azure files")
+        gpt_utils.delete_files(endpoint=GPT_CONFIG["endpoint"],
+                            api_key=GPT_CONFIG["api_key"],
+                            api_version=GPT_CONFIG["api_version"],
+                            force=True,
+                            purpose="batch")
 
 
 if __name__ == "__main__":
@@ -279,6 +280,7 @@ if __name__ == "__main__":
     parser.add_argument("--structured_body_part_column_to_add", type=str, default="structured_body_part", help="Name of the column with structured GPT-classified body parts to add.")
     parser.add_argument("--body_part_column_to_add", type=str, default="body_part", help="Name of the column with GPT-classified body parts to add.")
     parser.add_argument("--clean_up_files", action="store_true", help="Clean up local files after processing?")
+    parser.add_argument("--delete_azure_files", action="store_true", help="Delete Azure files after processing?")
     parser.add_argument("--gpt_prompt", type=str, default=prompts.ALL_BODY_PARTS_GPT_PROMPT, help="Custom GPT prompt string.")
     parser.add_argument("--valid_body_parts", type=str, default=",".join(LABELS_BY_BODY_PART.keys()), help="List of valid body parts. If hallucinated body part returned " \
                                                                                                            "differs from the ones in this list, it is set to nan")
