@@ -88,7 +88,7 @@ def save_requests_as_jsonl(requests, file_name, max_file_size=190 * 1024 * 1024,
     return file_names
 
 
-def retry_on_exception(max_retries=None, delay_in_sec=5, backoff=2, allowed_exceptions=(Exception,)):
+def retry_on_exception(max_retries=None, delay_in_sec=60, backoff=1, allowed_exceptions=(Exception,)):
     def decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
