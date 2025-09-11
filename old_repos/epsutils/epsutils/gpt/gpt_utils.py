@@ -1,3 +1,4 @@
+import functools
 import json
 import time
 
@@ -87,59 +88,97 @@ def save_requests_as_jsonl(requests, file_name, max_file_size=190 * 1024 * 1024,
     return file_names
 
 
+def retry_on_exception(max_retries=None, delay_in_sec=5, backoff=2, allowed_exceptions=(Exception,)):
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            retries = 0
+            current_delay = delay_in_sec
+            while True:
+                try:
+                    return func(*args, **kwargs)
+                except allowed_exceptions as e:
+                    print(f"Error: {e}. Retrying in {current_delay} seconds...")
+                    time.sleep(current_delay)
+                    current_delay *= backoff
+                    retries += 1
+                    if max_retries is not None and retries >= max_retries:
+                        raise RuntimeError(f"Failed after {max_retries} retries.")
+        return wrapper
+    return decorator
+
+
+@retry_on_exception()
+def upload_file(client, input_jsonl):
+    with open(input_jsonl, "rb") as file:
+        resp = client.files.create(file=file, purpose="batch")
+    return resp.id
+
+
+@retry_on_exception()
+def wait_for_file_processed(client, file_id):
+    start_time = time.time()
+    while True:
+        status = client.files.retrieve(file_id).status.lower()
+        elapsed = time.time() - start_time
+        print(f"File {file_id} status: {status} (elapsed time: {int(elapsed)} sec)")
+        if status == "error":
+            raise RuntimeError("File processing error")
+        elif status == "processed":
+            break
+        time.sleep(10)
+
+
+@retry_on_exception()
+def create_batch_job(client, file_id):
+    resp = client.batches.create(input_file_id=file_id, endpoint="/chat/completions", completion_window="24h")
+    return resp.id
+
+
+@retry_on_exception()
+def wait_for_batch_completion(client, batch_id, check_interval):
+    start_time = time.time()
+    while True:
+        info = client.batches.retrieve(batch_id)
+        status = info.status.lower()
+        elapsed = time.time() - start_time
+        print(f"Batch {batch_id} status: {status} (elapsed time: {int(elapsed)} sec)")
+        if status in {"failed", "cancelled", "canceled", "expired"}:
+            message = info.error.get("message", "No message available") if hasattr(info, "error") else str(info)
+            raise RuntimeError(f"Batch processing error: {message}")
+        elif status == "completed":
+            break
+        time.sleep(check_interval)
+
+
+@retry_on_exception()
+def get_batch_output(client, batch_id):
+    out_id = client.batches.retrieve(batch_id).output_file_id
+    return client.files.content(out_id).text
+
+
 def run_batch(input_jsonl, output_jsonl, endpoint, api_key, api_version, check_status_interval_in_sec=60):
-    try:
-        # Create OpenAI client.
-        print("Creating OpenAI client")
-        client = AzureOpenAI(azure_endpoint=endpoint, api_key=api_key, api_version=api_version)
+    print("Creating OpenAI client")
+    client = AzureOpenAI(azure_endpoint=endpoint, api_key=api_key, api_version=api_version)
 
-        # Upload file.
-        print("Uploading file")
-        with open(input_jsonl, "rb") as file:
-            resp = client.files.create(file=file, purpose="batch")
-        file_id = resp.id
+    print("Uploading file")
+    file_id = upload_file(client, input_jsonl)
 
-        # Wait for the file to be processed.
-        start_time = time.time()
-        while True:
-            status = client.files.retrieve(file_id).status.lower()
-            elapsed = time.time() - start_time
-            print(f"File {file_id} status: {status} (elapsed time: {int(elapsed)} sec)")
-            if status == "error":
-                raise RuntimeError("File processing error")
-            elif status == "processed":
-                break
-            time.sleep(10)
+    print("Waiting for file to be processed")
+    wait_for_file_processed(client, file_id)
 
-        # Create batch job.
-        print("Creating batch job")
-        resp = client.batches.create(input_file_id=file_id, endpoint="/chat/completions", completion_window="24h")
-        batch_id = resp.id
+    print("Creating batch job")
+    batch_id = create_batch_job(client, file_id)
 
-        # Wait for the batch to complete.
-        start_time = time.time()
-        while True:
-            info = client.batches.retrieve(batch_id)
-            status = info.status.lower()
-            elapsed = time.time() - start_time
-            print(f"Batch {batch_id} status: {status} (elapsed time: {int(elapsed)} sec)")
-            if status in {"failed", "cancelled", "canceled", "expired"}:
-                message = info.error.get("message", "No message available") if hasattr(info, "error") else str(info)
-                raise RuntimeError(f"Batch processing error: {message}")
-            elif status == "completed":
-                break
-            time.sleep(check_status_interval_in_sec)
+    print("Waiting for batch to complete")
+    wait_for_batch_completion(client, batch_id, check_status_interval_in_sec)
 
-        # Get results.
-        out_id = client.batches.retrieve(batch_id).output_file_id
-        content = client.files.content(out_id).text
+    print("Retrieving batch output")
+    content = get_batch_output(client, batch_id)
 
-        # Save results.
-        with open(output_jsonl, "w", encoding="utf-8") as file:
-            file.write(content)
-    except Exception as e:
-        print(f"Run batch error: {str(e)}")
-        raise
+    print("Saving results")
+    with open(output_jsonl, "w", encoding="utf-8") as file:
+        file.write(content)
 
 
 def delete_files(endpoint, api_key, api_version, force=False, purpose=None):
