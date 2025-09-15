@@ -19,7 +19,7 @@ from epsclassifiers.gpt_body_part_classifier import prompts
 from epsutils.labels.labels_by_body_part import LABELS_BY_BODY_PART
 
 TARGET_IMAGE_SIZE = (200, 200)
-MAX_WORKERS = 20  # Should not be more than 20 due to GPT API concurrency limitation.
+MAX_WORKERS = 10  # Should not be too high due to GPT API concurrency limitation. In the past value of 20 was used and it also worked.
 
 GPT_CONFIG = {
     "endpoint": "https://epsilon-eastus.openai.azure.com/",
