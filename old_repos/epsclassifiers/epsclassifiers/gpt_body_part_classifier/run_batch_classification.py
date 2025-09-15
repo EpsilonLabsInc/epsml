@@ -148,7 +148,11 @@ def assemble_results(output_file_names, valid_body_parts):
             for line in file:
                 data = json.loads(line)
                 index = data["custom_id"]
-                result = data["response"]["body"]["choices"][0]["message"]["content"].strip().strip("\"")
+
+                try:
+                    result = data["response"]["body"]["choices"][0]["message"]["content"].strip().strip("\"")
+                except:
+                    result = np.nan
 
                 try:
                     parsed_result = ast.literal_eval(result)
