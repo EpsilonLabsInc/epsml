@@ -40,6 +40,7 @@ def main(config_path):
     max_study_images_to_unroll     = convert_none(config["general"].get("max_study_images_to_unroll", None))
     use_report_text                = config["general"].get("use_report_text", False)
     save_full_model                = config["general"].get("save_full_model", False)
+    replace_dicom_with_png         = config["general"].get("replace_dicom_with_png", False)
     dino_v3_checkpoint_path        = config["paths"].get("dino_v3_checkpoint_path", "")
     dino_v3_type                   = config["general"].get("dino_v3_type", "giant")
     dino_v3_output_dim             = config["general"].get("dino_v3_output_dim", 4096)  # 384 for small, 768 for base, 1024 for large, 4096 for giant (7B)
@@ -94,6 +95,7 @@ def main(config_path):
     print(f"+ max_study_images_to_unroll: {max_study_images_to_unroll}")
     print(f"+ use_report_text: {use_report_text}")
     print(f"+ save_full_model: {save_full_model}")
+    print(f"+ replace_dicom_with_png: {replace_dicom_with_png}")
     print(f"+ dino_v3_checkpoint_path: {dino_v3_checkpoint_path}")
     print(f"+ dino_v3_type: {dino_v3_type}")
     print(f"+ dino_v3_output_dim: {dino_v3_output_dim}")
@@ -149,6 +151,7 @@ def main(config_path):
         unroll_images=unroll_images,
         max_study_images_to_unroll=max_study_images_to_unroll,
         convert_images_to_rgb=True,
+        replace_dicom_with_png=replace_dicom_with_png,
         custom_labels=custom_labels,
         max_multi_images=max_multi_images)
     
