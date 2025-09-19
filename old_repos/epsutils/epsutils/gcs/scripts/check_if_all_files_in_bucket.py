@@ -1,6 +1,7 @@
 import argparse
 import ast
 import os
+from concurrent.futures import ThreadPoolExecutor
 
 import pandas as pd
 from tqdm import tqdm
@@ -8,23 +9,32 @@ from tqdm import tqdm
 from epsutils.gcs import gcs_utils
 
 
+def check_row(row_dict, base_path_gcs_substitutions):
+    image_paths = ast.literal_eval(row_dict["relative_image_paths"])
+    base_path = row_dict["base_path"]
+
+    if base_path not in base_path_gcs_substitutions:
+        print(f"Base path {base_path} not in base path GCS substitutions dict")
+        return
+
+    gcs_data = gcs_utils.split_gcs_uri(base_path_gcs_substitutions[base_path])
+    gcs_image_paths = [os.path.join(gcs_data["gcs_path"], image_path) for image_path in image_paths]
+
+    if not gcs_utils.check_if_files_exist(gcs_bucket_name=gcs_data["gcs_bucket_name"], gcs_file_names=gcs_image_paths):
+        print(f"One or more items in {gcs_image_paths} not found in GCS")
+        return
+
+
 def main(args):
     print(f"Loading {args.input_csv_reports_file}")
     df = pd.read_csv(args.input_csv_reports_file, low_memory=False)
 
+    print("Converting dataset to a list of dicts")
+    row_dicts = [row.to_dict() for _, row in df.iterrows()]
+
     print("Scanning dataset for files and checking their presence in GCS")
-    for index, row in tqdm(df.iterrows(), total=len(df), desc="Processing"):
-        image_paths = ast.literal_eval(row["relative_image_paths"])
-        base_path = row["base_path"]
-
-        if base_path not in args.base_path_gcs_substitutions:
-            raise ValueError(f"Base path {base_path} not in base path GCS substitutions dict")
-
-        gcs_data = gcs_utils.split_gcs_uri(args.base_path_gcs_substitutions[base_path])
-        gcs_image_paths = [os.path.join(gcs_data["gcs_path"], image_path) for image_path in image_paths]
-
-        if not gcs_utils.check_if_files_exist(gcs_bucket_name=gcs_data["gcs_bucket_name"], gcs_file_names=gcs_image_paths):
-            print(f"One or more items in {gcs_image_paths} not found in GCS")
+    with ThreadPoolExecutor() as executor:
+        list(tqdm(executor.map(lambda row: check_row(row, args.base_path_gcs_substitutions), row_dicts), total=len(row_dicts), desc="Processing"))
 
 
 if __name__ == "__main__":
