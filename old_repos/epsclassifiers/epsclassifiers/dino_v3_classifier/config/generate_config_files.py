@@ -35,6 +35,20 @@ def _swap_512_with_org_size(cfg: dict) -> None:
     cfg["paths"]["base_path_substitutions"] = updated
 
 
+"""
+Special-case epoch overrides for specific labels using exact names from
+epsutils.labels.labels_by_body_part.LABELS_BY_BODY_PART.
+"""
+SPECIAL_TWO_EPOCHS_EXACT = {
+    "Foot": ["Degenerative changes"],
+    "Leg": ["Joint effusion"],
+    "Chest": ["Mass/nodule"],
+    "Hand": ["Degenerative changes"],
+    "C-spine": ["Intervertebral disc narrowing"],
+    "T-spine": ["Scoliosis"],
+}
+
+
 def generate_for_body_part(body_part: str, run_name: str, output_root: str,
                            chest_config_template: str, non_chest_config_template: str) -> None:
     # Validate body part (case-insensitive match to known keys)
@@ -79,6 +93,12 @@ def generate_for_body_part(body_part: str, run_name: str, output_root: str,
                 cfg.setdefault("training", {})
                 cfg["training"]["training_batch_size"] = 128
                 cfg["training"]["validation_batch_size"] = 128
+
+            # Set num_epochs: 2 for specific label/body-part combos, otherwise 4
+            cfg.setdefault("training", {})
+            two_epoch_targets = set(SPECIAL_TWO_EPOCHS_EXACT.get(canon_body_part, []))
+            epochs = 2 if label in two_epoch_targets else 4
+            cfg["training"]["num_epochs"] = epochs
 
             output_dir = os.path.join(output_root, ckpt_name, formatted_body_part)
             os.makedirs(output_dir, exist_ok=True)
