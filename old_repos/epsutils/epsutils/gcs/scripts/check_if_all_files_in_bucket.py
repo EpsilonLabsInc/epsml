@@ -1,6 +1,8 @@
 import argparse
 import ast
+import numpy as np
 import os
+import time
 from concurrent.futures import ThreadPoolExecutor
 
 import pandas as pd
@@ -9,7 +11,7 @@ from tqdm import tqdm
 from epsutils.gcs import gcs_utils
 
 
-def check_row(row_dict, base_path_gcs_substitutions):
+def check_row(row_dict, base_path_gcs_substitutions, max_retries, retry_delay_in_sec):
     image_paths = ast.literal_eval(row_dict["relative_image_paths"])
     base_path = row_dict["base_path"]
 
@@ -20,25 +22,47 @@ def check_row(row_dict, base_path_gcs_substitutions):
     gcs_data = gcs_utils.split_gcs_uri(base_path_gcs_substitutions[base_path])
     gcs_image_paths = [os.path.join(gcs_data["gcs_path"], image_path) for image_path in image_paths]
 
-    if not gcs_utils.check_if_files_exist(gcs_bucket_name=gcs_data["gcs_bucket_name"], gcs_file_names=gcs_image_paths):
-        print(f"One or more items in {gcs_image_paths} not found in GCS")
-        return
+    attempt = 1
+    while True:
+        try:
+            if not gcs_utils.check_if_files_exist(gcs_bucket_name=gcs_data["gcs_bucket_name"], gcs_file_names=gcs_image_paths):
+                print(f"One or more items in {gcs_image_paths} not found in GCS")
+            return
+        except Exception as e:
+            print(f"GCS check failed on attempt {attempt}: {e}")
+            if max_retries is not None and attempt >= max_retries:
+                print("Max retries reached, skipping row")
+                return
+            print(f"Retrying in {retry_delay_in_sec} seconds...")
+            time.sleep(retry_delay_in_sec)
+            attempt += 1
 
 
 def main(args):
     print(f"Loading {args.input_csv_reports_file}")
     df = pd.read_csv(args.input_csv_reports_file, low_memory=False)
 
+    if args.total_slices is not None and args.slice_index is not None:
+        print(f"Dataset length before slicing: {len(df)}")
+        slices = np.array_split(df, args.total_slices)
+        print(f"Extracting slice {args.slice_index}")
+        df = slices[args.slice_index]
+        print(f"Slice length: {len(df)}")
+
     print("Converting dataset to a list of dicts")
     row_dicts = [row.to_dict() for _, row in df.iterrows()]
 
     print("Scanning dataset for files and checking their presence in GCS")
-    with ThreadPoolExecutor() as executor:
-        list(tqdm(executor.map(lambda row: check_row(row, args.base_path_gcs_substitutions), row_dicts), total=len(row_dicts), desc="Processing"))
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        list(tqdm(executor.map(lambda row: check_row(row, args.base_path_gcs_substitutions, args.max_retries, args.retry_delay_in_sec), row_dicts), total=len(row_dicts), desc="Processing"))
 
 
 if __name__ == "__main__":
     INPUT_CSV_REPORTS_FILE = "./gradient_batches_1-6_segmed_batches_1-16_simonmed_batches_1-10_reports_with_labels_all.csv"
+    TOTAL_SLICES = 13  # Use None for no slicing.
+    SLICE_INDEX = 0  # Zero-based. Use None for no slicing.
+    MAX_RETRIES = None  # If None, retry indefinitely.
+    RETRY_DELAY_IN_SEC = 2
 
     BASE_PATH_GCS_SUBSTITUTIONS = {
             "gradient_09JAN2025": "gs://epsilonlabs-datasets/dicom/gradient/09JAN2025",
@@ -67,6 +91,10 @@ if __name__ == "__main__":
     }
 
     args = argparse.Namespace(input_csv_reports_file=INPUT_CSV_REPORTS_FILE,
+                              total_slices=TOTAL_SLICES,
+                              slice_index=SLICE_INDEX,
+                              max_retries=MAX_RETRIES,
+                              retry_delay_in_sec=RETRY_DELAY_IN_SEC,
                               base_path_gcs_substitutions=BASE_PATH_GCS_SUBSTITUTIONS)
 
     main(args)
