@@ -43,6 +43,7 @@ def main(args):
     df = pd.read_csv(args.input_csv_reports_file, low_memory=False)
 
     if args.total_slices is not None and args.slice_index is not None:
+        print(f"Slicing dataset into {args.total_slices} slices")
         print(f"Dataset length before slicing: {len(df)}")
         slices = np.array_split(df, args.total_slices)
         print(f"Extracting slice {args.slice_index}")
