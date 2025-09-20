@@ -11,17 +11,11 @@ class TestRemapStructuredLabels:
         structured_labels = [
             {
                 "body_part": "Chest",
-                "labels": [
-                    {"label": "Pneumonia", "confidence": "Certain"}
-                ]
+                "labels": [{"label": "Pneumonia", "confidence": "Certain"}],
             }
         ]
 
-        mapping = {
-            "Chest": {
-                "Pneumonia": "Airspace opacity"
-            }
-        }
+        mapping = {"Chest": {"Pneumonia": "Airspace opacity"}}
 
         result = remap_structured_labels(structured_labels, mapping)
 
@@ -36,16 +30,12 @@ class TestRemapStructuredLabels:
         structured_labels = [
             {
                 "body_part": "Chest",
-                "labels": [
-                    {"label": "No Findings", "confidence": "Certain"}
-                ]
+                "labels": [{"label": "No Findings", "confidence": "Certain"}],
             }
         ]
 
         mapping = {
-            "Chest": {
-                "No findings": "No findings"  # Identity mapping after fix
-            }
+            "Chest": {"No findings": "No findings"}  # Identity mapping after fix
         }
 
         result = remap_structured_labels(structured_labels, mapping)
@@ -58,16 +48,24 @@ class TestRemapStructuredLabels:
             {
                 "body_part": "Chest",
                 "labels": [
-                    {"label": "Pneumonia", "confidence": "Uncertain", "extra_field": "value1"},
-                    {"label": "Infection", "confidence": "Certain", "extra_field": "value2"}
-                ]
+                    {
+                        "label": "Pneumonia",
+                        "confidence": "Uncertain",
+                        "extra_field": "value1",
+                    },
+                    {
+                        "label": "Infection",
+                        "confidence": "Certain",
+                        "extra_field": "value2",
+                    },
+                ],
             }
         ]
 
         mapping = {
             "Chest": {
                 "Pneumonia": "Airspace opacity",
-                "Infection": "Airspace opacity"  # Both map to same consolidated label
+                "Infection": "Airspace opacity",  # Both map to same consolidated label
             }
         }
 
@@ -77,6 +75,7 @@ class TestRemapStructuredLabels:
         assert result[0]["labels"][0]["label"] == "Airspace opacity"
         assert result[0]["labels"][0]["confidence"] == "Certain"
         # Should preserve extra fields from first occurrence
+        # TODO(arjun): is this behavior correct?
         assert result[0]["labels"][0]["extra_field"] == "value1"
 
     def test_duplicate_label_consolidation_all_uncertain(self):
@@ -86,16 +85,13 @@ class TestRemapStructuredLabels:
                 "body_part": "Chest",
                 "labels": [
                     {"label": "Pneumonia", "confidence": "Uncertain"},
-                    {"label": "Infection", "confidence": "Uncertain"}
-                ]
+                    {"label": "Infection", "confidence": "Uncertain"},
+                ],
             }
         ]
 
         mapping = {
-            "Chest": {
-                "Pneumonia": "Airspace opacity",
-                "Infection": "Airspace opacity"
-            }
+            "Chest": {"Pneumonia": "Airspace opacity", "Infection": "Airspace opacity"}
         }
 
         result = remap_structured_labels(structured_labels, mapping)
@@ -108,25 +104,17 @@ class TestRemapStructuredLabels:
         structured_labels = [
             {
                 "body_part": "Chest",
-                "labels": [
-                    {"label": "Pneumonia", "confidence": "Certain"}
-                ]
+                "labels": [{"label": "Pneumonia", "confidence": "Certain"}],
             },
             {
                 "body_part": "Abdomen",
-                "labels": [
-                    {"label": "Appendicitis", "confidence": "Uncertain"}
-                ]
-            }
+                "labels": [{"label": "Appendicitis", "confidence": "Uncertain"}],
+            },
         ]
 
         mapping = {
-            "Chest": {
-                "Pneumonia": "Airspace opacity"
-            },
-            "Abdomen": {
-                "Appendicitis": "Inflammatory condition"
-            }
+            "Chest": {"Pneumonia": "Airspace opacity"},
+            "Abdomen": {"Appendicitis": "Inflammatory condition"},
         }
 
         result = remap_structured_labels(structured_labels, mapping)
@@ -146,17 +134,13 @@ class TestRemapStructuredLabels:
                         "confidence": "Certain",
                         "bbox": [10, 20, 30, 40],
                         "severity": "moderate",
-                        "anatomical_location": "right_upper_lobe"
+                        "anatomical_location": "right_upper_lobe",
                     }
-                ]
+                ],
             }
         ]
 
-        mapping = {
-            "Chest": {
-                "Pneumonia": "Airspace opacity"
-            }
-        }
+        mapping = {"Chest": {"Pneumonia": "Airspace opacity"}}
 
         result = remap_structured_labels(structured_labels, mapping)
 
@@ -174,12 +158,7 @@ class TestRemapStructuredLabels:
 
     def test_empty_labels_list(self):
         """Test handling of body part with empty labels list."""
-        structured_labels = [
-            {
-                "body_part": "Chest",
-                "labels": []
-            }
-        ]
+        structured_labels = [{"body_part": "Chest", "labels": []}]
 
         mapping = {"Chest": {}}
 
@@ -193,9 +172,7 @@ class TestRemapStructuredLabels:
         structured_labels = [
             {
                 "body_part": "UnknownBodyPart",
-                "labels": [
-                    {"label": "SomeLabel", "confidence": "Certain"}
-                ]
+                "labels": [{"label": "SomeLabel", "confidence": "Certain"}],
             }
         ]
 
@@ -211,17 +188,11 @@ class TestRemapStructuredLabels:
         structured_labels = [
             {
                 "body_part": "Chest",
-                "labels": [
-                    {"label": "UnknownLabel", "confidence": "Certain"}
-                ]
+                "labels": [{"label": "UnknownLabel", "confidence": "Certain"}],
             }
         ]
 
-        mapping = {
-            "Chest": {
-                "KnownLabel": "Mapped Label"
-            }
-        }
+        mapping = {"Chest": {"KnownLabel": "Mapped Label"}}
 
         with pytest.raises(Exception) as exc_info:
             remap_structured_labels(structured_labels, mapping)
@@ -233,17 +204,11 @@ class TestRemapStructuredLabels:
         structured_labels = [
             {
                 "body_part": "Chest",
-                "labels": [
-                    {"label": "ObsoleteLabel", "confidence": "Certain"}
-                ]
+                "labels": [{"label": "ObsoleteLabel", "confidence": "Certain"}],
             }
         ]
 
-        mapping = {
-            "Chest": {
-                "ObsoleteLabel": ""  # Empty mapping means remove label
-            }
-        }
+        mapping = {"Chest": {"ObsoleteLabel": ""}}  # Empty mapping means remove label
 
         result = remap_structured_labels(structured_labels, mapping)
 
@@ -255,17 +220,11 @@ class TestRemapStructuredLabels:
         original_labels = [
             {
                 "body_part": "Chest",
-                "labels": [
-                    {"label": "Pneumonia", "confidence": "Certain"}
-                ]
+                "labels": [{"label": "Pneumonia", "confidence": "Certain"}],
             }
         ]
 
-        mapping = {
-            "Chest": {
-                "Pneumonia": "Airspace opacity"
-            }
-        }
+        mapping = {"Chest": {"Pneumonia": "Airspace opacity"}}
 
         # Keep a copy of original for comparison
         original_copy = copy.deepcopy(original_labels)
@@ -284,11 +243,19 @@ class TestRemapStructuredLabels:
             {
                 "body_part": "Chest",
                 "labels": [
-                    {"label": "Pneumonia", "confidence": "Uncertain", "region": "upper"},
+                    {
+                        "label": "Pneumonia",
+                        "confidence": "Uncertain",
+                        "region": "upper",
+                    },
                     {"label": "Infection", "confidence": "Certain", "region": "lower"},
-                    {"label": "No Findings", "confidence": "Uncertain", "region": "middle"},
-                    {"label": "Normal", "confidence": "Certain", "region": "base"}
-                ]
+                    {
+                        "label": "No Findings",
+                        "confidence": "Uncertain",
+                        "region": "middle",
+                    },
+                    {"label": "Normal", "confidence": "Certain", "region": "base"},
+                ],
             }
         ]
 
@@ -296,8 +263,8 @@ class TestRemapStructuredLabels:
             "Chest": {
                 "Pneumonia": "Airspace opacity",
                 "Infection": "Airspace opacity",  # Duplicate consolidation
-                "No findings": "No findings",     # After "No Findings" fix
-                "Normal": "No findings"           # Another duplicate
+                "No findings": "No findings",  # After "No Findings" fix
+                "Normal": "No findings",  # Another duplicate
             }
         }
 
@@ -317,24 +284,20 @@ class TestRemapStructuredLabels:
 
         # No findings should be "Certain" (from Normal)
         assert no_findings_label["confidence"] == "Certain"
-        assert no_findings_label["region"] == "middle"  # From first occurrence (No Findings -> No findings)
+        assert (
+            no_findings_label["region"] == "middle"
+        )  # From first occurrence (No Findings -> No findings)
 
     def test_missing_confidence_defaults_to_uncertain(self):
         """Test that missing confidence field defaults to 'Uncertain'."""
         structured_labels = [
             {
                 "body_part": "Chest",
-                "labels": [
-                    {"label": "Pneumonia"}  # No confidence field
-                ]
+                "labels": [{"label": "Pneumonia"}],  # No confidence field
             }
         ]
 
-        mapping = {
-            "Chest": {
-                "Pneumonia": "Airspace opacity"
-            }
-        }
+        mapping = {"Chest": {"Pneumonia": "Airspace opacity"}}
 
         result = remap_structured_labels(structured_labels, mapping)
 
@@ -345,9 +308,7 @@ class TestRemapStructuredLabels:
         structured_labels = [
             {
                 "body_part": "",
-                "labels": [
-                    {"label": "SomeLabel", "confidence": "Certain"}
-                ]
+                "labels": [{"label": "SomeLabel", "confidence": "Certain"}],
             }
         ]
 
