@@ -1,5 +1,6 @@
 import argparse
 import ast
+import json
 
 import pandas as pd
 import tqdm as tq
@@ -12,8 +13,12 @@ from epsutils.labels.labels_by_body_part import (
     V1_3_0_FINEGRAINED_TO_CONSOLIDATED_BY_BODY_PART,
 )
 
+from epsutils.labels.scripts import lib_remap_structured_labels
 
-FINEGRAINED_TO_CONSOLIDATED = V1_3_0_FINEGRAINED_TO_CONSOLIDATED_BY_BODY_PART
+
+FINEGRAINED_TO_CONSOLIDATED_BY_BODY_PART = (
+    V1_3_0_FINEGRAINED_TO_CONSOLIDATED_BY_BODY_PART
+)
 
 
 def load_csv(file_name):
@@ -58,8 +63,19 @@ def parse_args():
 
 
 def update_one_row(row):
-    # TODO: remap labels
-    return row
+    """Remap labels using FINEGRAINED_TO_CONSOLIDATED_BY_BODY_PART mapping."""
+
+    # Create a copy of the row to modify
+    updated_row = row.copy()
+
+    structured_labels = json.loads(row.get("structured_labels", "[]"))
+    if structured_labels:
+        updated_structured_labels = lib_remap_structured_labels.remap_structured_labels(
+            structured_labels, FINEGRAINED_TO_CONSOLIDATED_BY_BODY_PART
+        )
+        updated_row["structured_labels"] = json.dumps(updated_structured_labels)
+
+    return updated_row
 
 
 def main():
@@ -73,7 +89,7 @@ def main():
     # Perform remapping.
     tqdm.pandas(desc="Remapping rows")
     updated_df = df.progress_apply(update_one_row, axis=1, result_type="expand")
-    
+
     # Write output CSV.
     print("Writing output csv")
     updated_df.to_csv(args.output_csv, index=False)
