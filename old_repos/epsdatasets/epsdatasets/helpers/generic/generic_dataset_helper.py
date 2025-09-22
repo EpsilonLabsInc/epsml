@@ -208,7 +208,7 @@ class GenericDatasetHelper(BaseDatasetHelper):
         self.__torch_test_dataset = GenericTorchDataset(pandas_dataframe=self.__pandas_test_dataset) if self.__pandas_test_dataset is not None else None
 
     def get_pil_image(self, item):
-        image_paths = item["image_paths"] if isinstance(item["image_paths"], list) else ast.literal_eval(item["image_paths"])
+        image_paths = item["relative_image_paths"] if isinstance(item["relative_image_paths"], list) else ast.literal_eval(item["relative_image_paths"])
         base_path = item["base_path"]
         images = []
 
@@ -417,7 +417,7 @@ class GenericDatasetHelper(BaseDatasetHelper):
             for index in range(3):
                 for i in range(num_data_augmentations):
                     row = res_df.iloc[index + i * org_size]
-                    print(f"{row['image_paths']}: {row['augmentation_params']}")
+                    print(f"{row['relative_image_paths']}: {row['augmentation_params']}")
 
         return res_df
 
@@ -443,10 +443,10 @@ class GenericDatasetHelper(BaseDatasetHelper):
             if body_part not in df_body_parts:
                 continue
 
-            if pd.isna(row["image_paths"]):
+            if pd.isna(row["relative_image_paths"]):
                 continue
 
-            image_paths = ast.literal_eval(row["image_paths"])
+            image_paths = ast.literal_eval(row["relative_image_paths"])
 
             # For chest perform additonal checks.
             if body_part == "chest" and self.__enforce_frontal_and_lateral_view_for_chest:
@@ -484,7 +484,7 @@ class GenericDatasetHelper(BaseDatasetHelper):
                 frontal_index = next((i for i, elem in enumerate(projection_classification) if elem == "Frontal"), None)
                 lateral_index = next((i for i, elem in enumerate(projection_classification) if elem == "Lateral"), None)
                 assert frontal_index is not None and lateral_index is not None
-                row["image_paths"] = [image_paths[frontal_index], image_paths[lateral_index]]
+                row["relative_image_paths"] = [image_paths[frontal_index], image_paths[lateral_index]]
                 row["projection_classification"] = [projection_classification[frontal_index], projection_classification[lateral_index]]
                 row["chest_classification"] = [chest_classification[frontal_index], chest_classification[lateral_index]]
 
@@ -497,7 +497,7 @@ class GenericDatasetHelper(BaseDatasetHelper):
 
                 for image_path in image_paths:
                     new_row = row.copy()
-                    new_row["image_paths"] = [image_path]
+                    new_row["relative_image_paths"] = [image_path]
                     selected_rows.append(new_row)
 
             # ... or keep all study images as they are.
