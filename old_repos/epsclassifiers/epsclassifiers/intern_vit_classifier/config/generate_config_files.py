@@ -32,6 +32,7 @@ def main(args):
         formatted_label = label.lower().replace(' ', '_').replace("/", "_")
 
         new_config = copy.deepcopy(config)
+        new_config["general"]["experiment_name"] += f"___{formatted_body_part}___{formatted_label}"
         new_config["general"]["custom_labels"] = [label]
         new_config["general"]["body_part"] = args.body_part
 
