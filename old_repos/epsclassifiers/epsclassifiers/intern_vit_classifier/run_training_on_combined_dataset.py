@@ -261,7 +261,7 @@ def main(config_path):
             "images": images,
             "report_texts": report_texts,
             "text_encodings": text_encodings,
-            "file_names": [sample["image_paths"] for sample in samples],
+            "file_names": [sample["relative_image_paths"] for sample in samples],
         }
 
         return data, labels

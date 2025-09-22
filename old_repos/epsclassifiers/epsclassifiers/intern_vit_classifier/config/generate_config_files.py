@@ -33,8 +33,8 @@ def main(args):
 
         new_config = copy.deepcopy(config)
         new_config["general"]["experiment_name"] += f"___{formatted_body_part}___{formatted_label}"
-        new_config["general"]["custom_labels"] = [label]
-        new_config["general"]["body_part"] = args.body_part
+        new_config["data"]["body_part"] = args.body_part
+        new_config["data"]["custom_labels"] = [label]
 
         output_dir = os.path.join(args.output_dir, formatted_body_part)
         os.makedirs(output_dir, exist_ok=True)
