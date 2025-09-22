@@ -30,22 +30,10 @@ def main(config_path):
     config = yaml.safe_load(config_file_content)
 
     # Get the configuration parameters.
-    model_name                     = config["general"].get("model_name", "")
-    dataset_name                   = config["general"].get("dataset_name", "")
+    experiment_name                = config["general"].get("experiment_name", "")
     run_name                       = config["general"].get("run_name", "")
     notes                          = config["general"].get("notes", "")
     custom_labels                  = convert_none(config["general"].get("custom_labels", None))
-    body_part                      = config["general"].get("body_part", "")
-    sub_body_part                  = convert_none(config["general"].get("sub_body_part", None))
-    treat_uncertain_as_positive    = config["general"].get("treat_uncertain_as_positive", False)
-    perform_label_balancing        = config["general"].get("perform_label_balancing", False)
-    num_data_augmentations         = config["general"].get("num_data_augmentations", 0)
-    compute_num_data_augmentations = config["general"].get("compute_num_data_augmentations", False)
-    data_augmentation_target       = config["general"].get("data_augmentation_target", 0)
-    data_augmentation_min          = config["general"].get("data_augmentation_min", 0)            
-    unroll_images                  = config["general"].get("unroll_images", True)
-    max_study_images_to_unroll     = convert_none(config["general"].get("max_study_images_to_unroll", None))
-    use_report_text                = config["general"].get("use_report_text", False)
     save_full_model                = config["general"].get("save_full_model", False)
     intern_vl_checkpoint_dir       = config["paths"].get("intern_vl_checkpoint_dir", "")
     train_file                     = config["paths"].get("train_file", "")
@@ -53,6 +41,16 @@ def main(config_path):
     test_file                      = config["paths"].get("test_file", "")
     base_path_substitutions        = convert_none(config["paths"].get("base_path_substitutions", None))
     output_dir                     = config["paths"].get("output_dir", "")
+    body_part                      = config["data"].get("body_part", "")
+    sub_body_part                  = convert_none(config["data"].get("sub_body_part", None))
+    treat_uncertain_as_positive    = config["data"].get("treat_uncertain_as_positive", False)
+    perform_label_balancing        = config["data"].get("perform_label_balancing", False)
+    num_data_augmentations         = config["data"].get("num_data_augmentations", 0)
+    compute_num_data_augmentations = config["data"].get("compute_num_data_augmentations", False)
+    data_augmentation_target       = config["data"].get("data_augmentation_target", 0)
+    data_augmentation_min          = config["data"].get("data_augmentation_min", 0)
+    max_study_images               = convert_none(config["data"].get("max_study_images", None))
+    replace_dicom_with_png         = config["data"].get("replace_dicom_with_png", False)
     perform_intra_epoch_validation = config["training"].get("perform_intra_epoch_validation", False)
     intra_epoch_validation_step    = config["training"].get("intra_epoch_validation_step", 5000)
     send_wandb_notification        = config["training"].get("send_wandb_notification", True)
@@ -66,30 +64,18 @@ def main(config_path):
     training_batch_size            = config["training"].get("training_batch_size", 1)
     validation_batch_size          = config["training"].get("validation_batch_size", 1)
     min_allowed_batch_size         = config["training"].get("min_allowed_batch_size", 1)
+    use_report_text                = config["training"].get("use_report_text", False)
     multi_image_input              = config["training"].get("multi_image_input", False)
     num_multi_images               = convert_none(config["training"].get("num_multi_images", None))
-    max_multi_images               = convert_none(config["training"].get("max_multi_images", None))
     use_attentional_pooling        = config["training"].get("use_attentional_pooling", False)
 
     # Print configuration parameters.
     print("----------------------------------------------------------")
     print("Using the following configuration parameters:")
-    print(f"+ model_name: {model_name}")
-    print(f"+ dataset_name: {dataset_name}")
+    print(f"+ experiment_name: {experiment_name}")
     print(f"+ run_name: {run_name}")
     print(f"+ notes: {notes}")
     print(f"+ custom_labels: {custom_labels}")
-    print(f"+ body_part: {body_part}")
-    print(f"+ sub_body_part: {sub_body_part}")
-    print(f"+ treat_uncertain_as_positive: {treat_uncertain_as_positive}")
-    print(f"+ perform_label_balancing: {perform_label_balancing}")
-    print(f"+ num_data_augmentations: {num_data_augmentations}")
-    print(f"+ compute_num_data_augmentations: {compute_num_data_augmentations}")
-    print(f"+ data_augmentation_target: {data_augmentation_target}")
-    print(f"+ data_augmentation_min: {data_augmentation_min}")            
-    print(f"+ unroll_images: {unroll_images}")
-    print(f"+ max_study_images_to_unroll: {max_study_images_to_unroll}")
-    print(f"+ use_report_text: {use_report_text}")
     print(f"+ save_full_model: {save_full_model}")
     print(f"+ intern_vl_checkpoint_dir: {intern_vl_checkpoint_dir}")
     print(f"+ train_file: {train_file}")
@@ -97,6 +83,16 @@ def main(config_path):
     print(f"+ test_file: {test_file}")
     print(f"+ base_path_substitutions: {base_path_substitutions}")
     print(f"+ output_dir: {output_dir}")
+    print(f"+ body_part: {body_part}")
+    print(f"+ sub_body_part: {sub_body_part}")
+    print(f"+ treat_uncertain_as_positive: {treat_uncertain_as_positive}")
+    print(f"+ perform_label_balancing: {perform_label_balancing}")
+    print(f"+ num_data_augmentations: {num_data_augmentations}")
+    print(f"+ compute_num_data_augmentations: {compute_num_data_augmentations}")
+    print(f"+ data_augmentation_target: {data_augmentation_target}")
+    print(f"+ data_augmentation_min: {data_augmentation_min}")
+    print(f"+ max_study_images: {max_study_images}")
+    print(f"+ replace_dicom_with_png: {replace_dicom_with_png}")
     print(f"+ perform_intra_epoch_validation: {perform_intra_epoch_validation}")
     print(f"+ intra_epoch_validation_step: {intra_epoch_validation_step}")
     print(f"+ send_wandb_notification: {send_wandb_notification}")
@@ -110,15 +106,13 @@ def main(config_path):
     print(f"+ training_batch_size: {training_batch_size}")
     print(f"+ validation_batch_size: {validation_batch_size}")
     print(f"+ min_allowed_batch_size: {min_allowed_batch_size}")
+    print(f"+ use_report_text: {use_report_text}")
     print(f"+ multi_image_input: {multi_image_input}")
     print(f"+ num_multi_images: {num_multi_images}")
-    print(f"+ max_multi_images: {max_multi_images}")
     print(f"+ use_attentional_pooling: {use_attentional_pooling}")
     print("----------------------------------------------------------")
 
     # Auto-generated names. Don't change.
-    experiment_name = f"{model_name}-training-on-{dataset_name}"
-    mlops_experiment_name = f"{experiment_name}"
     experiment_dir = f"{output_dir}/{experiment_name}"
     save_model_filename = f"{experiment_dir}/{experiment_name}.pt"
     save_parallel_model_filename = f"{experiment_dir}/{experiment_name}-parallel.pt"
@@ -139,12 +133,11 @@ def main(config_path):
         num_data_augmentations=num_data_augmentations,
         compute_num_data_augmentations=compute_num_data_augmentations,
         data_augmentation_target=data_augmentation_target,
-        data_augmentation_min=data_augmentation_min,        
-        unroll_images=unroll_images,
-        max_study_images_to_unroll=max_study_images_to_unroll,
+        data_augmentation_min=data_augmentation_min,
+        max_study_images=max_study_images,
         convert_images_to_rgb=True,
-        custom_labels=custom_labels,
-        max_multi_images=max_multi_images)
+        replace_dicom_with_png=replace_dicom_with_png,
+        custom_labels=custom_labels)
 
     print(f"Using the following labels: {dataset_helper.get_labels()}")
 
@@ -192,7 +185,7 @@ def main(config_path):
                                              pause_on_validation_visualization=False)
 
     mlops_parameters = MlopsParameters(mlops_type=MlopsType.WANDB,
-                                       experiment_name=mlops_experiment_name,
+                                       experiment_name=experiment_name,
                                        run_name=run_name,
                                        notes=notes,
                                        label_names=dataset_helper.get_labels(),
