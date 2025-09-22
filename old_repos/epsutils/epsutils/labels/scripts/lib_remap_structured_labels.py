@@ -23,7 +23,8 @@ def remap_structured_labels(
 
         consolidated_labels_bp = a_to_b_mapping_by_body_part[body_part]
 
-        # Process labels within this body part
+        # Process labels within this body part - collect valid labels
+        valid_labels = []
         for label_item in label_group.get("labels", []):
             label_name = label_item.get("label", "")
             if not label_name:
@@ -37,10 +38,17 @@ def remap_structured_labels(
             # Remap using the consolidated mapping
             if label_name in consolidated_labels_bp:
                 mapped_label = consolidated_labels_bp[label_name]
-                if mapped_label:  # Only update if mapping exists and is not empty
+                if mapped_label:  # Only keep if mapping exists and is not empty
                     label_item["label"] = mapped_label
+                    valid_labels.append(label_item)
+                else:
+                    # If mapped_label is empty/None, drop the label_item entirely
+                    print(f"Dropping label {label_name} because it maps to empty/None.")
             else:
                 raise Exception(f"Label {label_name} not found in {body_part} mapping")
+
+        # Update the labels list with only valid labels
+        label_group["labels"] = valid_labels
 
         # Second pass: collapse duplicate consolidated labels
         labels_list = label_group.get("labels", [])

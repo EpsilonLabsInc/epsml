@@ -199,21 +199,79 @@ class TestRemapStructuredLabels:
 
         assert "Label UnknownLabel not found in Chest mapping" in str(exc_info.value)
 
-    def test_empty_mapped_label_skipped(self):
-        """Test that empty/None mapped labels are skipped."""
+    def test_empty_mapped_label_dropped(self):
+        """Test that empty mapped labels are dropped from output."""
         structured_labels = [
             {
                 "body_part": "Chest",
-                "labels": [{"label": "ObsoleteLabel", "confidence": "Certain"}],
+                "labels": [
+                    {"label": "ObsoleteLabel", "confidence": "Certain"},
+                    {"label": "ValidLabel", "confidence": "Uncertain"}
+                ],
             }
         ]
 
-        mapping = {"Chest": {"ObsoleteLabel": ""}}  # Empty mapping means remove label
+        mapping = {
+            "Chest": {
+                "ObsoleteLabel": "",  # Empty mapping means remove label
+                "ValidLabel": "Remapped Label"
+            }
+        }
 
         result = remap_structured_labels(structured_labels, mapping)
 
-        # Label should remain unchanged since mapping is empty
-        assert result[0]["labels"][0]["label"] == "ObsoleteLabel"
+        # Only the valid label should remain
+        assert len(result[0]["labels"]) == 1
+        assert result[0]["labels"][0]["label"] == "Remapped Label"
+
+    def test_none_mapped_label_dropped(self):
+        """Test that None mapped labels are dropped from output."""
+        structured_labels = [
+            {
+                "body_part": "Chest",
+                "labels": [
+                    {"label": "ObsoleteLabel", "confidence": "Certain"},
+                    {"label": "ValidLabel", "confidence": "Uncertain"}
+                ],
+            }
+        ]
+
+        mapping = {
+            "Chest": {
+                "ObsoleteLabel": None,  # None mapping means remove label
+                "ValidLabel": "Remapped Label"
+            }
+        }
+
+        result = remap_structured_labels(structured_labels, mapping)
+
+        # Only the valid label should remain
+        assert len(result[0]["labels"]) == 1
+        assert result[0]["labels"][0]["label"] == "Remapped Label"
+
+    def test_all_labels_dropped_empty_list(self):
+        """Test that when all labels are dropped, an empty list remains."""
+        structured_labels = [
+            {
+                "body_part": "Chest",
+                "labels": [
+                    {"label": "ObsoleteLabel1", "confidence": "Certain"},
+                    {"label": "ObsoleteLabel2", "confidence": "Uncertain"}
+                ],
+            }
+        ]
+
+        mapping = {
+            "Chest": {
+                "ObsoleteLabel1": "",  # Empty mapping means remove label
+                "ObsoleteLabel2": None  # None mapping means remove label
+            }
+        }
+
+        result = remap_structured_labels(structured_labels, mapping)
+
+        # Labels list should be empty
+        assert len(result[0]["labels"]) == 0
 
     def test_deep_copy_behavior(self):
         """Test that original input is not modified (deep copy behavior)."""
