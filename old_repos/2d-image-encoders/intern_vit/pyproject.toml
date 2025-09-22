@@ -15,7 +15,7 @@ dependencies = [
     internvl-chat = { git = "git@github.com/EpsilonLabsInc/InternVL-3x.git", tag = "v2.0.0-classifier.1", subdirectory = "internvl_chat" }
 
 [tool.poetry.group.test.dependencies]
-    utils-ml-inference = { git = "git@github.com/EpsilonLabsInc/utils_ml_inference.git", tag = "v5.0.0" }
+    utils-ml-inference = { git = "git@github.com/EpsilonLabsInc/utils_ml_inference.git", tag = "v5.0.1" }
 
 [tool.poetry]
 packages = [{include = "*", to = "intern_vit"}]
