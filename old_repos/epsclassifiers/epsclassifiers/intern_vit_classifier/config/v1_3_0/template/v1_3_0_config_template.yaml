@@ -40,6 +40,7 @@ data:
   custom_labels: []
   treat_uncertain_as_positive: True
   perform_label_balancing: True
+  negative_body_parts_ratio: 0.05
   compute_num_data_augmentations: True
   data_augmentation_target: 10000
   data_augmentation_min: 1000

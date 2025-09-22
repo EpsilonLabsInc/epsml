@@ -45,6 +45,7 @@ def main(config_path):
     custom_labels                  = convert_none(config["data"].get("custom_labels", None))
     treat_uncertain_as_positive    = config["data"].get("treat_uncertain_as_positive", False)
     perform_label_balancing        = config["data"].get("perform_label_balancing", False)
+    negative_body_parts_ratio      = convert_none(config["data"].get("negative_body_parts_ratio", None))
     num_data_augmentations         = config["data"].get("num_data_augmentations", 0)
     compute_num_data_augmentations = config["data"].get("compute_num_data_augmentations", False)
     data_augmentation_target       = config["data"].get("data_augmentation_target", 0)
@@ -87,6 +88,7 @@ def main(config_path):
     print(f"+ custom_labels: {custom_labels}")
     print(f"+ treat_uncertain_as_positive: {treat_uncertain_as_positive}")
     print(f"+ perform_label_balancing: {perform_label_balancing}")
+    print(f"+ negative_body_parts_ratio: {negative_body_parts_ratio}")
     print(f"+ num_data_augmentations: {num_data_augmentations}")
     print(f"+ compute_num_data_augmentations: {compute_num_data_augmentations}")
     print(f"+ data_augmentation_target: {data_augmentation_target}")
@@ -130,6 +132,7 @@ def main(config_path):
         merge_val_and_test=True,
         treat_uncertain_as_positive=treat_uncertain_as_positive,
         perform_label_balancing=perform_label_balancing,
+        negative_body_parts_ratio=negative_body_parts_ratio,
         num_data_augmentations=num_data_augmentations,
         compute_num_data_augmentations=compute_num_data_augmentations,
         data_augmentation_target=data_augmentation_target,
