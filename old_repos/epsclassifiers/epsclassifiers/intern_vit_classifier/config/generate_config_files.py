@@ -3,12 +3,12 @@ import copy
 import os
 import yaml
 
-from epsutils.labels.labels_by_body_part import LABELS_BY_BODY_PART
+from epsutils.labels.labels_by_body_part import CONSOLIDATED_LABELS_BY_BODY_PART
 
 
 def main(args):
     # Check if body part is valid.
-    valid_body_parts = LABELS_BY_BODY_PART.keys()
+    valid_body_parts = CONSOLIDATED_LABELS_BY_BODY_PART.keys()
     if args.body_part not in valid_body_parts:
         response = input(
             f"Body part '{args.body_part}' not valid. Valid body parts are: {', '.join(valid_body_parts)}. "
@@ -19,13 +19,12 @@ def main(args):
             exit()
 
     # Read config template.
-    config_template = args.chest_config_template if args.body_part == "Chest" else args.non_chest_config_template
-    with open(config_template, "r") as file:
+    with open(args.config_template, "r") as file:
         content = file.read()
     config = yaml.safe_load(content)
 
     # Get all labels for the specified body part.
-    labels = LABELS_BY_BODY_PART[args.body_part]
+    labels = CONSOLIDATED_LABELS_BY_BODY_PART[args.body_part]
 
     # Generate config files.
     for label in labels:
@@ -33,9 +32,6 @@ def main(args):
         formatted_label = label.lower().replace(' ', '_').replace("/", "_")
 
         new_config = copy.deepcopy(config)
-        new_config["general"]["dataset_name"] = f"{formatted_body_part}_{formatted_label}"
-        new_config["general"]["run_name"] = args.run_name
-        new_config["general"]["notes"] = ""
         new_config["general"]["custom_labels"] = [label]
         new_config["general"]["body_part"] = args.body_part
 
@@ -54,15 +50,11 @@ def main(args):
 
 if __name__ == "__main__":
     BODY_PART = "T-spine"
-    CHEST_CONFIG_TEMPLATE = "./template/with_attention_pooling/chest_with_attention_pooling_config_template.yaml"
-    NON_CHEST_CONFIG_TEMPLATE = "./template/with_attention_pooling/non_chest_with_attention_pooling_config_template.yaml"
-    RUN_NAME = "Training with attention pooling"
-    OUTPUT_DIR = "./generated/with_attention_pooling"
+    CONFIG_TEMPLATE = "./v1_3_0/template/v1_3_0_config_template.yaml"
+    OUTPUT_DIR = "./v1_3_0"
 
     args = argparse.Namespace(body_part=BODY_PART,
-                              chest_config_template=CHEST_CONFIG_TEMPLATE,
-                              non_chest_config_template=NON_CHEST_CONFIG_TEMPLATE,
-                              run_name=RUN_NAME,
+                              config_template=CONFIG_TEMPLATE,
                               output_dir=OUTPUT_DIR)
 
     main(args)
