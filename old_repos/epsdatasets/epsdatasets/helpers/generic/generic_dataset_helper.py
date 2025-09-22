@@ -28,6 +28,7 @@ class GenericDatasetHelper(BaseDatasetHelper):
                  merge_val_and_test=True,
                  treat_uncertain_as_positive=True,
                  perform_label_balancing=True,
+                 negative_body_parts_ratio=None,
                  num_data_augmentations=0,
                  compute_num_data_augmentations=False,
                  data_augmentation_target=0,
@@ -49,6 +50,7 @@ class GenericDatasetHelper(BaseDatasetHelper):
                          merge_val_and_test=merge_val_and_test,
                          treat_uncertain_as_positive=treat_uncertain_as_positive,
                          perform_label_balancing=perform_label_balancing,
+                         negative_body_parts_ratio=negative_body_parts_ratio,
                          num_data_augmentations=num_data_augmentations,
                          compute_num_data_augmentations=compute_num_data_augmentations,
                          data_augmentation_target=data_augmentation_target,
@@ -72,6 +74,7 @@ class GenericDatasetHelper(BaseDatasetHelper):
         self.__merge_val_and_test = kwargs["merge_val_and_test"] if "merge_val_and_test" in kwargs else next((arg for arg in args if arg == "merge_val_and_test"), None)
         self.__treat_uncertain_as_positive = kwargs["treat_uncertain_as_positive"] if "treat_uncertain_as_positive" in kwargs else next((arg for arg in args if arg == "treat_uncertain_as_positive"), None)
         self.__perform_label_balancing = kwargs["perform_label_balancing"] if "perform_label_balancing" in kwargs else next((arg for arg in args if arg == "perform_label_balancing"), None)
+        self.__negative_body_parts_ratio = kwargs["negative_body_parts_ratio"] if "negative_body_parts_ratio" in kwargs else next((arg for arg in args if arg == "negative_body_parts_ratio"), None)
         self.__num_data_augmentations = kwargs["num_data_augmentations"] if "num_data_augmentations" in kwargs else next((arg for arg in args if arg == "num_data_augmentations"), None)
         self.__compute_num_data_augmentations = kwargs["compute_num_data_augmentations"] if "compute_num_data_augmentations" in kwargs else next((arg for arg in args if arg == "compute_num_data_augmentations"), None)
         self.__data_augmentation_target = kwargs["data_augmentation_target"] if "data_augmentation_target" in kwargs else next((arg for arg in args if arg == "data_augmentation_target"), None)
@@ -110,7 +113,10 @@ class GenericDatasetHelper(BaseDatasetHelper):
             print(f"Loading {self.__train_file}")
             content = self.__train_file
 
-        self.__pandas_train_dataset = self.__filter_dataset(df=pd.read_csv(content, low_memory=False), body_part=self.__body_part if self.__sub_body_part is None else self.__sub_body_part, use_dicom=self.__sub_body_part is not None)
+        self.__pandas_train_dataset, negative_body_parts_dataset = self.__filter_dataset(df=pd.read_csv(content, low_memory=False),
+                                                                                         body_part=self.__body_part if self.__sub_body_part is None else self.__sub_body_part,
+                                                                                         use_dicom=self.__sub_body_part is not None)
+
         self.__generate_training_labels(self.__pandas_train_dataset)
 
         if self.__uses_single_label:
@@ -119,8 +125,8 @@ class GenericDatasetHelper(BaseDatasetHelper):
             print(f"There are {num_pos} ({pos_percent:.2f}%) positive and {num_neg} ({neg_percent:.2f}%) negative samples in the training dataset")
 
         if self.__uses_single_label and self.__compute_num_data_augmentations:
-            if num_pos < self.__data_augmentation_min:
-                raise ValueError(f"At least {self.__data_augmentation_min} positive training samples required to apply data augmentation")
+            # if num_pos < self.__data_augmentation_min:
+            #     raise ValueError(f"At least {self.__data_augmentation_min} positive training samples required to apply data augmentation")
 
             if num_pos >= self.__data_augmentation_target:
                 self.__num_data_augmentations = 0
@@ -131,7 +137,7 @@ class GenericDatasetHelper(BaseDatasetHelper):
 
         if self.__perform_label_balancing and self.__uses_single_label:
             print("Balancing training dataset")
-            self.__pandas_train_dataset = self.__balance_dataset(self.__pandas_train_dataset, apply_data_augmentation=True)
+            self.__pandas_train_dataset = self.__balance_dataset(self.__pandas_train_dataset, negative_body_parts_dataset, apply_data_augmentation=True)
             print(f"After balancing, the training dataset has {len(self.__pandas_train_dataset)} rows")
 
         # Validation dataset.
@@ -151,7 +157,10 @@ class GenericDatasetHelper(BaseDatasetHelper):
             print(f"Loading {self.__validation_file}")
             content = self.__validation_file
 
-        self.__pandas_validation_dataset = self.__filter_dataset(df=pd.read_csv(content, low_memory=False), body_part=self.__body_part if self.__sub_body_part is None else self.__sub_body_part, use_dicom=self.__sub_body_part is not None)
+        self.__pandas_validation_dataset, negative_body_parts_dataset = self.__filter_dataset(df=pd.read_csv(content, low_memory=False),
+                                                                                              body_part=self.__body_part if self.__sub_body_part is None else self.__sub_body_part,
+                                                                                              use_dicom=self.__sub_body_part is not None)
+
         self.__generate_training_labels(self.__pandas_validation_dataset)
 
         if self.__uses_single_label:
@@ -161,7 +170,7 @@ class GenericDatasetHelper(BaseDatasetHelper):
 
         if self.__perform_label_balancing and self.__uses_single_label:
             print("Balancing validation dataset")
-            self.__pandas_validation_dataset = self.__balance_dataset(self.__pandas_validation_dataset)
+            self.__pandas_validation_dataset = self.__balance_dataset(self.__pandas_validation_dataset, negative_body_parts_dataset)
             print(f"After balancing, the validation dataset has {len(self.__pandas_validation_dataset)} rows")
 
         # Test dataset.
@@ -181,7 +190,10 @@ class GenericDatasetHelper(BaseDatasetHelper):
             print(f"Loading {self.__test_file}")
             content = self.__test_file
 
-        self.__pandas_test_dataset = self.__filter_dataset(df=pd.read_csv(content, low_memory=False), body_part=self.__body_part if self.__sub_body_part is None else self.__sub_body_part, use_dicom=self.__sub_body_part is not None)
+        self.__pandas_test_dataset, negative_body_parts_dataset = self.__filter_dataset(df=pd.read_csv(content, low_memory=False),
+                                                                                        body_part=self.__body_part if self.__sub_body_part is None else self.__sub_body_part,
+                                                                                        use_dicom=self.__sub_body_part is not None)
+
         self.__generate_training_labels(self.__pandas_test_dataset)
 
         if self.__uses_single_label:
@@ -191,7 +203,7 @@ class GenericDatasetHelper(BaseDatasetHelper):
 
         if self.__perform_label_balancing and self.__uses_single_label:
             print("Balancing test dataset")
-            self.__pandas_test_dataset = self.__balance_dataset(self.__pandas_test_dataset)
+            self.__pandas_test_dataset = self.__balance_dataset(self.__pandas_test_dataset, negative_body_parts_dataset)
             print(f"After balancing, the test dataset has {len(self.__pandas_test_dataset)} rows")
 
         # Merge validation and test dataset.
@@ -376,17 +388,24 @@ class GenericDatasetHelper(BaseDatasetHelper):
 
         return num_pos, pos_percent, num_neg, neg_percent
 
-    def __balance_dataset(self, df, apply_data_augmentation=False):
+    def __balance_dataset(self, df, neg_body_parts_df, apply_data_augmentation=False):
         assert self.__uses_single_label
 
         pos_df = df[df["training_labels"].apply(lambda x: x == [1])]
         if apply_data_augmentation:
             pos_df = self.__apply_data_augmentation(df=pos_df, num_data_augmentations=self.__num_data_augmentations)
+        num_pos = len(pos_df)
 
         neg_df = df[df["training_labels"].apply(lambda x: x == [0])]
         if apply_data_augmentation:
             neg_df = self.__apply_data_augmentation(df=neg_df, num_data_augmentations=0)
-        neg_df = neg_df.sample(n=len(pos_df), random_state=self.__seed, replace=True)
+
+        if self.__negative_body_parts_ratio is None:
+            neg_df = neg_df.sample(n=num_pos, random_state=self.__seed, replace=False)
+        else:
+            df1 = neg_df.sample(n=round(num_pos * (1 - self.__negative_body_parts_ratio)), random_state=self.__seed, replace=False)
+            df2 = neg_body_parts_df.sample(n=round(num_pos * self.__negative_body_parts_ratio), random_state=self.__seed, replace=False)
+            neg_df = pd.concat([df1, df2]).reset_index(drop=True)
 
         df = pd.concat([pos_df, neg_df]).reset_index(drop=True)
         df = df.sample(frac=1, random_state=self.__seed).reset_index(drop=True)
@@ -427,6 +446,7 @@ class GenericDatasetHelper(BaseDatasetHelper):
 
         body_part = body_part.strip().lower()
         selected_rows = []
+        negative_body_part_rows = []
 
         for _, row in tqdm(df.iterrows(), total=len(df), desc="Procesing"):
             base_path = row["base_path"]
@@ -441,6 +461,7 @@ class GenericDatasetHelper(BaseDatasetHelper):
                 df_body_parts = {body_part.strip().lower() for body_part in row["body_part"].split(",")}
 
             if body_part not in df_body_parts:
+                negative_body_part_rows.append(row)
                 continue
 
             if pd.isna(row["relative_image_paths"]):
@@ -512,7 +533,10 @@ class GenericDatasetHelper(BaseDatasetHelper):
         df = pd.DataFrame(selected_rows)
         print(f"Filtered dataset has {len(df)} rows")
 
-        return df
+        neg_df = pd.DataFrame(negative_body_part_rows)
+        print(f"Negative body parts dataset has {len(neg_df)} rows")
+
+        return df, neg_df
 
 
 class GenericTorchDataset(Dataset):
