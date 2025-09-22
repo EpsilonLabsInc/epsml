@@ -32,13 +32,13 @@ class GenericDatasetHelper(BaseDatasetHelper):
                  compute_num_data_augmentations=False,
                  data_augmentation_target=0,
                  data_augmentation_min=0,
-                 unroll_images = True,
-                 max_study_images_to_unroll=None,
+                 unroll_images = False,
+                 max_study_images=None,
+                 enforce_frontal_and_lateral_view_for_chest=False,
                  convert_images_to_rgb=True,
                  replace_dicom_with_png=False,
                  custom_labels=None,
-                 seed=42,
-                 max_multi_images=None):
+                 seed=42):
 
         super().__init__(train_file=train_file,
                          validation_file=validation_file,
@@ -54,12 +54,12 @@ class GenericDatasetHelper(BaseDatasetHelper):
                          data_augmentation_target=data_augmentation_target,
                          data_augmentation_min=data_augmentation_min,
                          unroll_images=unroll_images,
-                         max_study_images_to_unroll=max_study_images_to_unroll,
+                         max_study_images=max_study_images,
+                         enforce_frontal_and_lateral_view_for_chest=enforce_frontal_and_lateral_view_for_chest,
                          convert_images_to_rgb=convert_images_to_rgb,
                          replace_dicom_with_png=replace_dicom_with_png,
                          custom_labels=custom_labels,
-                         seed=seed,
-                         max_multi_images=max_multi_images)
+                         seed=seed)
 
     def _load_dataset(self, *args, **kwargs):
         # Store params.
@@ -77,12 +77,12 @@ class GenericDatasetHelper(BaseDatasetHelper):
         self.__data_augmentation_target = kwargs["data_augmentation_target"] if "data_augmentation_target" in kwargs else next((arg for arg in args if arg == "data_augmentation_target"), None)
         self.__data_augmentation_min = kwargs["data_augmentation_min"] if "data_augmentation_min" in kwargs else next((arg for arg in args if arg == "data_augmentation_min"), None)
         self.__unroll_images = kwargs["unroll_images"] if "unroll_images" in kwargs else next((arg for arg in args if arg == "unroll_images"), None)
-        self.__max_study_images_to_unroll = kwargs["max_study_images_to_unroll"] if "max_study_images_to_unroll" in kwargs else next((arg for arg in args if arg == "max_study_images_to_unroll"), None)
+        self.__max_study_images = kwargs["max_study_images"] if "max_study_images" in kwargs else next((arg for arg in args if arg == "max_study_images"), None)
+        self.__enforce_frontal_and_lateral_view_for_chest = kwargs["enforce_frontal_and_lateral_view_for_chest"] if "enforce_frontal_and_lateral_view_for_chest" in kwargs else next((arg for arg in args if arg == "enforce_frontal_and_lateral_view_for_chest"), None)
         self.__convert_images_to_rgb = kwargs["convert_images_to_rgb"] if "convert_images_to_rgb" in kwargs else next((arg for arg in args if arg == "convert_images_to_rgb"), None)
         self.__replace_dicom_with_png = kwargs["replace_dicom_with_png"] if "replace_dicom_with_png" in kwargs else next((arg for arg in args if arg == "replace_dicom_with_png"), None)
         self.__custom_labels = kwargs["custom_labels"] if "custom_labels" in kwargs else next((arg for arg in args if arg == "custom_labels"), None)
         self.__seed = kwargs["seed"] if "seed" in kwargs else next((arg for arg in args if arg == "seed"), None)
-        self.__max_multi_images = kwargs["max_multi_images"] if "max_multi_images" in kwargs else next((arg for arg in args if arg == "max_multi_images"), None)
 
         self.__pandas_train_dataset = None
         self.__pandas_validation_dataset = None
@@ -449,7 +449,7 @@ class GenericDatasetHelper(BaseDatasetHelper):
             image_paths = ast.literal_eval(row["image_paths"])
 
             # For chest perform additonal checks.
-            if body_part == "chest":
+            if body_part == "chest" and self.__enforce_frontal_and_lateral_view_for_chest:
                 # If no chest classification was done for this row, skip it.
                 if pd.isna(row["chest_classification"]):
                     continue
@@ -492,7 +492,7 @@ class GenericDatasetHelper(BaseDatasetHelper):
 
             # For body parts other than chest, either unroll images if unrolling is enabled...
             elif self.__unroll_images:
-                if self.__max_study_images_to_unroll is not None and len(image_paths) > self.__max_study_images_to_unroll:
+                if self.__max_study_images is not None and len(image_paths) > self.__max_study_images:
                     continue
 
                 for image_path in image_paths:
@@ -502,7 +502,7 @@ class GenericDatasetHelper(BaseDatasetHelper):
 
             # ... or keep all study images as they are.
             else:
-                if self.__max_multi_images is not None and len(image_paths) > self.__max_multi_images:
+                if self.__max_study_images is not None and len(image_paths) > self.__max_study_images:
                     continue
                 elif len(image_paths) == 0:
                     continue
