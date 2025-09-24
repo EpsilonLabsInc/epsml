@@ -49,8 +49,8 @@ training:
   send_wandb_notification: false
   device: cuda
   device_ids: None
-  num_training_workers_per_gpu: 8
-  num_validation_workers_per_gpu: 8
+  num_training_workers_per_gpu: 128
+  num_validation_workers_per_gpu: 128
   learning_rate: 4.0e-05
   warmup_ratio: 0.1
   num_epochs: 4
@@ -59,3 +59,12 @@ training:
   min_allowed_batch_size: 1
   multi_image_input: true
   max_multi_images: 8
+  enable_profiler: true
+  profiler_wait: 1
+  profiler_warmup: 1
+  profiler_active: 10
+  profiler_repeat: 1
+  profiler_record_shapes: true
+  profiler_profile_memory: true
+  profiler_with_stack: false
+  profiler_with_flops: false
