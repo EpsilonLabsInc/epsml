@@ -43,6 +43,7 @@ class ConfigLoader:
         config_dict["data"]["custom_labels"]                  = self.__convert_none(config["data"].get("custom_labels", None))
         config_dict["data"]["treat_uncertain_as_positive"]    = config["data"].get("treat_uncertain_as_positive", False)
         config_dict["data"]["perform_label_balancing"]        = config["data"].get("perform_label_balancing", False)
+        config_dict["data"]["max_positive_samples"]           = self.__convert_none(config["data"].get("max_positive_samples", None))
         config_dict["data"]["negative_body_parts_ratio"]      = self.__convert_none(config["data"].get("negative_body_parts_ratio", None))
         config_dict["data"]["num_data_augmentations"]         = config["data"].get("num_data_augmentations", 0)
         config_dict["data"]["compute_num_data_augmentations"] = config["data"].get("compute_num_data_augmentations", False)

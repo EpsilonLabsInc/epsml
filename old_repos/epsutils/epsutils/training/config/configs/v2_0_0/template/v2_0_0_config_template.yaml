@@ -40,6 +40,7 @@ data:
   custom_labels: []
   treat_uncertain_as_positive: True
   perform_label_balancing: True
+  max_positive_samples: 500_000
   negative_body_parts_ratio: 0.05
   compute_num_data_augmentations: True
   data_augmentation_target: 10000
@@ -48,7 +49,7 @@ data:
   replace_dicom_with_png: False
 
 training:
-  perform_intra_epoch_validation: True
+  perform_intra_epoch_validation: False
   intra_epoch_validation_step: 3000
   send_wandb_notification: False
   device: "cuda"
