@@ -10,7 +10,7 @@ from epsutils.training.config.config_loader import ConfigLoader
 
 
 class DataAnalyzer:
-    def __init__(self, ignore_templates=True, low_memory=False, simulation_mode=False):
+    def __init__(self, ignore_templates=True, low_memory=False, simulation_mode=False, save_intermediate_results_step=None):
         self.__ignore_templates = ignore_templates
         self.__low_memory = low_memory
         self.__simulation_mode = simulation_mode
@@ -42,6 +42,11 @@ class DataAnalyzer:
         num_samples_dict = {}
 
         for index, config_file in enumerate(config_files):
+            # Save intermediate results.
+            if save_intermediate_results_step is not None and index % save_intermediate_results_step == 0 and index > 0:
+                with open(f"num_samples_intermediate_{index}", "w") as f:
+                    json.dump(num_samples_dict, f, indent=4)
+
             # Generate status message.
             message = f"{index + 1}/{len(config_files)} Config file: {config_file}"
             border = "=" * len(message)
@@ -102,11 +107,13 @@ if __name__ == "__main__":
     IGNORE_TEMPLATES = True
     LOW_MEMORY = False
     SIMULATION_MODE = False
+    SAVE_INTERMEDIATE_RESULTS_STEP = None
     ROOT_CONFIG_PATH = "../config/configs/v2_0_0"
 
     num_training_samples = DataAnalyzer(ignore_templates=IGNORE_TEMPLATES,
                                         low_memory=LOW_MEMORY,
-                                        simulation_mode=SIMULATION_MODE).find_config_files_and_get_num_training_samples(ROOT_CONFIG_PATH)
+                                        simulation_mode=SIMULATION_MODE,
+                                        save_intermediate_results_step=SAVE_INTERMEDIATE_RESULTS_STEP).find_config_files_and_get_num_training_samples(ROOT_CONFIG_PATH)
 
     print("Num training samples:")
     print(json.dumps(num_training_samples, indent=4))
