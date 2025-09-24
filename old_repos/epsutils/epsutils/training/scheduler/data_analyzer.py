@@ -14,6 +14,7 @@ class DataAnalyzer:
         self.__ignore_templates = ignore_templates
         self.__low_memory = low_memory
         self.__simulation_mode = simulation_mode
+        self.__save_intermediate_results_step = save_intermediate_results_step
 
     def find_config_files_and_get_num_training_samples(self, root_config_path):
         config_files = list(Path(root_config_path).rglob("*.yaml"))
@@ -43,7 +44,7 @@ class DataAnalyzer:
 
         for index, config_file in enumerate(config_files):
             # Save intermediate results.
-            if save_intermediate_results_step is not None and index % save_intermediate_results_step == 0 and index > 0:
+            if self.__save_intermediate_results_step is not None and index % self.__save_intermediate_results_step == 0 and index > 0:
                 with open(f"num_samples_intermediate_{index}.json", "w") as f:
                     json.dump(num_samples_dict, f, indent=4)
 
