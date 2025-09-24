@@ -142,7 +142,7 @@ class GenericDatasetHelper(BaseDatasetHelper):
 
         if self.__uses_single_label and self.__compute_num_data_augmentations:
             if self.__max_positive_samples < self.__data_augmentation_target:
-                raise ValueError(f"Maximum number of positive samples (={self.__max_positive_samples}) must be greater than or equal to the data augmentation target (={self.__data_augmentation_target}).")
+                raise ValueError(f"Maximum number of positive samples (={self.__max_positive_samples}) must be greater than or equal to the data augmentation target (={self.__data_augmentation_target})")
 
             if num_pos < self.__data_augmentation_min:
                 raise ValueError(f"At least {self.__data_augmentation_min} positive training samples required to apply data augmentation")
