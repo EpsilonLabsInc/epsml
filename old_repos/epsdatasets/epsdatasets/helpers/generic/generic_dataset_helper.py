@@ -141,6 +141,9 @@ class GenericDatasetHelper(BaseDatasetHelper):
             print(f"There are {num_pos} ({pos_percent:.2f}%) positive and {num_neg} ({neg_percent:.2f}%) negative samples in the training dataset")
 
         if self.__uses_single_label and self.__compute_num_data_augmentations:
+            if self.__max_positive_samples < self.__data_augmentation_target:
+                raise ValueError(f"Maximum number of positive samples (={self.__max_positive_samples}) must be greater than or equal to the data augmentation target (={self.__data_augmentation_target}).")
+
             if num_pos < self.__data_augmentation_min:
                 raise ValueError(f"At least {self.__data_augmentation_min} positive training samples required to apply data augmentation")
 
@@ -468,6 +471,12 @@ class GenericDatasetHelper(BaseDatasetHelper):
 
         return res_df
 
+    def __safe_literal_eval(self, val):
+        try:
+            return ast.literal_eval(val)
+        except:
+            return []
+
     def __filter_dataset(self, df, body_part, use_dicom):
         print("Filtering dataset")
         print(f"Original dataset has {len(df)} rows")
@@ -475,6 +484,8 @@ class GenericDatasetHelper(BaseDatasetHelper):
         body_part = body_part.strip().lower()
         selected_rows = []
         negative_body_part_rows = []
+
+        df["relative_image_paths"] = df["relative_image_paths"].apply(self.__safe_literal_eval)
 
         for _, row in tqdm(df.iterrows(), total=len(df), desc="Procesing"):
             base_path = row["base_path"]
@@ -492,10 +503,10 @@ class GenericDatasetHelper(BaseDatasetHelper):
                 negative_body_part_rows.append(row)
                 continue
 
-            if pd.isna(row["relative_image_paths"]):
+            if len(row["relative_image_paths"]) == 0:
                 continue
 
-            image_paths = ast.literal_eval(row["relative_image_paths"])
+            image_paths = row["relative_image_paths"]
 
             # For chest perform additonal checks.
             if body_part == "chest" and self.__enforce_frontal_and_lateral_view_for_chest:
