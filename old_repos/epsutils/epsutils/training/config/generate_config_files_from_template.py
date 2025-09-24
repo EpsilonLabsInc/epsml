@@ -53,8 +53,8 @@ def main(args):
 
 if __name__ == "__main__":
     BODY_PART = "T-spine"
-    CONFIG_TEMPLATE = "./configs/v1_3_0/template/v1_3_0_config_template.yaml"
-    OUTPUT_DIR = "./configs/v1_3_0"
+    CONFIG_TEMPLATE = "./configs/v2_0_0/template/v2_0_0_config_template.yaml"
+    OUTPUT_DIR = "./configs/v2_0_0"
 
     args = argparse.Namespace(body_part=BODY_PART,
                               config_template=CONFIG_TEMPLATE,

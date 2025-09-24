@@ -1,14 +1,19 @@
 import json
 import os
+import random
 from pathlib import Path
+
+import pandas as pd
 
 from epsdatasets.helpers.generic.generic_dataset_helper import GenericDatasetHelper
 from epsutils.training.config.config_loader import ConfigLoader
 
 
 class DataAnalyzer:
-    def __init__(self, ignore_templates=True):
+    def __init__(self, ignore_templates=True, low_memory=False, simulation_mode=False):
         self.__ignore_templates = ignore_templates
+        self.__low_memory = low_memory
+        self.__simulation_mode = simulation_mode
 
     def find_config_files_and_get_num_training_samples(self, root_config_path):
         config_files = list(Path(root_config_path).rglob("*.yaml"))
@@ -23,6 +28,17 @@ class DataAnalyzer:
         return self.get_num_training_samples(config_files)
 
     def get_num_training_samples(self, config_files):
+        if len(config_files) == 0:
+            return {}
+
+        # Prefetch the data.
+        if not self.__simulation_mode:
+            print("Prefetching the data")
+            config = ConfigLoader().load_config(config_files[0])
+            train_file = config["paths"]["train_file"]
+            print(f"Loading {train_file}")
+            train_df = pd.read_csv(train_file, low_memory=self.__low_memory)
+
         num_samples_dict = {}
 
         for index, config_file in enumerate(config_files):
@@ -37,8 +53,17 @@ class DataAnalyzer:
             print(border)
             print("")
 
+            # Use a random number in simulation mode.
+            if self.__simulation_mode:
+                num_samples_dict[config_file] = None if random.random() < 0.1 else random.randint(10, 200000)
+                continue
+
             # Load config.
             config = ConfigLoader().load_config(config_file)
+
+            # Training files should match across all the configurations.
+            if train_file != config["paths"]["train_file"]:
+                raise ValueError("Training files should be the same across all the configurations")
 
             # Create dataset helper.
             try:
@@ -60,7 +85,9 @@ class DataAnalyzer:
                     max_study_images=config["data"]["max_study_images"],
                     convert_images_to_rgb=True,
                     replace_dicom_with_png=config["data"]["replace_dicom_with_png"],
-                    custom_labels=config["data"]["custom_labels"])
+                    custom_labels=config["data"]["custom_labels"],
+                    train_df=train_df,
+                    for_stats_only=True)
             except Exception as e:
                 print(e)
                 dataset_helper = None
@@ -73,9 +100,13 @@ class DataAnalyzer:
 
 if __name__ == "__main__":
     IGNORE_TEMPLATES = True
-    ROOT_CONFIG_PATH = "../config/configs/v1_3_0"
+    LOW_MEMORY = False
+    SIMULATION_MODE = False
+    ROOT_CONFIG_PATH = "../config/configs/v2_0_0"
 
-    num_training_samples = DataAnalyzer(ignore_templates=IGNORE_TEMPLATES).find_config_files_and_get_num_training_samples(ROOT_CONFIG_PATH)
+    num_training_samples = DataAnalyzer(ignore_templates=IGNORE_TEMPLATES,
+                                        low_memory=LOW_MEMORY,
+                                        simulation_mode=SIMULATION_MODE).find_config_files_and_get_num_training_samples(ROOT_CONFIG_PATH)
 
     print("Num training samples:")
     print(json.dumps(num_training_samples, indent=4))
