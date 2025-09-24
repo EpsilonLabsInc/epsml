@@ -28,6 +28,7 @@ class GenericDatasetHelper(BaseDatasetHelper):
                  merge_val_and_test=True,
                  treat_uncertain_as_positive=True,
                  perform_label_balancing=True,
+                 max_positive_samples=None,
                  negative_body_parts_ratio=None,
                  num_data_augmentations=0,
                  compute_num_data_augmentations=False,
@@ -54,6 +55,7 @@ class GenericDatasetHelper(BaseDatasetHelper):
                          merge_val_and_test=merge_val_and_test,
                          treat_uncertain_as_positive=treat_uncertain_as_positive,
                          perform_label_balancing=perform_label_balancing,
+                         max_positive_samples=max_positive_samples,
                          negative_body_parts_ratio=negative_body_parts_ratio,
                          num_data_augmentations=num_data_augmentations,
                          compute_num_data_augmentations=compute_num_data_augmentations,
@@ -82,6 +84,7 @@ class GenericDatasetHelper(BaseDatasetHelper):
         self.__merge_val_and_test = kwargs["merge_val_and_test"] if "merge_val_and_test" in kwargs else next((arg for arg in args if arg == "merge_val_and_test"), None)
         self.__treat_uncertain_as_positive = kwargs["treat_uncertain_as_positive"] if "treat_uncertain_as_positive" in kwargs else next((arg for arg in args if arg == "treat_uncertain_as_positive"), None)
         self.__perform_label_balancing = kwargs["perform_label_balancing"] if "perform_label_balancing" in kwargs else next((arg for arg in args if arg == "perform_label_balancing"), None)
+        self.__max_positive_samples = kwargs["max_positive_samples"] if "max_positive_samples" in kwargs else next((arg for arg in args if arg == "max_positive_samples"), None)
         self.__negative_body_parts_ratio = kwargs["negative_body_parts_ratio"] if "negative_body_parts_ratio" in kwargs else next((arg for arg in args if arg == "negative_body_parts_ratio"), None)
         self.__num_data_augmentations = kwargs["num_data_augmentations"] if "num_data_augmentations" in kwargs else next((arg for arg in args if arg == "num_data_augmentations"), None)
         self.__compute_num_data_augmentations = kwargs["compute_num_data_augmentations"] if "compute_num_data_augmentations" in kwargs else next((arg for arg in args if arg == "compute_num_data_augmentations"), None)
@@ -411,6 +414,12 @@ class GenericDatasetHelper(BaseDatasetHelper):
         assert self.__uses_single_label
 
         pos_df = df[df["training_labels"].apply(lambda x: x == [1])]
+
+        if self.__max_positive_samples is not None and len(pos_df) > self.__max_positive_samples:
+            print(f"Number of positive samples {len(pos_df)} exceeds {self.__max_positive_samples}")
+            pos_df = pos_df.sample(n=self.__max_positive_samples, random_state=self.__seed, replace=False)
+            print(f"Number of positive samples reduced to {len(pos_df)}")
+
         if apply_data_augmentation:
             pos_df = self.__apply_data_augmentation(df=pos_df, num_data_augmentations=self.__num_data_augmentations)
         num_pos = len(pos_df)
