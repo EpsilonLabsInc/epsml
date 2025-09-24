@@ -7,12 +7,15 @@ from epsutils.training.config.config_loader import ConfigLoader
 
 
 class DataAnalyzer:
-    def __init__(self):
-        pass
+    def __init__(self, ignore_templates=True):
+        self.__ignore_templates = ignore_templates
 
     def find_config_files_and_get_num_training_samples(self, root_config_path):
         config_files = list(Path(root_config_path).rglob("*.yaml"))
         config_files = [os.path.abspath(config_file) for config_file in config_files]
+
+        if self.__ignore_templates:
+            config_files = [config_file for config_file in config_files if "template" not in config_file.lower()]
 
         print("Found the following config files:")
         print(json.dumps(config_files, indent=4))
@@ -69,9 +72,10 @@ class DataAnalyzer:
 
 
 if __name__ == "__main__":
+    IGNORE_TEMPLATES = True
     ROOT_CONFIG_PATH = "../config/configs/v1_3_0"
 
-    num_training_samples = DataAnalyzer().find_config_files_and_get_num_training_samples(ROOT_CONFIG_PATH)
+    num_training_samples = DataAnalyzer(ignore_templates=IGNORE_TEMPLATES).find_config_files_and_get_num_training_samples(ROOT_CONFIG_PATH)
 
     print("Num training samples:")
     print(json.dumps(num_training_samples, indent=4))
