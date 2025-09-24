@@ -129,7 +129,7 @@ class GenericDatasetHelper(BaseDatasetHelper):
                 print(f"Loading {self.__train_file}")
                 content = self.__train_file
 
-        self.__pandas_train_dataset, negative_body_parts_dataset = self.__filter_dataset(df=pd.read_csv(content, low_memory=False) if self.__train_df is None else self.__train_df,
+        self.__pandas_train_dataset, negative_body_parts_dataset = self.__filter_dataset(df=pd.read_csv(content, low_memory=False) if self.__train_df is None else self.__train_df.copy(),
                                                                                          body_part=self.__body_part if self.__sub_body_part is None else self.__sub_body_part,
                                                                                          use_dicom=self.__sub_body_part is not None)
 
@@ -181,7 +181,7 @@ class GenericDatasetHelper(BaseDatasetHelper):
                 print(f"Loading {self.__validation_file}")
                 content = self.__validation_file
 
-        self.__pandas_validation_dataset, negative_body_parts_dataset = self.__filter_dataset(df=pd.read_csv(content, low_memory=False) if self.__validation_df is None else self.__validation_df,
+        self.__pandas_validation_dataset, negative_body_parts_dataset = self.__filter_dataset(df=pd.read_csv(content, low_memory=False) if self.__validation_df is None else self.__validation_df.copy(),
                                                                                               body_part=self.__body_part if self.__sub_body_part is None else self.__sub_body_part,
                                                                                               use_dicom=self.__sub_body_part is not None)
 
@@ -215,7 +215,7 @@ class GenericDatasetHelper(BaseDatasetHelper):
                 print(f"Loading {self.__test_file}")
                 content = self.__test_file
 
-        self.__pandas_test_dataset, negative_body_parts_dataset = self.__filter_dataset(df=pd.read_csv(content, low_memory=False) if self.__test_df is None else self.__test_df,
+        self.__pandas_test_dataset, negative_body_parts_dataset = self.__filter_dataset(df=pd.read_csv(content, low_memory=False) if self.__test_df is None else self.__test_df.copy(),
                                                                                         body_part=self.__body_part if self.__sub_body_part is None else self.__sub_body_part,
                                                                                         use_dicom=self.__sub_body_part is not None)
 
