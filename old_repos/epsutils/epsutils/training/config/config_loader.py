@@ -6,6 +6,10 @@ class ConfigLoader:
         pass
 
     def load_config(self, config_file):
+        # Check extension.
+        if not config_file.lower().endswith((".yaml", ".yml")):
+            raise ValueError("Currently only config files in .yaml or .yml format are supported")
+
         # Read the configuration file.
         with open(config_file, "r") as file:
             config_file_content = file.read()
