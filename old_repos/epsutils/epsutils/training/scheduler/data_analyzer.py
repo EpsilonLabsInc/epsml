@@ -83,6 +83,7 @@ class DataAnalyzer:
                     merge_val_and_test=True,
                     treat_uncertain_as_positive=config["data"]["treat_uncertain_as_positive"],
                     perform_label_balancing=config["data"]["perform_label_balancing"],
+                    max_positive_samples=config["data"]["max_positive_samples"],
                     negative_body_parts_ratio=config["data"]["negative_body_parts_ratio"],
                     num_data_augmentations=config["data"]["num_data_augmentations"],
                     compute_num_data_augmentations=config["data"]["compute_num_data_augmentations"],
