@@ -23,7 +23,7 @@ class DataAnalyzer:
         if self.__ignore_templates:
             config_files = [config_file for config_file in config_files if "template" not in config_file.lower()]
 
-        print("Found the following config files:")
+        print(f"Found the following {len(config_files)} config files:")
         print(json.dumps(config_files, indent=4))
 
         return self.get_num_training_samples(config_files)
