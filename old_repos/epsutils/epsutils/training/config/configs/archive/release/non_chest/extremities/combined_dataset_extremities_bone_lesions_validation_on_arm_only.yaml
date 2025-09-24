@@ -1,0 +1,44 @@
+general:
+  model_name: intern_vit_extremities_classifier
+  dataset_name: combined_arm_only_bone_lesions
+  run_name: Bone lesions - training on all extremities, validation on arm
+  notes: Balanced labels with 0x pos data augmentation
+  custom_labels:
+  - Bone lesions
+  body_part: Extremities
+  treat_uncertain_as_positive: true
+  perform_label_balancing: true
+  num_data_augmentations: 0
+  save_full_model: false
+paths:
+  intern_vl_checkpoint_dir: /mnt/training/internvl_weights/useful/internvl3_chimera_20250609_233409_1e-5_epsilon_all_0608/checkpoint-24934
+  train_file: /mnt/training/splits/gpt/extremities/arm/gradient_batches_1-5_segmed_batches_1-4_simonmed_batches_1-10_reports_with_labels_arm_train.csv
+  validation_file: /mnt/training/splits/gpt/extremities/arm/gradient_batches_1-5_segmed_batches_1-4_simonmed_batches_1-10_reports_with_labels_arm_val.csv
+  test_file: /mnt/training/splits/gpt/extremities/arm/gradient_batches_1-5_segmed_batches_1-4_simonmed_batches_1-10_reports_with_labels_arm_test.csv
+  base_path_substitutions:
+    gradient/22JUL2024: null
+    gradient/20DEC2024: null
+    gradient/09JAN2025: null
+    gradient/16AUG2024: /mnt/sfs-gradient-nochest/16AUG2024/
+    gradient/13JAN2025: /mnt/sfs-gradient-nochest/13JAN2025/deid
+    segmed/batch1: /mnt/sfs-segmed-1
+    segmed/batch2: /mnt/sfs-segmed-2
+    segmed/batch3: /mnt/sfs-segmed-34/segmed_3
+    segmed/batch4: /mnt/sfs-segmed-34/segmed_4
+    simonmed: /mnt/sfs-simonmed
+  output_dir: ./output
+training:
+  perform_intra_epoch_validation: true
+  intra_epoch_validation_step: 3000
+  send_wandb_notification: false
+  device: cuda
+  device_ids: null
+  num_training_workers_per_gpu: 32
+  num_validation_workers_per_gpu: 32
+  learning_rate: 0.01
+  warmup_ratio: 0.05
+  num_epochs: 10
+  training_batch_size: 128
+  validation_batch_size: 32
+  min_allowed_batch_size: 2
+  multi_image_input: false

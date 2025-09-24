@@ -1,0 +1,54 @@
+general:
+  model_name: release_intern_vit_classifier
+  dataset_name: l-spine_no_findings
+  run_name: Release models training (arjun test)
+  notes: ''
+  custom_labels:
+  - No Findings
+  body_part: L-spine
+  treat_uncertain_as_positive: true
+  perform_label_balancing: true
+  compute_num_data_augmentations: true
+  data_augmentation_target: 10000
+  data_augmentation_min: 2000
+  save_full_model: false
+  unroll_images: false
+paths:
+  intern_vl_checkpoint_dir: /mnt/data/intervl_weights/no_labels/internvl3_chimera_20250810_083849_1e-5_0810_no_label_gpt_bodypart/checkpoint-10466
+  train_file: /mnt/data/consolidated_labels/gradient_batches_1-5_segmed_batches_1-9_simonmed_batches_1-10_reports_with_labels_train_merged_filtered_consolidated_standardized_with_uncertain_labels_fixed.csv
+  validation_file: /mnt/data/consolidated_labels/gradient_batches_1-5_segmed_batches_1-9_simonmed_batches_1-10_reports_with_labels_val_merged_filtered_consolidated_standardized_with_uncertain_labels_fixed.csv
+  test_file: /mnt/data/consolidated_labels/gradient_batches_1-5_segmed_batches_1-9_simonmed_batches_1-10_reports_with_labels_test_merged_filtered_consolidated_standardized_with_uncertain_labels_fixed.csv
+  base_path_substitutions:
+    gradient/22JUL2024: /mnt/data/png/512x512/gradient/22JUL2024
+    gradient/20DEC2024: /mnt/data/png/512x512/gradient/20DEC2024
+    gradient/09JAN2025: /mnt/data/png/512x512/gradient/09JAN2025
+    gradient/16AUG2024: /mnt/data/png/512x512/gradient/16AUG2024
+    gradient/13JAN2025: /mnt/data/png/512x512/gradient/13JAN2025/deid
+    segmed/batch1: /mnt/data/png/512x512/segmed/batch1
+    segmed/batch2: /mnt/data/png/512x512/segmed/batch2
+    segmed/batch3: /mnt/data/png/512x512/segmed/batch3
+    segmed/batch4: /mnt/data/png/512x512/segmed/batch4
+    segmed/batch5: /mnt/data/png/512x512/segmed/batch5
+    segmed/batch6: /mnt/data/png/512x512/segmed/batch6
+    segmed/batch7: /mnt/data/png/512x512/segmed/batch7
+    segmed/batch8: null
+    segmed/batch9: null
+    simonmed: /mnt/data/png/512x512/simonmed
+  output_dir: /home/arjun/output
+training:
+  perform_intra_epoch_validation: true
+  intra_epoch_validation_step: 3000
+  send_wandb_notification: false
+  device: cuda
+  device_ids: None
+  num_training_workers_per_gpu: 32
+  num_validation_workers_per_gpu: 32
+  learning_rate: 0.01
+  warmup_ratio: 0.05
+  num_epochs: 2
+  training_batch_size: 128
+  validation_batch_size: 32
+  min_allowed_batch_size: 2
+  multi_image_input: true
+  max_multi_images: 8
+  use_attentional_pooling: true

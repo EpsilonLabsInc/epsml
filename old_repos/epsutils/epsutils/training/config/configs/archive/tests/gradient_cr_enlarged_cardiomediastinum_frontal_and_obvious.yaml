@@ -1,0 +1,37 @@
+general:
+  model_name: "intern_vit_classifier"
+  dataset_name: "gradient_cr_enlarged_cardiomediastinum"
+  run_name: "26B with no labels (training and validation on frontal obvious [cardio] cases)"
+  notes: "InternVL model: 26B with no labels, training and validation on frontal obvious [cardio] cases, loss=SampleBalancedBCEWithLogitsLoss"
+  custom_labels: ["Enlarged Cardiomediastinum"]
+  # custom_labels: None
+  save_full_model: False
+
+paths:
+  intern_vl_checkpoint_dir: "/workspace/models/old/internvl2.5_26b_finetune_lora_20241229_184000_1e-5_2.5_gradient_full_rm_sole_no_findings_rm_bad_dcm_no_label/checkpoint-58670"
+  gcs_train_file: "gs://gradient-crs/archive/training/individual-labels/enlarged-cardiomediastinum/gradient-crs-all-batches-chest-images-with-obvious-enlarged-cardiomediastinum-label-training.jsonl"
+  gcs_validation_file: "gs://gradient-crs/archive/training/individual-labels/enlarged-cardiomediastinum/gradient-crs-all-batches-chest-images-with-obvious-enlarged-cardiomediastinum-label-validation.jsonl"
+  gcs_extra_filtering_file: "gs://gradient-crs/archive/training/projections/gradient-crs-22JUL2024-chest-only-frontal-projections.csv"
+  images_dir: "/workspace/CR"
+  dir_prefix_to_remove: "GRADIENT-DATABASE/CR"
+  remove_deid: True
+  output_dir: "./output"
+
+training:
+  perform_intra_epoch_validation: True
+  intra_epoch_validation_step: 1000
+  send_wandb_notification: False
+  device: "cuda"
+  device_ids: None  # Use one (the default) GPU.
+  # device_ids: [0, 1, 2, 3, 4, 5, 6, 7]  # Use 8 GPUs.
+  num_training_workers_per_gpu: 32
+  num_validation_workers_per_gpu: 32
+  learning_rate:  0.01
+  warmup_ratio: 0.05  # = 1/20
+  num_epochs: 4
+  training_batch_size: 32
+  validation_batch_size: 32
+  min_allowed_batch_size: 2  # In order for batch norm in the InternVitClassifier model to work.
+  multi_image_input: False  # True
+  num_multi_images: None
+  # num_multi_images: 2
