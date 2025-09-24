@@ -39,6 +39,10 @@ class GenericDatasetHelper(BaseDatasetHelper):
                  convert_images_to_rgb=True,
                  replace_dicom_with_png=False,
                  custom_labels=None,
+                 train_df=None,
+                 validation_df=None,
+                 test_df=None,
+                 for_stats_only=False,
                  seed=42):
 
         super().__init__(train_file=train_file,
@@ -61,6 +65,10 @@ class GenericDatasetHelper(BaseDatasetHelper):
                          convert_images_to_rgb=convert_images_to_rgb,
                          replace_dicom_with_png=replace_dicom_with_png,
                          custom_labels=custom_labels,
+                         train_df=train_df,
+                         validation_df=validation_df,
+                         test_df=test_df,
+                         for_stats_only=for_stats_only,
                          seed=seed)
 
     def _load_dataset(self, *args, **kwargs):
@@ -85,6 +93,10 @@ class GenericDatasetHelper(BaseDatasetHelper):
         self.__convert_images_to_rgb = kwargs["convert_images_to_rgb"] if "convert_images_to_rgb" in kwargs else next((arg for arg in args if arg == "convert_images_to_rgb"), None)
         self.__replace_dicom_with_png = kwargs["replace_dicom_with_png"] if "replace_dicom_with_png" in kwargs else next((arg for arg in args if arg == "replace_dicom_with_png"), None)
         self.__custom_labels = kwargs["custom_labels"] if "custom_labels" in kwargs else next((arg for arg in args if arg == "custom_labels"), None)
+        self.__train_df = kwargs["train_df"] if "train_df" in kwargs else next((arg for arg in args if arg == "train_df"), None)
+        self.__validation_df = kwargs["validation_df"] if "validation_df" in kwargs else next((arg for arg in args if arg == "validation_df"), None)
+        self.__test_df = kwargs["test_df"] if "test_df" in kwargs else next((arg for arg in args if arg == "test_df"), None)
+        self.__for_stats_only = kwargs["for_stats_only"] if "for_stats_only" in kwargs else next((arg for arg in args if arg == "for_stats_only"), None)
         self.__seed = kwargs["seed"] if "seed" in kwargs else next((arg for arg in args if arg == "seed"), None)
 
         self.__pandas_train_dataset = None
@@ -104,16 +116,17 @@ class GenericDatasetHelper(BaseDatasetHelper):
         print("----------------")
         print("")
 
-        if aws_s3_utils.is_aws_s3_uri(self.__train_file):
-            print(f"Downloading {self.__train_file}")
-            aws_s3_data = aws_s3_utils.split_aws_s3_uri(self.__train_file)
-            content = aws_s3_utils.download_file_as_bytes(aws_s3_bucket_name=aws_s3_data["aws_s3_bucket_name"], aws_s3_file_name=aws_s3_data["aws_s3_path"])
-            content = BytesIO(content)
-        else:
-            print(f"Loading {self.__train_file}")
-            content = self.__train_file
+        if self.__train_df is None:
+            if aws_s3_utils.is_aws_s3_uri(self.__train_file):
+                print(f"Downloading {self.__train_file}")
+                aws_s3_data = aws_s3_utils.split_aws_s3_uri(self.__train_file)
+                content = aws_s3_utils.download_file_as_bytes(aws_s3_bucket_name=aws_s3_data["aws_s3_bucket_name"], aws_s3_file_name=aws_s3_data["aws_s3_path"])
+                content = BytesIO(content)
+            else:
+                print(f"Loading {self.__train_file}")
+                content = self.__train_file
 
-        self.__pandas_train_dataset, negative_body_parts_dataset = self.__filter_dataset(df=pd.read_csv(content, low_memory=False),
+        self.__pandas_train_dataset, negative_body_parts_dataset = self.__filter_dataset(df=pd.read_csv(content, low_memory=False) if self.__train_df is None else self.__train_df,
                                                                                          body_part=self.__body_part if self.__sub_body_part is None else self.__sub_body_part,
                                                                                          use_dicom=self.__sub_body_part is not None)
 
@@ -140,6 +153,10 @@ class GenericDatasetHelper(BaseDatasetHelper):
             self.__pandas_train_dataset = self.__balance_dataset(self.__pandas_train_dataset, negative_body_parts_dataset, apply_data_augmentation=True)
             print(f"After balancing, the training dataset has {len(self.__pandas_train_dataset)} rows")
 
+        if self.__for_stats_only:
+            self.__torch_train_dataset = GenericTorchDataset(pandas_dataframe=self.__pandas_train_dataset)
+            return
+
         # Validation dataset.
 
         print("")
@@ -148,16 +165,17 @@ class GenericDatasetHelper(BaseDatasetHelper):
         print("------------------")
         print("")
 
-        if aws_s3_utils.is_aws_s3_uri(self.__validation_file):
-            print(f"Downloading {self.__validation_file}")
-            aws_s3_data = aws_s3_utils.split_aws_s3_uri(self.__validation_file)
-            content = aws_s3_utils.download_file_as_bytes(aws_s3_bucket_name=aws_s3_data["aws_s3_bucket_name"], aws_s3_file_name=aws_s3_data["aws_s3_path"])
-            content = BytesIO(content)
-        else:
-            print(f"Loading {self.__validation_file}")
-            content = self.__validation_file
+        if self.__validation_df is None:
+            if aws_s3_utils.is_aws_s3_uri(self.__validation_file):
+                print(f"Downloading {self.__validation_file}")
+                aws_s3_data = aws_s3_utils.split_aws_s3_uri(self.__validation_file)
+                content = aws_s3_utils.download_file_as_bytes(aws_s3_bucket_name=aws_s3_data["aws_s3_bucket_name"], aws_s3_file_name=aws_s3_data["aws_s3_path"])
+                content = BytesIO(content)
+            else:
+                print(f"Loading {self.__validation_file}")
+                content = self.__validation_file
 
-        self.__pandas_validation_dataset, negative_body_parts_dataset = self.__filter_dataset(df=pd.read_csv(content, low_memory=False),
+        self.__pandas_validation_dataset, negative_body_parts_dataset = self.__filter_dataset(df=pd.read_csv(content, low_memory=False) if self.__validation_df is None else self.__validation_df,
                                                                                               body_part=self.__body_part if self.__sub_body_part is None else self.__sub_body_part,
                                                                                               use_dicom=self.__sub_body_part is not None)
 
@@ -181,16 +199,17 @@ class GenericDatasetHelper(BaseDatasetHelper):
         print("------------")
         print("")
 
-        if aws_s3_utils.is_aws_s3_uri(self.__test_file):
-            print(f"Downloading {self.__test_file}")
-            aws_s3_data = aws_s3_utils.split_aws_s3_uri(self.__test_file)
-            content = aws_s3_utils.download_file_as_bytes(aws_s3_bucket_name=aws_s3_data["aws_s3_bucket_name"], aws_s3_file_name=aws_s3_data["aws_s3_path"])
-            content = BytesIO(content)
-        else:
-            print(f"Loading {self.__test_file}")
-            content = self.__test_file
+        if self.__test_df is None:
+            if aws_s3_utils.is_aws_s3_uri(self.__test_file):
+                print(f"Downloading {self.__test_file}")
+                aws_s3_data = aws_s3_utils.split_aws_s3_uri(self.__test_file)
+                content = aws_s3_utils.download_file_as_bytes(aws_s3_bucket_name=aws_s3_data["aws_s3_bucket_name"], aws_s3_file_name=aws_s3_data["aws_s3_path"])
+                content = BytesIO(content)
+            else:
+                print(f"Loading {self.__test_file}")
+                content = self.__test_file
 
-        self.__pandas_test_dataset, negative_body_parts_dataset = self.__filter_dataset(df=pd.read_csv(content, low_memory=False),
+        self.__pandas_test_dataset, negative_body_parts_dataset = self.__filter_dataset(df=pd.read_csv(content, low_memory=False) if self.__test_df is None else self.__test_df,
                                                                                         body_part=self.__body_part if self.__sub_body_part is None else self.__sub_body_part,
                                                                                         use_dicom=self.__sub_body_part is not None)
 
