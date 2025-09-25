@@ -76,7 +76,7 @@ def update_num_epochs(input_config_file, output_config_file, num_epochs):
     config["training"]["num_epochs"] = num_epochs
 
     with open(output_config_file, "w") as file:
-        yaml.dump(config, file)
+        yaml.safe_dump(config, file, sort_keys=False)
 
 
 def copy_config_files(buckets, output_dir):
