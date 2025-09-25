@@ -1,0 +1,1427 @@
+[
+    {
+        "job_id": 0,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/foot/foot_foreign_bodies_config.yaml",
+        "training_dataset_size": 27564
+    },
+    {
+        "job_id": 1,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/foot/foot_soft_tissue_swelling_config.yaml",
+        "training_dataset_size": 252420
+    },
+    {
+        "job_id": 2,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/foot/foot_joint_effusion_config.yaml",
+        "training_dataset_size": 32912
+    },
+    {
+        "job_id": 3,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/foot/foot_erosive_change_config.yaml",
+        "training_dataset_size": 37036
+    },
+    {
+        "job_id": 4,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/foot/foot_soft_tissue_calcifications_config.yaml",
+        "training_dataset_size": 62846
+    },
+    {
+        "job_id": 5,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/foot/foot_dislocation_config.yaml",
+        "training_dataset_size": 46198
+    },
+    {
+        "job_id": 6,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/foot/foot_tarsal_coalition_config.yaml",
+        "training_dataset_size": null
+    },
+    {
+        "job_id": 7,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/foot/foot_hallux_valgus_config.yaml",
+        "training_dataset_size": 71904
+    },
+    {
+        "job_id": 8,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/foot/foot_growth_plate_abnormalities_config.yaml",
+        "training_dataset_size": null
+    },
+    {
+        "job_id": 9,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/foot/foot_syndesmotic_injury_config.yaml",
+        "training_dataset_size": 20608
+    },
+    {
+        "job_id": 10,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/foot/foot_bony_mineralization_config.yaml",
+        "training_dataset_size": 30766
+    },
+    {
+        "job_id": 11,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/foot/foot_arthritic_changes_config.yaml",
+        "training_dataset_size": 119532
+    },
+    {
+        "job_id": 12,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/foot/foot_fracture_config.yaml",
+        "training_dataset_size": 245494
+    },
+    {
+        "job_id": 13,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/foot/foot_tendinous_calcifications_config.yaml",
+        "training_dataset_size": 60154
+    },
+    {
+        "job_id": 14,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/foot/foot_ossicles_config.yaml",
+        "training_dataset_size": 66760
+    },
+    {
+        "job_id": 15,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/foot/foot_degenerative_changes_config.yaml",
+        "training_dataset_size": 320446
+    },
+    {
+        "job_id": 16,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/foot/foot_no_findings_config.yaml",
+        "training_dataset_size": 313256
+    },
+    {
+        "job_id": 17,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/foot/foot_osteomyelitis_config.yaml",
+        "training_dataset_size": 22362
+    },
+    {
+        "job_id": 18,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/foot/foot_rarefaction_config.yaml",
+        "training_dataset_size": 43266
+    },
+    {
+        "job_id": 19,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/foot/foot_hardware_complication_config.yaml",
+        "training_dataset_size": 21408
+    },
+    {
+        "job_id": 20,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/foot/foot_subcutaneous_gas_config.yaml",
+        "training_dataset_size": 25674
+    },
+    {
+        "job_id": 21,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/foot/foot_kagers_fat_pad_config.yaml",
+        "training_dataset_size": 25554
+    },
+    {
+        "job_id": 22,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/foot/foot_charcot_joint_config.yaml",
+        "training_dataset_size": 20830
+    },
+    {
+        "job_id": 23,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/foot/foot_amputation_config.yaml",
+        "training_dataset_size": 21098
+    },
+    {
+        "job_id": 24,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/foot/foot_synostosis_config.yaml",
+        "training_dataset_size": 27804
+    },
+    {
+        "job_id": 25,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/foot/foot_bone_lesions_config.yaml",
+        "training_dataset_size": 26444
+    },
+    {
+        "job_id": 26,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/t-spine/t-spine_osteomyelitis_config.yaml",
+        "training_dataset_size": null
+    },
+    {
+        "job_id": 27,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/t-spine/t-spine_costotransverse_joint_abnormalities_config.yaml",
+        "training_dataset_size": null
+    },
+    {
+        "job_id": 28,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/t-spine/t-spine_spondylolysis_config.yaml",
+        "training_dataset_size": null
+    },
+    {
+        "job_id": 29,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/t-spine/t-spine_degenerative_changes_config.yaml",
+        "training_dataset_size": 671676
+    },
+    {
+        "job_id": 30,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/t-spine/t-spine_bone_lesions_config.yaml",
+        "training_dataset_size": 20520
+    },
+    {
+        "job_id": 31,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/t-spine/t-spine_rib_notching_config.yaml",
+        "training_dataset_size": null
+    },
+    {
+        "job_id": 32,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/t-spine/t-spine_spinal_deformity_config.yaml",
+        "training_dataset_size": 20512
+    },
+    {
+        "job_id": 33,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/t-spine/t-spine_scoliosis_config.yaml",
+        "training_dataset_size": 227598
+    },
+    {
+        "job_id": 34,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/t-spine/t-spine_calcification_config.yaml",
+        "training_dataset_size": 39840
+    },
+    {
+        "job_id": 35,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/t-spine/t-spine_hardware_config.yaml",
+        "training_dataset_size": 26780
+    },
+    {
+        "job_id": 36,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/t-spine/t-spine_support_devices_config.yaml",
+        "training_dataset_size": 79760
+    },
+    {
+        "job_id": 37,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/t-spine/t-spine_straightening_config.yaml",
+        "training_dataset_size": 58444
+    },
+    {
+        "job_id": 38,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/t-spine/t-spine_bony_mineralization_config.yaml",
+        "training_dataset_size": 79000
+    },
+    {
+        "job_id": 39,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/t-spine/t-spine_spondylolisthesis_config.yaml",
+        "training_dataset_size": 21258
+    },
+    {
+        "job_id": 40,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/t-spine/t-spine_fracture_config.yaml",
+        "training_dataset_size": 105380
+    },
+    {
+        "job_id": 41,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/t-spine/t-spine_no_findings_config.yaml",
+        "training_dataset_size": 464728
+    },
+    {
+        "job_id": 42,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/c-spine/c-spine_hyoid_bone_abnormality_config.yaml",
+        "training_dataset_size": null
+    },
+    {
+        "job_id": 43,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/c-spine/c-spine_cervical_spine_alignment_config.yaml",
+        "training_dataset_size": 260758
+    },
+    {
+        "job_id": 44,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/c-spine/c-spine_esophageal_dilation_config.yaml",
+        "training_dataset_size": null
+    },
+    {
+        "job_id": 45,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/c-spine/c-spine_osteomyelitis_config.yaml",
+        "training_dataset_size": null
+    },
+    {
+        "job_id": 46,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/c-spine/c-spine_bone_lesions_config.yaml",
+        "training_dataset_size": null
+    },
+    {
+        "job_id": 47,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/c-spine/c-spine_aortic_calcifications_config.yaml",
+        "training_dataset_size": null
+    },
+    {
+        "job_id": 48,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/c-spine/c-spine_soft_tissue_emphysema_config.yaml",
+        "training_dataset_size": null
+    },
+    {
+        "job_id": 49,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/c-spine/c-spine_foreign_body_config.yaml",
+        "training_dataset_size": null
+    },
+    {
+        "job_id": 50,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/c-spine/c-spine_bony_mineralization_config.yaml",
+        "training_dataset_size": 39240
+    },
+    {
+        "job_id": 51,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/c-spine/c-spine_spondylolysis_config.yaml",
+        "training_dataset_size": null
+    },
+    {
+        "job_id": 52,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/c-spine/c-spine_soft_tissue_swelling_config.yaml",
+        "training_dataset_size": 24696
+    },
+    {
+        "job_id": 53,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/c-spine/c-spine_spinal_deformity_config.yaml",
+        "training_dataset_size": 20400
+    },
+    {
+        "job_id": 54,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/c-spine/c-spine_thyroid_enlargement_config.yaml",
+        "training_dataset_size": null
+    },
+    {
+        "job_id": 55,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/c-spine/c-spine_dislocation_config.yaml",
+        "training_dataset_size": 21906
+    },
+    {
+        "job_id": 56,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/c-spine/c-spine_support_devices_config.yaml",
+        "training_dataset_size": 86896
+    },
+    {
+        "job_id": 57,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/c-spine/c-spine_calcifications_config.yaml",
+        "training_dataset_size": 32664
+    },
+    {
+        "job_id": 58,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/c-spine/c-spine_scoliosis_config.yaml",
+        "training_dataset_size": 27132
+    },
+    {
+        "job_id": 59,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/c-spine/c-spine_hardware_config.yaml",
+        "training_dataset_size": 98750
+    },
+    {
+        "job_id": 60,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/c-spine/c-spine_fracture_config.yaml",
+        "training_dataset_size": 20596
+    },
+    {
+        "job_id": 61,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/c-spine/c-spine_cervical_rib_config.yaml",
+        "training_dataset_size": 21270
+    },
+    {
+        "job_id": 62,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/c-spine/c-spine_spondylolisthesis_config.yaml",
+        "training_dataset_size": 89644
+    },
+    {
+        "job_id": 63,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/c-spine/c-spine_degenerative_changes_config.yaml",
+        "training_dataset_size": null
+    },
+    {
+        "job_id": 64,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/c-spine/c-spine_tracheal_stenosis_config.yaml",
+        "training_dataset_size": null
+    },
+    {
+        "job_id": 65,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/c-spine/c-spine_no_findings_config.yaml",
+        "training_dataset_size": 82274
+    },
+    {
+        "job_id": 66,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/hand/hand_avascular_necrosis_config.yaml",
+        "training_dataset_size": null
+    },
+    {
+        "job_id": 67,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/hand/hand_no_findings_config.yaml",
+        "training_dataset_size": 290646
+    },
+    {
+        "job_id": 68,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/hand/hand_ossicles_config.yaml",
+        "training_dataset_size": 34172
+    },
+    {
+        "job_id": 69,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/hand/hand_carpal_coalition_config.yaml",
+        "training_dataset_size": null
+    },
+    {
+        "job_id": 70,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/hand/hand_hardware_config.yaml",
+        "training_dataset_size": 33922
+    },
+    {
+        "job_id": 71,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/hand/hand_edema_config.yaml",
+        "training_dataset_size": 23024
+    },
+    {
+        "job_id": 72,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/hand/hand_charcot_joint_config.yaml",
+        "training_dataset_size": null
+    },
+    {
+        "job_id": 73,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/hand/hand_bony_mineralization_config.yaml",
+        "training_dataset_size": 48904
+    },
+    {
+        "job_id": 74,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/hand/hand_amputation_config.yaml",
+        "training_dataset_size": 20766
+    },
+    {
+        "job_id": 75,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/hand/hand_foreign_bodies_config.yaml",
+        "training_dataset_size": 35276
+    },
+    {
+        "job_id": 76,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/hand/hand_soft_tissue_swelling_config.yaml",
+        "training_dataset_size": 118044
+    },
+    {
+        "job_id": 77,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/hand/hand_osteomyelitis_config.yaml",
+        "training_dataset_size": 23928
+    },
+    {
+        "job_id": 78,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/hand/hand_enostosis_config.yaml",
+        "training_dataset_size": 20136
+    },
+    {
+        "job_id": 79,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/hand/hand_ulnar_variance_config.yaml",
+        "training_dataset_size": 35188
+    },
+    {
+        "job_id": 80,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/hand/hand_fracture_config.yaml",
+        "training_dataset_size": 203614
+    },
+    {
+        "job_id": 81,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/hand/hand_malunion_config.yaml",
+        "training_dataset_size": 24696
+    },
+    {
+        "job_id": 82,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/hand/hand_synostosis_config.yaml",
+        "training_dataset_size": 20740
+    },
+    {
+        "job_id": 83,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/hand/hand_scaphoid_avascular_necrosis_(kienbocks_disease)_config.yaml",
+        "training_dataset_size": null
+    },
+    {
+        "job_id": 84,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/hand/hand_bone_lesions_config.yaml",
+        "training_dataset_size": 33060
+    },
+    {
+        "job_id": 85,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/hand/hand_carpal_boss_config.yaml",
+        "training_dataset_size": null
+    },
+    {
+        "job_id": 86,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/hand/hand_tendinous_calcifications_config.yaml",
+        "training_dataset_size": 48876
+    },
+    {
+        "job_id": 87,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/hand/hand_acro-osteolysis_config.yaml",
+        "training_dataset_size": null
+    },
+    {
+        "job_id": 88,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/hand/hand_dislocation_config.yaml",
+        "training_dataset_size": 24922
+    },
+    {
+        "job_id": 89,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/hand/hand_degenerative_changes_config.yaml",
+        "training_dataset_size": 282310
+    },
+    {
+        "job_id": 90,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/hand/hand_boutonniere_deformity_config.yaml",
+        "training_dataset_size": null
+    },
+    {
+        "job_id": 91,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/hand/hand_erosive_change_config.yaml",
+        "training_dataset_size": 26288
+    },
+    {
+        "job_id": 92,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/head/head_degenerative_changes_config.yaml",
+        "training_dataset_size": 70974
+    },
+    {
+        "job_id": 93,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/head/head_no_findings_config.yaml",
+        "training_dataset_size": null
+    },
+    {
+        "job_id": 94,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/head/head_pneumocephalus_config.yaml",
+        "training_dataset_size": null
+    },
+    {
+        "job_id": 95,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/head/head_support_devices_config.yaml",
+        "training_dataset_size": 20942
+    },
+    {
+        "job_id": 96,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/head/head_periosteal_reaction_config.yaml",
+        "training_dataset_size": null
+    },
+    {
+        "job_id": 97,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/head/head_calvarial_lesions_config.yaml",
+        "training_dataset_size": 25960
+    },
+    {
+        "job_id": 98,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/head/head_foreign_bodies_config.yaml",
+        "training_dataset_size": 22392
+    },
+    {
+        "job_id": 99,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/head/head_dislocation_config.yaml",
+        "training_dataset_size": 26248
+    },
+    {
+        "job_id": 100,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/head/head_post-surgical_changes_config.yaml",
+        "training_dataset_size": 25256
+    },
+    {
+        "job_id": 101,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/head/head_sinusitis_config.yaml",
+        "training_dataset_size": 24750
+    },
+    {
+        "job_id": 102,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/head/head_fracture_config.yaml",
+        "training_dataset_size": 26376
+    },
+    {
+        "job_id": 103,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/head/head_soft_tissue_swelling_config.yaml",
+        "training_dataset_size": 22056
+    },
+    {
+        "job_id": 104,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/head/head_bony_mineralization_config.yaml",
+        "training_dataset_size": 21088
+    },
+    {
+        "job_id": 105,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/head/head_rarefaction_config.yaml",
+        "training_dataset_size": null
+    },
+    {
+        "job_id": 106,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/head/head_erosive_change_config.yaml",
+        "training_dataset_size": null
+    },
+    {
+        "job_id": 107,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/head/head_soft_tissue_calcifications_config.yaml",
+        "training_dataset_size": 23912
+    },
+    {
+        "job_id": 108,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/head/head_mastoid_opacity_config.yaml",
+        "training_dataset_size": null
+    },
+    {
+        "job_id": 109,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/head/head_orbital_emphysema_config.yaml",
+        "training_dataset_size": null
+    },
+    {
+        "job_id": 110,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/l-spine/l-spine_no_findings_config.yaml",
+        "training_dataset_size": 709730
+    },
+    {
+        "job_id": 111,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/l-spine/l-spine_scoliosis_config.yaml",
+        "training_dataset_size": 397644
+    },
+    {
+        "job_id": 112,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/l-spine/l-spine_fracture_config.yaml",
+        "training_dataset_size": 96020
+    },
+    {
+        "job_id": 113,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/l-spine/l-spine_bone_lesions_config.yaml",
+        "training_dataset_size": 20416
+    },
+    {
+        "job_id": 114,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/l-spine/l-spine_spondylolisthesis_config.yaml",
+        "training_dataset_size": 237578
+    },
+    {
+        "job_id": 115,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/l-spine/l-spine_bony_mineralization_config.yaml",
+        "training_dataset_size": 69518
+    },
+    {
+        "job_id": 116,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/l-spine/l-spine_sacroiliitis_config.yaml",
+        "training_dataset_size": 23788
+    },
+    {
+        "job_id": 117,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/l-spine/l-spine_spinal_deformity_config.yaml",
+        "training_dataset_size": 99684
+    },
+    {
+        "job_id": 118,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/l-spine/l-spine_calcification_config.yaml",
+        "training_dataset_size": 132830
+    },
+    {
+        "job_id": 119,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/l-spine/l-spine_osteomyelitis_config.yaml",
+        "training_dataset_size": null
+    },
+    {
+        "job_id": 120,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/l-spine/l-spine_straightening_config.yaml",
+        "training_dataset_size": 68208
+    },
+    {
+        "job_id": 121,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/l-spine/l-spine_support_devices_config.yaml",
+        "training_dataset_size": 169176
+    },
+    {
+        "job_id": 122,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/l-spine/l-spine_hardware_config.yaml",
+        "training_dataset_size": 148792
+    },
+    {
+        "job_id": 123,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/l-spine/l-spine_degenerative_changes_config.yaml",
+        "training_dataset_size": 922300
+    },
+    {
+        "job_id": 124,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/arm/arm_bone_lesions_config.yaml",
+        "training_dataset_size": 24208
+    },
+    {
+        "job_id": 125,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/arm/arm_charcot_joint_config.yaml",
+        "training_dataset_size": null
+    },
+    {
+        "job_id": 126,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/arm/arm_fat_pad_signs_suggesting_joint_effusion_config.yaml",
+        "training_dataset_size": 24090
+    },
+    {
+        "job_id": 127,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/arm/arm_tendinous_calcifications_config.yaml",
+        "training_dataset_size": 35752
+    },
+    {
+        "job_id": 128,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/arm/arm_subcutaneous_gas_config.yaml",
+        "training_dataset_size": 25824
+    },
+    {
+        "job_id": 129,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/arm/arm_joint_effusion_config.yaml",
+        "training_dataset_size": 20556
+    },
+    {
+        "job_id": 130,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/arm/arm_fracture_config.yaml",
+        "training_dataset_size": 210604
+    },
+    {
+        "job_id": 131,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/arm/arm_erosive_change_config.yaml",
+        "training_dataset_size": 27968
+    },
+    {
+        "job_id": 132,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/arm/arm_hardware_complication_config.yaml",
+        "training_dataset_size": 21872
+    },
+    {
+        "job_id": 133,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/arm/arm_no_findings_config.yaml",
+        "training_dataset_size": 607796
+    },
+    {
+        "job_id": 134,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/arm/arm_ulnar_variance_config.yaml",
+        "training_dataset_size": 22156
+    },
+    {
+        "job_id": 135,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/arm/arm_amputation_config.yaml",
+        "training_dataset_size": null
+    },
+    {
+        "job_id": 136,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/arm/arm_soft_tissue_swelling_config.yaml",
+        "training_dataset_size": 61318
+    },
+    {
+        "job_id": 137,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/arm/arm_distal_clavicle_osteolysis_config.yaml",
+        "training_dataset_size": null
+    },
+    {
+        "job_id": 138,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/arm/arm_bony_mineralization_config.yaml",
+        "training_dataset_size": 64844
+    },
+    {
+        "job_id": 139,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/arm/arm_os_subcoronoideum_config.yaml",
+        "training_dataset_size": null
+    },
+    {
+        "job_id": 140,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/arm/arm_dislocation_config.yaml",
+        "training_dataset_size": 40056
+    },
+    {
+        "job_id": 141,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/arm/arm_growth_plate_abnormalities_config.yaml",
+        "training_dataset_size": null
+    },
+    {
+        "job_id": 142,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/arm/arm_synostosis_config.yaml",
+        "training_dataset_size": null
+    },
+    {
+        "job_id": 143,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/arm/arm_bone_infarcts_config.yaml",
+        "training_dataset_size": 22152
+    },
+    {
+        "job_id": 144,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/arm/arm_synostosis_between_radius_and_ulna_config.yaml",
+        "training_dataset_size": null
+    },
+    {
+        "job_id": 145,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/arm/arm_degenerative_changes_config.yaml",
+        "training_dataset_size": 443776
+    },
+    {
+        "job_id": 146,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/arm/arm_malunion_config.yaml",
+        "training_dataset_size": 21908
+    },
+    {
+        "job_id": 147,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/arm/arm_soft_tissue_calcifications_config.yaml",
+        "training_dataset_size": 53838
+    },
+    {
+        "job_id": 148,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/arm/arm_foreign_bodies_config.yaml",
+        "training_dataset_size": 20920
+    },
+    {
+        "job_id": 149,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/arm/arm_rotator_cuff_calcific_tendinitis_config.yaml",
+        "training_dataset_size": 32750
+    },
+    {
+        "job_id": 150,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/arm/arm_osteomyelitis_config.yaml",
+        "training_dataset_size": 24996
+    },
+    {
+        "job_id": 151,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/pelvis/pelvis_sacroiliitis_config.yaml",
+        "training_dataset_size": 26700
+    },
+    {
+        "job_id": 152,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/pelvis/pelvis_avascular_necrosis_config.yaml",
+        "training_dataset_size": 21576
+    },
+    {
+        "job_id": 153,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/pelvis/pelvis_medical_devices_config.yaml",
+        "training_dataset_size": 580080
+    },
+    {
+        "job_id": 154,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/pelvis/pelvis_bone_lesions_config.yaml",
+        "training_dataset_size": 32774
+    },
+    {
+        "job_id": 155,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/pelvis/pelvis_iud_config.yaml",
+        "training_dataset_size": 34042
+    },
+    {
+        "job_id": 156,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/pelvis/pelvis_osteochondral_defects_config.yaml",
+        "training_dataset_size": null
+    },
+    {
+        "job_id": 157,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/pelvis/pelvis_heterotopic_ossification_config.yaml",
+        "training_dataset_size": 85570
+    },
+    {
+        "job_id": 158,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/pelvis/pelvis_osteitis_pubis_config.yaml",
+        "training_dataset_size": 20440
+    },
+    {
+        "job_id": 159,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/pelvis/pelvis_osteomyelitis_config.yaml",
+        "training_dataset_size": null
+    },
+    {
+        "job_id": 160,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/pelvis/pelvis_protrusio_acetabuli_config.yaml",
+        "training_dataset_size": 23240
+    },
+    {
+        "job_id": 161,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/pelvis/pelvis_degenerative_changes_config.yaml",
+        "training_dataset_size": 650510
+    },
+    {
+        "job_id": 162,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/pelvis/pelvis_stool_config.yaml",
+        "training_dataset_size": 306220
+    },
+    {
+        "job_id": 163,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/pelvis/pelvis_subcutaneous_gas_config.yaml",
+        "training_dataset_size": 37064
+    },
+    {
+        "job_id": 164,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/pelvis/pelvis_crossover_sign_config.yaml",
+        "training_dataset_size": null
+    },
+    {
+        "job_id": 165,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/pelvis/pelvis_soft_tissue_swelling_config.yaml",
+        "training_dataset_size": 20196
+    },
+    {
+        "job_id": 166,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/pelvis/pelvis_fracture_config.yaml",
+        "training_dataset_size": 115928
+    },
+    {
+        "job_id": 167,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/pelvis/pelvis_ureteral_calculi_config.yaml",
+        "training_dataset_size": 51960
+    },
+    {
+        "job_id": 168,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/pelvis/pelvis_sacralization_of_spine_config.yaml",
+        "training_dataset_size": 38980
+    },
+    {
+        "job_id": 169,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/pelvis/pelvis_soft_tissue_mass_config.yaml",
+        "training_dataset_size": 23320
+    },
+    {
+        "job_id": 170,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/pelvis/pelvis_no_findings_config.yaml",
+        "training_dataset_size": 1000000
+    },
+    {
+        "job_id": 171,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/pelvis/pelvis_dislocation_config.yaml",
+        "training_dataset_size": 24964
+    },
+    {
+        "job_id": 172,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/pelvis/pelvis_femoral_acetabular_impingement_config.yaml",
+        "training_dataset_size": 21440
+    },
+    {
+        "job_id": 173,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/pelvis/pelvis_cam_deformity_config.yaml",
+        "training_dataset_size": 30712
+    },
+    {
+        "job_id": 174,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/pelvis/pelvis_intra-articular_body_config.yaml",
+        "training_dataset_size": 21640
+    },
+    {
+        "job_id": 175,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/pelvis/pelvis_osteitis_condensans_ilii_config.yaml",
+        "training_dataset_size": 20700
+    },
+    {
+        "job_id": 176,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/pelvis/pelvis_bony_mineralization_config.yaml",
+        "training_dataset_size": 139496
+    },
+    {
+        "job_id": 177,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/pelvis/pelvis_slipped_capital_femoral_epiphysis_config.yaml",
+        "training_dataset_size": null
+    },
+    {
+        "job_id": 178,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/pelvis/pelvis_pelvic_vascular_calcifications_config.yaml",
+        "training_dataset_size": 337316
+    },
+    {
+        "job_id": 179,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/pelvis/pelvis_acetabular_retroversion_sign_config.yaml",
+        "training_dataset_size": null
+    },
+    {
+        "job_id": 180,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/abdomen/abdomen_ureteral_calculi_config.yaml",
+        "training_dataset_size": 50308
+    },
+    {
+        "job_id": 181,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/abdomen/abdomen_ascites_config.yaml",
+        "training_dataset_size": 20064
+    },
+    {
+        "job_id": 182,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/abdomen/abdomen_renal_stones_config.yaml",
+        "training_dataset_size": 147398
+    },
+    {
+        "job_id": 183,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/abdomen/abdomen_uterine_fibroids_config.yaml",
+        "training_dataset_size": 28208
+    },
+    {
+        "job_id": 184,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/abdomen/abdomen_portal_venous_gas_config.yaml",
+        "training_dataset_size": null
+    },
+    {
+        "job_id": 185,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/abdomen/abdomen_bowel_obstruction_config.yaml",
+        "training_dataset_size": 144732
+    },
+    {
+        "job_id": 186,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/abdomen/abdomen_calcifications_config.yaml",
+        "training_dataset_size": 357612
+    },
+    {
+        "job_id": 187,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/abdomen/abdomen_bowel_wall_thickening_config.yaml",
+        "training_dataset_size": 20856
+    },
+    {
+        "job_id": 188,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/abdomen/abdomen_no_findings_config.yaml",
+        "training_dataset_size": 800174
+    },
+    {
+        "job_id": 189,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/abdomen/abdomen_organomegaly_config.yaml",
+        "training_dataset_size": 20460
+    },
+    {
+        "job_id": 190,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/abdomen/abdomen_ileus_config.yaml",
+        "training_dataset_size": 126410
+    },
+    {
+        "job_id": 191,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/abdomen/abdomen_pneumatosis_config.yaml",
+        "training_dataset_size": null
+    },
+    {
+        "job_id": 192,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/abdomen/abdomen_support_devices_config.yaml",
+        "training_dataset_size": 510122
+    },
+    {
+        "job_id": 193,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/abdomen/abdomen_medical_devices_config.yaml",
+        "training_dataset_size": 265320
+    },
+    {
+        "job_id": 194,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/abdomen/abdomen_bladder_distension_or_masses_config.yaml",
+        "training_dataset_size": 20112
+    },
+    {
+        "job_id": 195,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/abdomen/abdomen_degenerative_changes_config.yaml",
+        "training_dataset_size": 400122
+    },
+    {
+        "job_id": 196,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/abdomen/abdomen_foreign_bodies_config.yaml",
+        "training_dataset_size": 23594
+    },
+    {
+        "job_id": 197,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/abdomen/abdomen_pneumatosis_intestinalis_config.yaml",
+        "training_dataset_size": null
+    },
+    {
+        "job_id": 198,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/abdomen/abdomen_pneumoperitoneum_config.yaml",
+        "training_dataset_size": 26104
+    },
+    {
+        "job_id": 199,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/abdomen/abdomen_gallstones_config.yaml",
+        "training_dataset_size": 38656
+    },
+    {
+        "job_id": 200,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/abdomen/abdomen_diaphragmatic_hernia_config.yaml",
+        "training_dataset_size": 51854
+    },
+    {
+        "job_id": 201,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/abdomen/abdomen_stool_config.yaml",
+        "training_dataset_size": 316454
+    },
+    {
+        "job_id": 202,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/abdomen/abdomen_masses_config.yaml",
+        "training_dataset_size": 20676
+    },
+    {
+        "job_id": 203,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/abdomen/abdomen_iud_config.yaml",
+        "training_dataset_size": 20174
+    },
+    {
+        "job_id": 204,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/leg/leg_synostosis_config.yaml",
+        "training_dataset_size": 21640
+    },
+    {
+        "job_id": 205,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/leg/leg_growth_plate_abnormalities_config.yaml",
+        "training_dataset_size": null
+    },
+    {
+        "job_id": 206,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/leg/leg_hardware_config.yaml",
+        "training_dataset_size": 330298
+    },
+    {
+        "job_id": 207,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/leg/leg_osteochondritis_dissecans_config.yaml",
+        "training_dataset_size": null
+    },
+    {
+        "job_id": 208,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/leg/leg_patellar_tracking_abnormalities_config.yaml",
+        "training_dataset_size": 38572
+    },
+    {
+        "job_id": 209,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/leg/leg_femoral_acetabular_impingement_config.yaml",
+        "training_dataset_size": 20308
+    },
+    {
+        "job_id": 210,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/leg/leg_cortical_thickening_config.yaml",
+        "training_dataset_size": 22152
+    },
+    {
+        "job_id": 211,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/leg/leg_joint_effusion_config.yaml",
+        "training_dataset_size": 245436
+    },
+    {
+        "job_id": 212,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/leg/leg_subcutaneous_gas_config.yaml",
+        "training_dataset_size": 27830
+    },
+    {
+        "job_id": 213,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/leg/leg_no_findings_config.yaml",
+        "training_dataset_size": 446624
+    },
+    {
+        "job_id": 214,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/leg/leg_bipartite_patella_config.yaml",
+        "training_dataset_size": 23290
+    },
+    {
+        "job_id": 215,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/leg/leg_osteochondral_lesions_config.yaml",
+        "training_dataset_size": 22224
+    },
+    {
+        "job_id": 216,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/leg/leg_erosive_change_config.yaml",
+        "training_dataset_size": 42228
+    },
+    {
+        "job_id": 217,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/leg/leg_intraarticular_bodies_config.yaml",
+        "training_dataset_size": 39936
+    },
+    {
+        "job_id": 218,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/leg/leg_degenerative_changes_config.yaml",
+        "training_dataset_size": 930678
+    },
+    {
+        "job_id": 219,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/leg/leg_limb-length_discrepancy_config.yaml",
+        "training_dataset_size": 22050
+    },
+    {
+        "job_id": 220,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/leg/leg_foreign_bodies_config.yaml",
+        "training_dataset_size": 26188
+    },
+    {
+        "job_id": 221,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/leg/leg_bone_infarcts_config.yaml",
+        "training_dataset_size": 23334
+    },
+    {
+        "job_id": 222,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/leg/leg_fracture_config.yaml",
+        "training_dataset_size": 282960
+    },
+    {
+        "job_id": 223,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/leg/leg_heterotopic_ossification_config.yaml",
+        "training_dataset_size": 21606
+    },
+    {
+        "job_id": 224,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/leg/leg_amputation_config.yaml",
+        "training_dataset_size": 21432
+    },
+    {
+        "job_id": 225,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/leg/leg_tendinous_calcifications_config.yaml",
+        "training_dataset_size": 194710
+    },
+    {
+        "job_id": 226,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/leg/leg_charcot_joint_config.yaml",
+        "training_dataset_size": null
+    },
+    {
+        "job_id": 227,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/leg/leg_osteomyelitis_config.yaml",
+        "training_dataset_size": 29976
+    },
+    {
+        "job_id": 228,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/leg/leg_bony_mineralization_config.yaml",
+        "training_dataset_size": 88940
+    },
+    {
+        "job_id": 229,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/leg/leg_calcifications_config.yaml",
+        "training_dataset_size": 61372
+    },
+    {
+        "job_id": 230,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/leg/leg_soft_tissue_swelling_config.yaml",
+        "training_dataset_size": 233722
+    },
+    {
+        "job_id": 231,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/leg/leg_bone_lesions_config.yaml",
+        "training_dataset_size": 38166
+    },
+    {
+        "job_id": 232,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/leg/leg_dislocation_config.yaml",
+        "training_dataset_size": 33468
+    },
+    {
+        "job_id": 233,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/chest/chest_mass_nodule_config.yaml",
+        "training_dataset_size": 251874
+    },
+    {
+        "job_id": 234,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/chest/chest_congestive_heart_failure_config.yaml",
+        "training_dataset_size": 763038
+    },
+    {
+        "job_id": 235,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/chest/chest_cardiac_devices_config.yaml",
+        "training_dataset_size": 158484
+    },
+    {
+        "job_id": 236,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/chest/chest_osteoporosis_config.yaml",
+        "training_dataset_size": 146202
+    },
+    {
+        "job_id": 237,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/chest/chest_fracture_config.yaml",
+        "training_dataset_size": 335566
+    },
+    {
+        "job_id": 238,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/chest/chest_foreign_bodies_config.yaml",
+        "training_dataset_size": 26916
+    },
+    {
+        "job_id": 239,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/chest/chest_calcification_config.yaml",
+        "training_dataset_size": 650896
+    },
+    {
+        "job_id": 240,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/chest/chest_bronchiectasis_config.yaml",
+        "training_dataset_size": 23484
+    },
+    {
+        "job_id": 241,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/chest/chest_aortic_enlargement_config.yaml",
+        "training_dataset_size": 69944
+    },
+    {
+        "job_id": 242,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/chest/chest_cervical_ribs_config.yaml",
+        "training_dataset_size": 22692
+    },
+    {
+        "job_id": 243,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/chest/chest_tuberculosis_config.yaml",
+        "training_dataset_size": 20016
+    },
+    {
+        "job_id": 244,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/chest/chest_cardiomegaly_config.yaml",
+        "training_dataset_size": 1000000
+    },
+    {
+        "job_id": 245,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/chest/chest_pleural_thickening_config.yaml",
+        "training_dataset_size": 129094
+    },
+    {
+        "job_id": 246,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/chest/chest_scarring_config.yaml",
+        "training_dataset_size": 447184
+    },
+    {
+        "job_id": 247,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/chest/chest_subcutaneous_emphysema_config.yaml",
+        "training_dataset_size": 52302
+    },
+    {
+        "job_id": 248,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/chest/chest_sarcoidosis_config.yaml",
+        "training_dataset_size": 24320
+    },
+    {
+        "job_id": 249,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/chest/chest_pleural_plaque_config.yaml",
+        "training_dataset_size": 37596
+    },
+    {
+        "job_id": 250,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/chest/chest_scoliosis_config.yaml",
+        "training_dataset_size": 250328
+    },
+    {
+        "job_id": 251,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/chest/chest_fibrosis_config.yaml",
+        "training_dataset_size": 118020
+    },
+    {
+        "job_id": 252,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/chest/chest_tracheal_deviation_config.yaml",
+        "training_dataset_size": 24812
+    },
+    {
+        "job_id": 253,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/chest/chest_distended_bowel_config.yaml",
+        "training_dataset_size": 20106
+    },
+    {
+        "job_id": 254,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/chest/chest_esophageal_dilation_config.yaml",
+        "training_dataset_size": null
+    },
+    {
+        "job_id": 255,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/chest/chest_diaphragmatic_elevation_config.yaml",
+        "training_dataset_size": 263068
+    },
+    {
+        "job_id": 256,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/chest/chest_asthma_config.yaml",
+        "training_dataset_size": 23036
+    },
+    {
+        "job_id": 257,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/chest/chest_tracheal_stenosis_config.yaml",
+        "training_dataset_size": null
+    },
+    {
+        "job_id": 258,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/chest/chest_granuloma_config.yaml",
+        "training_dataset_size": 123522
+    },
+    {
+        "job_id": 259,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/chest/chest_air_bronchogram_config.yaml",
+        "training_dataset_size": 24378
+    },
+    {
+        "job_id": 260,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/chest/chest_airspace_opacity_config.yaml",
+        "training_dataset_size": 1000000
+    },
+    {
+        "job_id": 261,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/chest/chest_mediastinal_shift_config.yaml",
+        "training_dataset_size": 33780
+    },
+    {
+        "job_id": 262,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/chest/chest_pneumoperitoneum_config.yaml",
+        "training_dataset_size": 23640
+    },
+    {
+        "job_id": 263,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/chest/chest_lung_volume_loss_config.yaml",
+        "training_dataset_size": 363724
+    },
+    {
+        "job_id": 264,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/chest/chest_enlarged_pulmonary_artery_config.yaml",
+        "training_dataset_size": 25850
+    },
+    {
+        "job_id": 265,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/chest/chest_pulmonary_cavitary_lesion_config.yaml",
+        "training_dataset_size": 25828
+    },
+    {
+        "job_id": 266,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/chest/chest_interstitial_lung_disease_(ild)_config.yaml",
+        "training_dataset_size": 158528
+    },
+    {
+        "job_id": 267,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/chest/chest_adenopathy_config.yaml",
+        "training_dataset_size": 34780
+    },
+    {
+        "job_id": 268,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/chest/chest_bronchitis_config.yaml",
+        "training_dataset_size": 160434
+    },
+    {
+        "job_id": 269,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/chest/chest_no_findings_config.yaml",
+        "training_dataset_size": 1000000
+    },
+    {
+        "job_id": 270,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/chest/chest_pneumomediastinum_config.yaml",
+        "training_dataset_size": 28236
+    },
+    {
+        "job_id": 271,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/chest/chest_bone_lesion_config.yaml",
+        "training_dataset_size": 30148
+    },
+    {
+        "job_id": 272,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/chest/chest_support_devices_config.yaml",
+        "training_dataset_size": 1000000
+    },
+    {
+        "job_id": 273,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/chest/chest_pleural_effusion_config.yaml",
+        "training_dataset_size": 936736
+    },
+    {
+        "job_id": 274,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/chest/chest_pneumothorax_config.yaml",
+        "training_dataset_size": 131382
+    },
+    {
+        "job_id": 275,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/chest/chest_pulmonary_contusion_config.yaml",
+        "training_dataset_size": 26500
+    },
+    {
+        "job_id": 276,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/chest/chest_tortuous_aorta_config.yaml",
+        "training_dataset_size": 448766
+    },
+    {
+        "job_id": 277,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/chest/chest_degenerative_changes_config.yaml",
+        "training_dataset_size": 900726
+    },
+    {
+        "job_id": 278,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/chest/chest_chest_wall_mass_config.yaml",
+        "training_dataset_size": null
+    },
+    {
+        "job_id": 279,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/chest/chest_hiatal_hernia_config.yaml",
+        "training_dataset_size": 85922
+    },
+    {
+        "job_id": 280,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/chest/chest_enlarged_mediastinum_config.yaml",
+        "training_dataset_size": 28538
+    },
+    {
+        "job_id": 281,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/chest/chest_emphysema_config.yaml",
+        "training_dataset_size": 504946
+    },
+    {
+        "job_id": 282,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/chest/chest_post-surgical_changes_config.yaml",
+        "training_dataset_size": 519258
+    },
+    {
+        "job_id": 283,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/chest/chest_atelectasis_config.yaml",
+        "training_dataset_size": 1000000
+    },
+    {
+        "job_id": 284,
+        "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/chest/chest_perihilar_opacity_config.yaml",
+        "training_dataset_size": 116016
+    }
+]
