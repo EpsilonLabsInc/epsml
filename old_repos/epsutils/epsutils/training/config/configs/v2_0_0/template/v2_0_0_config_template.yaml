@@ -62,8 +62,8 @@ training:
   learning_rate: 0.00004
   warmup_ratio: 0.1
   num_epochs: 10
-  training_batch_size: 128
-  validation_batch_size: 128
+  training_batch_size: 256
+  validation_batch_size: 256
   min_allowed_batch_size: 2
   multi_image_input: True
   num_multi_images: None
