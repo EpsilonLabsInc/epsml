@@ -93,7 +93,7 @@ def copy_config_files(buckets, output_dir):
 
 
 def generate_summary(buckets, bucket_sums):
-    total_cout = sum(bucket_sums)
+    total_count = sum(bucket_sums)
     min_count = min(bucket_sums)
     max_count = max(bucket_sums)
 
@@ -109,7 +109,7 @@ def generate_summary(buckets, bucket_sums):
     print("")
     print("Summary:")
     print(f"+ Buckets created: {len(buckets)}")
-    print(f"+ Total count over all buckets: {total_cout:,}")
+    print(f"+ Total count over all buckets: {total_count:,}")
     print(f"+ Min count: {min_count:,}")
     print(f"+ Max count: {max_count:,}")
     print(f"+ Training jobs distribution: {[len(bucket) for bucket in buckets]}")
