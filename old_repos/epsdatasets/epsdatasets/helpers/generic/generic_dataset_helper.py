@@ -44,6 +44,7 @@ class GenericDatasetHelper(BaseDatasetHelper):
                  validation_df=None,
                  test_df=None,
                  for_stats_only=False,
+                 run_sanity_check=False,
                  seed=42):
 
         super().__init__(train_file=train_file,
@@ -71,6 +72,7 @@ class GenericDatasetHelper(BaseDatasetHelper):
                          validation_df=validation_df,
                          test_df=test_df,
                          for_stats_only=for_stats_only,
+                         run_sanity_check=run_sanity_check,
                          seed=seed)
 
     def _load_dataset(self, *args, **kwargs):
@@ -100,6 +102,7 @@ class GenericDatasetHelper(BaseDatasetHelper):
         self.__validation_df = kwargs["validation_df"] if "validation_df" in kwargs else next((arg for arg in args if arg == "validation_df"), None)
         self.__test_df = kwargs["test_df"] if "test_df" in kwargs else next((arg for arg in args if arg == "test_df"), None)
         self.__for_stats_only = kwargs["for_stats_only"] if "for_stats_only" in kwargs else next((arg for arg in args if arg == "for_stats_only"), None)
+        self.__run_sanity_check = kwargs["run_sanity_check"] if "run_sanity_check" in kwargs else next((arg for arg in args if arg == "run_sanity_check"), None)
         self.__seed = kwargs["seed"] if "seed" in kwargs else next((arg for arg in args if arg == "seed"), None)
 
         self.__pandas_train_dataset = None
@@ -434,8 +437,12 @@ class GenericDatasetHelper(BaseDatasetHelper):
         if self.__negative_body_parts_ratio is None:
             neg_df = neg_df.sample(n=num_pos, random_state=self.__seed, replace=False)
         else:
+            if not self.__uses_single_label:
+                raise ValueError("Negative body parts feature cannot used in the multi-label setup")
+
             df1 = neg_df.sample(n=round(num_pos * (1 - self.__negative_body_parts_ratio)), random_state=self.__seed, replace=False)
             df2 = neg_body_parts_df.sample(n=round(num_pos * self.__negative_body_parts_ratio), random_state=self.__seed, replace=False)
+            df2["training_labels"] = [[0]] * len(df2)
             neg_df = pd.concat([df1, df2]).reset_index(drop=True)
 
         df = pd.concat([pos_df, neg_df]).reset_index(drop=True)
@@ -463,11 +470,12 @@ class GenericDatasetHelper(BaseDatasetHelper):
             print("Data augmented dataset head:")
             print(res_df.head())
 
-            print("Sanity check")
-            for index in range(3):
-                for i in range(num_data_augmentations):
-                    row = res_df.iloc[index + i * org_size]
-                    print(f"{row['relative_image_paths']}: {row['augmentation_params']}")
+            if self.__run_sanity_check:
+                print("Sanity check")
+                for index in range(3):
+                    for i in range(num_data_augmentations):
+                        row = res_df.iloc[index + i * org_size]
+                        print(f"{row['relative_image_paths']}: {row['augmentation_params']}")
 
         return res_df
 
