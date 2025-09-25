@@ -1,7 +1,5 @@
 import argparse
-import os
-import threading
-import time
+import json
 import torch
 import torch.multiprocessing as mp
 import yaml
@@ -15,7 +13,7 @@ from epsutils.training.torch_training_helper import TorchTrainingHelper, Trainin
 from dino_v3 import DinoV3Type
 
 
-def convert_none(value):
+def _convert_none(value):
     if value == "None":
         return None
     return value
@@ -25,120 +23,23 @@ def main(config_path):
     # Improve tensor IPC robustness for large batches by using file_system sharing.
     try:
         mp.set_sharing_strategy('file_system')
-        print("multiprocessing sharing strategy set to 'file_system'")
-    except Exception as e:
-        print(f"could not set sharing strategy: {e}")
-    # No debug heartbeat/patching in production
+    except Exception:
+        pass
+
+    # Load config
     with open(config_path, "r") as file:
         config_file_content = file.read()
-    
     config = yaml.safe_load(config_file_content)
-    
-    model_name                     = config["general"].get("model_name", "")
-    dataset_name                   = config["general"].get("dataset_name", "")
-    run_name                       = config["general"].get("run_name", "")
-    notes                          = config["general"].get("notes", "")
-    custom_labels                  = convert_none(config["general"].get("custom_labels", None))
-    body_part                      = config["general"].get("body_part", "")
-    sub_body_part                  = convert_none(config["general"].get("sub_body_part", None))
-    treat_uncertain_as_positive    = config["general"].get("treat_uncertain_as_positive", False)
-    perform_label_balancing        = config["general"].get("perform_label_balancing", False)
-    num_data_augmentations         = config["general"].get("num_data_augmentations", 0)
-    compute_num_data_augmentations = config["general"].get("compute_num_data_augmentations", False)
-    data_augmentation_target       = config["general"].get("data_augmentation_target", 0)
-    data_augmentation_min          = config["general"].get("data_augmentation_min", 0)            
-    unroll_images                  = config["general"].get("unroll_images", True)
-    max_study_images_to_unroll     = convert_none(config["general"].get("max_study_images_to_unroll", None))
-    use_report_text                = config["general"].get("use_report_text", False)
-    save_full_model                = config["general"].get("save_full_model", False)
-    replace_dicom_with_png         = config["general"].get("replace_dicom_with_png", False)
-    dino_v3_checkpoint_path        = config["paths"].get("dino_v3_checkpoint_path", "")
-    dino_v3_type                   = config["general"].get("dino_v3_type", "giant")
-    dino_v3_output_dim             = config["general"].get("dino_v3_output_dim", 4096)  # 384 for small, 768 for base, 1024 for large, 4096 for giant (7B)
-    dino_v3_img_size               = config["general"].get("dino_v3_img_size", 1024)
-    use_attention_pooling          = config["general"].get("use_attention_pooling", False)
-    train_file                     = config["paths"].get("train_file", "")
-    validation_file                = config["paths"].get("validation_file", "")
-    test_file                      = config["paths"].get("test_file", "")
-    base_path_substitutions        = convert_none(config["paths"].get("base_path_substitutions", None))
-    output_dir                     = config["paths"].get("output_dir", "")
-    perform_intra_epoch_validation = config["training"].get("perform_intra_epoch_validation", False)
-    intra_epoch_validation_step    = config["training"].get("intra_epoch_validation_step", 5000)
-    send_wandb_notification        = config["training"].get("send_wandb_notification", True)
-    device                         = config["training"].get("device", "")
-    device_ids                     = convert_none(config["training"].get("device_ids", None))
-    num_training_workers_per_gpu   = config["training"].get("num_training_workers_per_gpu", 1)
-    num_validation_workers_per_gpu = config["training"].get("num_validation_workers_per_gpu", 1)
-    learning_rate                  = config["training"].get("learning_rate", 1e-6)
-    warmup_ratio                   = config["training"].get("warmup_ratio", 0.1)
-    num_epochs                     = config["training"].get("num_epochs", 1)
-    training_batch_size            = config["training"].get("training_batch_size", 1)
-    validation_batch_size          = config["training"].get("validation_batch_size", 1)
-    min_allowed_batch_size         = config["training"].get("min_allowed_batch_size", 2)  # Minimum 2 for batch norm
-    multi_image_input              = config["training"].get("multi_image_input", False)
-    num_multi_images               = convert_none(config["training"].get("num_multi_images", None))
-    max_multi_images               = convert_none(config["training"].get("max_multi_images", None))
-    
-    dino_v3_type_map = {
-        "small": DinoV3Type.SMALL,
-        "base": DinoV3Type.BASE,
-        "large": DinoV3Type.LARGE,
-        "giant": DinoV3Type.GIANT
-    }
-    dino_v3_type_enum = dino_v3_type_map.get(dino_v3_type.lower(), DinoV3Type.GIANT)
-    
+
+    # Print configuration parameters succinctly (like Intern)
     print("----------------------------------------------------------")
     print("Using the following configuration parameters:")
-    print(f"+ model_name: {model_name}")
-    print(f"+ dataset_name: {dataset_name}")
-    print(f"+ run_name: {run_name}")
-    print(f"+ notes: {notes}")
-    print(f"+ custom_labels: {custom_labels}")
-    print(f"+ body_part: {body_part}")
-    print(f"+ sub_body_part: {sub_body_part}")
-    print(f"+ treat_uncertain_as_positive: {treat_uncertain_as_positive}")
-    print(f"+ perform_label_balancing: {perform_label_balancing}")
-    print(f"+ num_data_augmentations: {num_data_augmentations}")
-    print(f"+ compute_num_data_augmentations: {compute_num_data_augmentations}")
-    print(f"+ data_augmentation_target: {data_augmentation_target}")
-    print(f"+ data_augmentation_min: {data_augmentation_min}")            
-    print(f"+ unroll_images: {unroll_images}")
-    print(f"+ max_study_images_to_unroll: {max_study_images_to_unroll}")
-    print(f"+ use_report_text: {use_report_text}")
-    print(f"+ save_full_model: {save_full_model}")
-    print(f"+ replace_dicom_with_png: {replace_dicom_with_png}")
-    print(f"+ dino_v3_checkpoint_path: {dino_v3_checkpoint_path}")
-    print(f"+ dino_v3_type: {dino_v3_type}")
-    print(f"+ dino_v3_output_dim: {dino_v3_output_dim}")
-    print(f"+ dino_v3_img_size: {dino_v3_img_size}")
-    print(f"+ use_attention_pooling: {use_attention_pooling}")
-    print(f"+ train_file: {train_file}")
-    print(f"+ validation_file: {validation_file}")
-    print(f"+ test_file: {test_file}")
-    print(f"+ base_path_substitutions: {base_path_substitutions}")
-    print(f"+ output_dir: {output_dir}")
-    print(f"+ perform_intra_epoch_validation: {perform_intra_epoch_validation}")
-    print(f"+ intra_epoch_validation_step: {intra_epoch_validation_step}")
-    print(f"+ send_wandb_notification: {send_wandb_notification}")
-    print(f"+ device: {device}")
-    print(f"+ device_ids: {device_ids}")
-    print(f"+ num_training_workers_per_gpu: {num_training_workers_per_gpu}")
-    print(f"+ num_validation_workers_per_gpu: {num_validation_workers_per_gpu}")
-    print(f"+ learning_rate: {learning_rate}")
-    print(f"+ warmup_ratio: {warmup_ratio}")
-    print(f"+ num_epochs: {num_epochs}")
-    print(f"+ training_batch_size: {training_batch_size}")
-    print(f"+ validation_batch_size: {validation_batch_size}")
-    print(f"+ min_allowed_batch_size: {min_allowed_batch_size}")
-    print(f"+ multi_image_input: {multi_image_input}")
-    print(f"+ num_multi_images: {num_multi_images}")
-    print(f"+ max_multi_images: {max_multi_images}")
+    print(json.dumps(config, indent=4))
     print("----------------------------------------------------------")
-    
-    # Auto-generated names. Don't change.
-    experiment_name = f"{model_name}-training-on-{dataset_name}"
-    mlops_experiment_name = f"{experiment_name}"
-    experiment_dir = f"{output_dir}/{experiment_name}"
+
+    # Derived names (keep current format)
+    experiment_name = f"{config['general']['model_name']}-training-on-{config['general']['dataset_name']}"
+    experiment_dir = f"{config['paths']['output_dir']}/{experiment_name}"
     save_model_filename = f"{experiment_dir}/{experiment_name}.pt"
     save_parallel_model_filename = f"{experiment_dir}/{experiment_name}-parallel.pt"
     checkpoint_dir = f"{experiment_dir}/checkpoint"
@@ -146,41 +47,52 @@ def main(config_path):
     # Load the dataset.
     print("Loading the dataset")
     dataset_helper = GenericDatasetHelper(
-        train_file=train_file,
-        validation_file=validation_file,
-        test_file=test_file,
-        base_path_substitutions=base_path_substitutions,
-        body_part=body_part,
-        sub_body_part=sub_body_part,
+        train_file=config["paths"]["train_file"],
+        validation_file=config["paths"]["validation_file"],
+        test_file=config["paths"]["test_file"],
+        base_path_substitutions=config["paths"].get("base_path_substitutions"),
+        body_part=config["general"]["body_part"],
+        sub_body_part=config["general"].get("sub_body_part"),
         merge_val_and_test=True,
-        treat_uncertain_as_positive=treat_uncertain_as_positive,
-        perform_label_balancing=perform_label_balancing,
-        num_data_augmentations=num_data_augmentations,
-        compute_num_data_augmentations=compute_num_data_augmentations,
-        data_augmentation_target=data_augmentation_target,
-        data_augmentation_min=data_augmentation_min,        
-        unroll_images=unroll_images,
-        max_study_images_to_unroll=max_study_images_to_unroll,
+        treat_uncertain_as_positive=config["general"].get("treat_uncertain_as_positive", False),
+        perform_label_balancing=config["general"].get("perform_label_balancing", False),
+        num_data_augmentations=config["general"].get("num_data_augmentations", 0),
+        compute_num_data_augmentations=config["general"].get("compute_num_data_augmentations", False),
+        data_augmentation_target=config["general"].get("data_augmentation_target", 0),
+        data_augmentation_min=config["general"].get("data_augmentation_min", 0),
+        unroll_images=config["general"].get("unroll_images", True),
+        max_study_images=(
+            config["general"].get("max_study_images_to_unroll")
+            if "max_study_images_to_unroll" in config.get("general", {})
+            else config["training"].get("max_multi_images")
+        ),
         convert_images_to_rgb=True,
-        replace_dicom_with_png=replace_dicom_with_png,
-        custom_labels=custom_labels,
-        max_multi_images=max_multi_images)
+        replace_dicom_with_png=config["general"].get("replace_dicom_with_png", False),
+        custom_labels=config["general"].get("custom_labels"))
     
     print(f"Using the following labels: {dataset_helper.get_labels()}")
     
     # Create the tokenizer (for report text if used).
-    tokenizer = DistilBertTokenizer.from_pretrained("distilbert-base-uncased") if use_report_text else None
+    tokenizer = DistilBertTokenizer.from_pretrained("distilbert-base-uncased") if config["general"].get("use_report_text", False) else None
     
     # Create the model.
     print("Creating the model")
     
+    dino_v3_type_map = {
+        "small": DinoV3Type.SMALL,
+        "base": DinoV3Type.BASE,
+        "large": DinoV3Type.LARGE,
+        "giant": DinoV3Type.GIANT,
+    }
+    dino_v3_type_enum = dino_v3_type_map.get(config["general"].get("dino_v3_type", "giant").lower(), DinoV3Type.GIANT)
+
     model = DinoV3Classifier(
         num_classes=len(dataset_helper.get_labels()),
-        dino_v3_checkpoint=dino_v3_checkpoint_path if dino_v3_checkpoint_path else None,
-        dino_v3_output_dim=dino_v3_output_dim,
+        dino_v3_checkpoint=config["paths"].get("dino_v3_checkpoint_path") or None,
+        dino_v3_output_dim=config["general"].get("dino_v3_output_dim", 4096),
         dino_v3_type=dino_v3_type_enum,
-        img_size=dino_v3_img_size,
-        use_attention_pooling=use_attention_pooling
+        img_size=config["general"].get("dino_v3_img_size", 1024),
+        use_attention_pooling=config["general"].get("use_attention_pooling", False),
     )
     
     model = model.to("cuda")
@@ -228,7 +140,7 @@ def main(config_path):
                 "images": pixel_values,
                 "report_texts": None,
                 "text_encodings": None,
-                "file_names": [item["image_paths"]],
+                "file_names": item["relative_image_paths"],
             }
             return data, label
 
@@ -239,63 +151,75 @@ def main(config_path):
         train_df = getattr(train_ds, "_GenericTorchDataset__pandas_dataframe", None)
         val_df = getattr(val_ds, "_GenericTorchDataset__pandas_dataframe", None)
         if train_df is not None:
-            pre_ds = PreprocessedTorchDataset(train_df, dataset_helper, image_processor, multi_image_input, num_multi_images)
+            pre_ds = PreprocessedTorchDataset(
+                train_df,
+                dataset_helper,
+                image_processor,
+                config["training"].get("multi_image_input", False),
+                _convert_none(config["training"].get("num_multi_images")),
+            )
             setattr(dataset_helper, "_GenericDatasetHelper__torch_train_dataset", pre_ds)
             print(f"Replaced train dataset with PreprocessedTorchDataset of length {len(pre_ds)}")
         if val_df is not None:
-            pre_val = PreprocessedTorchDataset(val_df, dataset_helper, image_processor, multi_image_input, num_multi_images)
+            pre_val = PreprocessedTorchDataset(
+                val_df,
+                dataset_helper,
+                image_processor,
+                config["training"].get("multi_image_input", False),
+                _convert_none(config["training"].get("num_multi_images")),
+            )
             setattr(dataset_helper, "_GenericDatasetHelper__torch_validation_dataset", pre_val)
             print(f"Replaced val dataset with PreprocessedTorchDataset of length {len(pre_val)}")
     except Exception as e:
         print(f"Could not replace helper datasets with preprocessed variants: {e}")
     
     training_parameters = TrainingParameters(
-        learning_rate=learning_rate,
-        warmup_ratio=warmup_ratio,
-        num_epochs=num_epochs,
-        training_batch_size=training_batch_size,
-        validation_batch_size=validation_batch_size,
-        min_allowed_batch_size=min_allowed_batch_size,
+        learning_rate=config["training"].get("learning_rate", 1e-6),
+        warmup_ratio=config["training"].get("warmup_ratio", 0.1),
+        num_epochs=config["training"].get("num_epochs", 1),
+        training_batch_size=config["training"].get("training_batch_size", 1),
+        validation_batch_size=config["training"].get("validation_batch_size", 1),
+        min_allowed_batch_size=config["training"].get("min_allowed_batch_size", 2),
         criterion=SampleBalancedBCEWithLogitsLoss(),
         checkpoint_dir=checkpoint_dir,
-        perform_intra_epoch_validation=perform_intra_epoch_validation,
-        intra_epoch_validation_step=intra_epoch_validation_step,
-        num_training_workers_per_gpu=num_training_workers_per_gpu,
-        num_validation_workers_per_gpu=num_validation_workers_per_gpu,
+        perform_intra_epoch_validation=config["training"].get("perform_intra_epoch_validation", False),
+        intra_epoch_validation_step=config["training"].get("intra_epoch_validation_step", 5000),
+        num_training_workers_per_gpu=config["training"].get("num_training_workers_per_gpu", 1),
+        num_validation_workers_per_gpu=config["training"].get("num_validation_workers_per_gpu", 1),
         save_visualizaton_data_during_training=True,
         save_visualizaton_data_during_validation=True,
-        pause_on_validation_visualization=False
+        pause_on_validation_visualization=False,
     )
     
     mlops_parameters = MlopsParameters(
         mlops_type=MlopsType.WANDB,
-        experiment_name=mlops_experiment_name,
-        run_name=run_name,
-        notes=notes,
+        experiment_name=experiment_name,
+        run_name=config["general"].get("run_name", ""),
+        notes=config["general"].get("notes", ""),
         label_names=dataset_helper.get_labels(),
-        send_notification=send_wandb_notification
+        send_notification=config["training"].get("send_wandb_notification", True),
     )
     
     training_helper = TorchTrainingHelper(
         model=model,
         dataset_helper=dataset_helper,
-        device=device,
-        device_ids=device_ids,
+        device=config["training"].get("device", ""),
+        device_ids=_convert_none(config["training"].get("device_ids")),
         training_parameters=training_parameters,
         mlops_parameters=mlops_parameters,
-        multi_gpu_padding=(multi_image_input and num_multi_images is None),
-        config_file_content=config_file_content
+        multi_gpu_padding=(config["training"].get("multi_image_input", False) and config["training"].get("num_multi_images") is None),
+        config_file_content=config_file_content,
     )
     
     device_ids_used = training_helper.get_device_ids_used()
     
     def get_torch_images(samples):
-        if multi_image_input and num_multi_images is not None:
+        if config["training"].get("multi_image_input", False) and _convert_none(config["training"].get("num_multi_images")) is not None:
             try:
                 stack = []
                 for item in samples:
                     images = dataset_helper.get_pil_image(item)
-                    assert len(images) == num_multi_images
+                    assert len(images) == _convert_none(config["training"].get("num_multi_images"))
                     pixel_values = image_processor(images=images, return_tensors="pt").pixel_values
                     stack.append(pixel_values)
                 
@@ -305,7 +229,7 @@ def main(config_path):
             except:
                 return None
         
-        elif multi_image_input and num_multi_images is None:
+        elif config["training"].get("multi_image_input", False) and _convert_none(config["training"].get("num_multi_images")) is None:
             try:
                 image_list = []
                 for item in samples:
@@ -366,7 +290,7 @@ def main(config_path):
                 "images": images,
                 "report_texts": None,
                 "text_encodings": None,
-                "file_names": [d["file_names"][0] for d in data_list],
+                "file_names": [d["file_names"] for d in data_list],
             }
             return data, labels
         # Images
@@ -375,7 +299,7 @@ def main(config_path):
             return None
 
         # Text (optional)
-        report_texts, text_encodings = get_text_encodings(samples) if use_report_text else (None, None)
+        report_texts, text_encodings = get_text_encodings(samples) if config["general"].get("use_report_text", False) else (None, None)
 
         # Labels
         labels = get_torch_labels(samples)
@@ -384,14 +308,13 @@ def main(config_path):
             "images": images,
             "report_texts": report_texts,
             "text_encodings": text_encodings,
-            "file_names": [sample["image_paths"] for sample in samples],
+            "file_names": [sample["relative_image_paths"] for sample in samples],
         }
         return data, labels
     
-    print("start_training called", flush=True)
     training_helper.start_training(collate_function_for_training=collate_function)
     
-    if save_full_model:
+    if config["general"].get("save_full_model", False):
         training_helper.save_model(model_file_name=save_model_filename, parallel_model_file_name=save_parallel_model_filename)
 
 
