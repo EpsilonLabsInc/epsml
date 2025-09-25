@@ -40,7 +40,7 @@ data:
   custom_labels: []
   treat_uncertain_as_positive: True
   perform_label_balancing: True
-  max_positive_samples: 500_000
+  max_positive_samples: None
   negative_body_parts_ratio: 0.05
   compute_num_data_augmentations: True
   data_augmentation_target: 10000
