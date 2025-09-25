@@ -5,7 +5,7 @@ general:
   save_full_model: False
 
 paths:
-  backbone_checkpoint_dir: "/mnt/training/internvl_weights/internvl3_chimera_20250810_083849_1e-5_0810_no_label_gpt_bodypart/checkpoint-10466"
+  backbone_checkpoint_dir: "/mnt/all-data/files/output_vitl_xray_20_ep_005_015/eval/training_39279/teacher_checkpoint.pth"
   train_file: "/mnt/training/splits/gradient_batches_1-6_segmed_batches_1-16_simonmed_batches_1-10/FILTERED_CONSOLIDATED_gradient_batches_1-6_segmed_batches_1-16_simonmed_batches_1-10_reports_with_labels_train.csv"
   validation_file: "/mnt/training/splits/gradient_batches_1-6_segmed_batches_1-16_simonmed_batches_1-10/FILTERED_CONSOLIDATED_gradient_batches_1-6_segmed_batches_1-16_simonmed_batches_1-10_reports_with_labels_val.csv"
   test_file: "/mnt/training/splits/gradient_batches_1-6_segmed_batches_1-16_simonmed_batches_1-10/FILTERED_CONSOLIDATED_gradient_batches_1-6_segmed_batches_1-16_simonmed_batches_1-10_reports_with_labels_test.csv"
@@ -49,6 +49,9 @@ data:
   replace_dicom_with_png: False
 
 training:
+  backbone_type: "large"  # Options: small, base, large, giant
+  backbone_output_dim: 1024  # 384 for small, 768 for base, 1024 for large, 4096 for giant (7B)
+  backbone_img_size: 512
   perform_intra_epoch_validation: False
   intra_epoch_validation_step: 3000
   send_wandb_notification: False
@@ -56,11 +59,11 @@ training:
   device_ids: None
   num_training_workers_per_gpu: 32
   num_validation_workers_per_gpu: 32
-  learning_rate: 0.01
-  warmup_ratio: 0.05
-  num_epochs: 2
+  learning_rate: 0.00004
+  warmup_ratio: 0.1
+  num_epochs: 10
   training_batch_size: 128
-  validation_batch_size: 32
+  validation_batch_size: 128
   min_allowed_batch_size: 2
   multi_image_input: True
   num_multi_images: None
