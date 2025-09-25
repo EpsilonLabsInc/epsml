@@ -45,7 +45,7 @@ class DataAnalyzer:
         for index, config_file in enumerate(config_files):
             # Save intermediate results.
             if self.__save_intermediate_results_step is not None and index % self.__save_intermediate_results_step == 0 and index > 0:
-                with open(f"num_samples_intermediate_{index}.json", "w") as f:
+                with open(f"num_training_samples_intermediate_{index}.json", "w") as f:
                     json.dump(num_samples_dict, f, indent=4)
 
             # Generate status message.
@@ -119,3 +119,8 @@ if __name__ == "__main__":
 
     print("Num training samples:")
     print(json.dumps(num_training_samples, indent=4))
+
+    print("")
+    print("Saving results to file")
+    with open(f"num_training_samples.json", "w") as f:
+        json.dump(num_training_samples, f, indent=4)
