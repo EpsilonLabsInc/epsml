@@ -122,5 +122,5 @@ if __name__ == "__main__":
 
     print("")
     print("Saving results to file")
-    with open(f"num_training_samples.json", "w") as f:
+    with open("num_training_samples.json", "w") as f:
         json.dump(num_training_samples, f, indent=4)
