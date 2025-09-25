@@ -8,15 +8,10 @@ from transformers import DistilBertTokenizer
 
 from epsclassifiers.dino_v3_classifier import DinoV3Classifier
 from epsdatasets.helpers.generic.generic_dataset_helper import GenericDatasetHelper
+from epsutils.training.config.config_loader import ConfigLoader
 from epsutils.training.sample_balanced_bce_with_logits_loss import SampleBalancedBCEWithLogitsLoss
 from epsutils.training.torch_training_helper import TorchTrainingHelper, TrainingParameters, MlopsType, MlopsParameters
 from dino_v3 import DinoV3Type
-
-
-def _convert_none(value):
-    if value == "None":
-        return None
-    return value
 
 
 def main(config_path):
@@ -26,85 +21,81 @@ def main(config_path):
     except Exception:
         pass
 
-    # Load config
-    with open(config_path, "r") as file:
-        config_file_content = file.read()
-    config = yaml.safe_load(config_file_content)
+    # Read the configuration file.
+    config = ConfigLoader().load_config(config_path)
+    config_str = json.dumps(config, indent=4)
 
-    # Print configuration parameters succinctly (like Intern)
+    # Print configuration parameters.
     print("----------------------------------------------------------")
     print("Using the following configuration parameters:")
-    print(json.dumps(config, indent=4))
+    print(config_str)
     print("----------------------------------------------------------")
 
-    # Derived names (keep current format)
-    experiment_name = f"{config['general']['model_name']}-training-on-{config['general']['dataset_name']}"
-    experiment_dir = f"{config['paths']['output_dir']}/{experiment_name}"
-    save_model_filename = f"{experiment_dir}/{experiment_name}.pt"
-    save_parallel_model_filename = f"{experiment_dir}/{experiment_name}-parallel.pt"
+    # Auto-generated names. Don't change.
+    experiment_dir = f"{config['paths']['output_dir']}/{config['general']['experiment_name']}"
+    save_model_filename = f"{experiment_dir}/{config['general']['experiment_name']}.pt"
+    save_parallel_model_filename = f"{experiment_dir}/{config['general']['experiment_name']}-parallel.pt"
     checkpoint_dir = f"{experiment_dir}/checkpoint"
-    
+
     # Load the dataset.
     print("Loading the dataset")
     dataset_helper = GenericDatasetHelper(
         train_file=config["paths"]["train_file"],
         validation_file=config["paths"]["validation_file"],
         test_file=config["paths"]["test_file"],
-        base_path_substitutions=config["paths"].get("base_path_substitutions"),
-        body_part=config["general"]["body_part"],
-        sub_body_part=config["general"].get("sub_body_part"),
+        base_path_substitutions=config["paths"]["base_path_substitutions"],
+        body_part=config["data"]["body_part"],
+        sub_body_part=config["data"]["sub_body_part"],
         merge_val_and_test=True,
-        treat_uncertain_as_positive=config["general"].get("treat_uncertain_as_positive", False),
-        perform_label_balancing=config["general"].get("perform_label_balancing", False),
-        num_data_augmentations=config["general"].get("num_data_augmentations", 0),
-        compute_num_data_augmentations=config["general"].get("compute_num_data_augmentations", False),
-        data_augmentation_target=config["general"].get("data_augmentation_target", 0),
-        data_augmentation_min=config["general"].get("data_augmentation_min", 0),
-        unroll_images=config["general"].get("unroll_images", True),
-        max_study_images=(
-            config["general"].get("max_study_images_to_unroll")
-            if "max_study_images_to_unroll" in config.get("general", {})
-            else config["training"].get("max_multi_images")
-        ),
+        treat_uncertain_as_positive=config["data"]["treat_uncertain_as_positive"],
+        perform_label_balancing=config["data"]["perform_label_balancing"],
+        max_positive_samples=config["data"]["max_positive_samples"],
+        negative_body_parts_ratio=config["data"]["negative_body_parts_ratio"],
+        num_data_augmentations=config["data"]["num_data_augmentations"],
+        compute_num_data_augmentations=config["data"]["compute_num_data_augmentations"],
+        data_augmentation_target=config["data"]["data_augmentation_target"],
+        data_augmentation_min=config["data"]["data_augmentation_min"],
+        max_study_images=config["data"]["max_study_images"],
         convert_images_to_rgb=True,
-        replace_dicom_with_png=config["general"].get("replace_dicom_with_png", False),
-        custom_labels=config["general"].get("custom_labels"))
-    
+        replace_dicom_with_png=config["data"]["replace_dicom_with_png"],
+        custom_labels=config["data"]["custom_labels"])
+
     print(f"Using the following labels: {dataset_helper.get_labels()}")
-    
+
     # Create the tokenizer (for report text if used).
-    tokenizer = DistilBertTokenizer.from_pretrained("distilbert-base-uncased") if config["general"].get("use_report_text", False) else None
-    
+    tokenizer = DistilBertTokenizer.from_pretrained("distilbert-base-uncased") if config["training"]["use_report_text"] else None
+
     # Create the model.
     print("Creating the model")
-    
+
     dino_v3_type_map = {
         "small": DinoV3Type.SMALL,
         "base": DinoV3Type.BASE,
         "large": DinoV3Type.LARGE,
         "giant": DinoV3Type.GIANT,
     }
-    dino_v3_type_enum = dino_v3_type_map.get(config["general"].get("dino_v3_type", "giant").lower(), DinoV3Type.GIANT)
+    dino_v3_type_enum = dino_v3_type_map.get(config["training"]["backbone_type"].lower(), DinoV3Type.GIANT)
 
     model = DinoV3Classifier(
         num_classes=len(dataset_helper.get_labels()),
-        dino_v3_checkpoint=config["paths"].get("dino_v3_checkpoint_path") or None,
-        dino_v3_output_dim=config["general"].get("dino_v3_output_dim", 4096),
+        dino_v3_checkpoint=config["paths"]["backbone_checkpoint_dir"],
+        dino_v3_output_dim=config["training"]["backbone_output_dim"],
         dino_v3_type=dino_v3_type_enum,
-        img_size=config["general"].get("dino_v3_img_size", 1024),
-        use_attention_pooling=config["general"].get("use_attention_pooling", False),
+        img_size=config["training"]["backbone_img_size"],
+        use_attention_pooling=config["training"]["use_attentional_pooling"]
     )
-    
+
     model = model.to("cuda")
     image_processor = model.get_image_processor()
-    
+
     for param in model.parameters():
         param.requires_grad = True
-    
+
     # Freeze backbone.
     for param in model.dino_v3.parameters():
         param.requires_grad = False
 
+    # Prepare the training data.
     print("Preparing the training data")
 
     # Preprocess images in DataLoader workers by replacing helper datasets.
@@ -155,8 +146,8 @@ def main(config_path):
                 train_df,
                 dataset_helper,
                 image_processor,
-                config["training"].get("multi_image_input", False),
-                _convert_none(config["training"].get("num_multi_images")),
+                config["training"]["multi_image_input"],
+                config["training"]["num_multi_images"]
             )
             setattr(dataset_helper, "_GenericDatasetHelper__torch_train_dataset", pre_ds)
             print(f"Replaced train dataset with PreprocessedTorchDataset of length {len(pre_ds)}")
@@ -165,71 +156,68 @@ def main(config_path):
                 val_df,
                 dataset_helper,
                 image_processor,
-                config["training"].get("multi_image_input", False),
-                _convert_none(config["training"].get("num_multi_images")),
+                config["training"]["multi_image_input"],
+                config["training"]["num_multi_images"]
             )
             setattr(dataset_helper, "_GenericDatasetHelper__torch_validation_dataset", pre_val)
             print(f"Replaced val dataset with PreprocessedTorchDataset of length {len(pre_val)}")
     except Exception as e:
         print(f"Could not replace helper datasets with preprocessed variants: {e}")
-    
+
     training_parameters = TrainingParameters(
-        learning_rate=config["training"].get("learning_rate", 1e-6),
-        warmup_ratio=config["training"].get("warmup_ratio", 0.1),
-        num_epochs=config["training"].get("num_epochs", 1),
-        training_batch_size=config["training"].get("training_batch_size", 1),
-        validation_batch_size=config["training"].get("validation_batch_size", 1),
-        min_allowed_batch_size=config["training"].get("min_allowed_batch_size", 2),
+        learning_rate=config["training"]["learning_rate"],
+        warmup_ratio=config["training"]["warmup_ratio"],
+        num_epochs=config["training"]["num_epochs"],
+        training_batch_size=config["training"]["training_batch_size"],
+        validation_batch_size=config["training"]["validation_batch_size"],
+        min_allowed_batch_size=config["training"]["min_allowed_batch_size"],
         criterion=SampleBalancedBCEWithLogitsLoss(),
         checkpoint_dir=checkpoint_dir,
-        perform_intra_epoch_validation=config["training"].get("perform_intra_epoch_validation", False),
-        intra_epoch_validation_step=config["training"].get("intra_epoch_validation_step", 5000),
-        num_training_workers_per_gpu=config["training"].get("num_training_workers_per_gpu", 1),
-        num_validation_workers_per_gpu=config["training"].get("num_validation_workers_per_gpu", 1),
+        perform_intra_epoch_validation=config["training"]["perform_intra_epoch_validation"],
+        intra_epoch_validation_step=config["training"]["intra_epoch_validation_step"],
+        num_training_workers_per_gpu=config["training"]["num_training_workers_per_gpu"],
+        num_validation_workers_per_gpu=config["training"]["num_validation_workers_per_gpu"],
         save_visualizaton_data_during_training=True,
         save_visualizaton_data_during_validation=True,
         pause_on_validation_visualization=False,
     )
-    
+
     mlops_parameters = MlopsParameters(
         mlops_type=MlopsType.WANDB,
-        experiment_name=experiment_name,
-        run_name=config["general"].get("run_name", ""),
-        notes=config["general"].get("notes", ""),
+        experiment_name=config["general"]["experiment_name"],
+        run_name=config["general"]["run_name"],
+        notes=config["general"]["notes"],
         label_names=dataset_helper.get_labels(),
-        send_notification=config["training"].get("send_wandb_notification", True),
-    )
-    
+        send_notification=config["training"]["send_wandb_notification"])
+
     training_helper = TorchTrainingHelper(
         model=model,
         dataset_helper=dataset_helper,
-        device=config["training"].get("device", ""),
-        device_ids=_convert_none(config["training"].get("device_ids")),
+        device=config["training"]["device"],
+        device_ids=config["training"]["device_ids"],
         training_parameters=training_parameters,
         mlops_parameters=mlops_parameters,
-        multi_gpu_padding=(config["training"].get("multi_image_input", False) and config["training"].get("num_multi_images") is None),
-        config_file_content=config_file_content,
+        multi_gpu_padding=(config["training"]["multi_image_input"] and config["training"]["num_multi_images"] is None),
+        config_file_content=config_str,
     )
-    
-    device_ids_used = training_helper.get_device_ids_used()
-    
+
     def get_torch_images(samples):
-        if config["training"].get("multi_image_input", False) and _convert_none(config["training"].get("num_multi_images")) is not None:
+        if config["training"]["multi_image_input"] and config["training"]["num_multi_images"] is not None:
             try:
                 stack = []
                 for item in samples:
                     images = dataset_helper.get_pil_image(item)
-                    assert len(images) == _convert_none(config["training"].get("num_multi_images"))
+                    assert len(images) == config["training"]["num_multi_images"]
                     pixel_values = image_processor(images=images, return_tensors="pt").pixel_values
                     stack.append(pixel_values)
-                
+
                 pixel_values = torch.stack(stack)
                 pixel_values = pixel_values.to(torch.float32)
                 return pixel_values
             except:
                 return None
-        
-        elif config["training"].get("multi_image_input", False) and _convert_none(config["training"].get("num_multi_images")) is None:
+
+        elif config["training"]["multi_image_input"] and config["training"]["num_multi_images"] is None:
             try:
                 image_list = []
                 for item in samples:
@@ -240,7 +228,7 @@ def main(config_path):
                 return image_list
             except:
                 return None
-        
+
         else:
             try:
                 images = [dataset_helper.get_pil_image(item)[0] for item in samples]
@@ -249,16 +237,16 @@ def main(config_path):
                 return pixel_values
             except:
                 return None
-    
+
     def get_text_encodings(samples):
         report_texts = [dataset_helper.get_report_text(item) for item in samples]
         text_encodings = tokenizer(report_texts, padding=True, truncation=True, max_length=128, return_tensors="pt")
         return report_texts, text_encodings
-    
+
     def get_torch_labels(samples):
         labels = torch.stack([dataset_helper.get_torch_label(item).to(torch.float32) for item in samples])
         return labels
-    
+
     def collate_function(samples):
         # Fast path: dataset already preprocessed in workers
         if len(samples) > 0 and isinstance(samples[0], tuple) and isinstance(samples[0][0], dict):
@@ -299,7 +287,7 @@ def main(config_path):
             return None
 
         # Text (optional)
-        report_texts, text_encodings = get_text_encodings(samples) if config["general"].get("use_report_text", False) else (None, None)
+        report_texts, text_encodings = get_text_encodings(samples) if config["training"]["use_report_text"] else (None, None)
 
         # Labels
         labels = get_torch_labels(samples)
@@ -311,17 +299,16 @@ def main(config_path):
             "file_names": [sample["relative_image_paths"] for sample in samples],
         }
         return data, labels
-    
-    training_helper.start_training(collate_function_for_training=collate_function)
-    
-    if config["general"].get("save_full_model", False):
-        training_helper.save_model(model_file_name=save_model_filename, parallel_model_file_name=save_parallel_model_filename)
 
+    training_helper.start_training(collate_function_for_training=collate_function)
+
+    if config["general"]["save_full_model"]:
+        training_helper.save_model(model_file_name=save_model_filename, parallel_model_file_name=save_parallel_model_filename)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="DINOv3 classifier training script")
     parser.add_argument("config_path", type=str, help="Path to the configuration file")
-    
+
     args = parser.parse_args()
     main(args.config_path)
