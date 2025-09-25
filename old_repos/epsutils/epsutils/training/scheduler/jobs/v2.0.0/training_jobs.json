@@ -1222,7 +1222,7 @@
     {
         "job_id": 244,
         "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/chest/chest_cardiomegaly_config.yaml",
-        "training_dataset_size": 1000000
+        "training_dataset_size": 1371896
     },
     {
         "job_id": 245,
@@ -1302,7 +1302,7 @@
     {
         "job_id": 260,
         "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/chest/chest_airspace_opacity_config.yaml",
-        "training_dataset_size": 1000000
+        "training_dataset_size": 1448190
     },
     {
         "job_id": 261,
@@ -1347,7 +1347,7 @@
     {
         "job_id": 269,
         "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/chest/chest_no_findings_config.yaml",
-        "training_dataset_size": 1000000
+        "training_dataset_size": 2205258
     },
     {
         "job_id": 270,
@@ -1362,7 +1362,7 @@
     {
         "job_id": 272,
         "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/chest/chest_support_devices_config.yaml",
-        "training_dataset_size": 1000000
+        "training_dataset_size": 2077450
     },
     {
         "job_id": 273,
@@ -1417,7 +1417,7 @@
     {
         "job_id": 283,
         "config_file": "/home/charles/work/epsutils/epsutils/training/config/configs/v2_0_0/chest/chest_atelectasis_config.yaml",
-        "training_dataset_size": 1000000
+        "training_dataset_size": 1271022
     },
     {
         "job_id": 284,
