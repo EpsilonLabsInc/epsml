@@ -8,7 +8,7 @@ from typing import List, Tuple
 from epsutils.training.scheduler.training_job_analyzer import TrainingJobAnalyzer
 
 EXPECTED_BATCH_SIZE = 256
-EXPECTED_BATCH_TIME_IN_SEC = 10
+EXPECTED_BATCH_TIME_IN_SEC = 6
 
 
 def get_training_jobs(training_jobs_file_or_config_path):
