@@ -438,7 +438,7 @@ class GenericDatasetHelper(BaseDatasetHelper):
             neg_df = neg_df.sample(n=num_pos, random_state=self.__seed, replace=False)
         else:
             if not self.__uses_single_label:
-                raise ValueError("Negative body parts feature cannot used in the multi-label setup")
+                raise ValueError("Negative body parts feature cannot be used in the multi-label setup")
 
             df1 = neg_df.sample(n=round(num_pos * (1 - self.__negative_body_parts_ratio)), random_state=self.__seed, replace=False)
             df2 = neg_body_parts_df.sample(n=round(num_pos * self.__negative_body_parts_ratio), random_state=self.__seed, replace=False)
