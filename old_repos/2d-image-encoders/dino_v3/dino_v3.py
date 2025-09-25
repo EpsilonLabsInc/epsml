@@ -7,8 +7,6 @@ import torch.nn as nn
 from types import SimpleNamespace
 from torchvision.transforms import v2
 
-# Add dinov3 to path
-sys.path.insert(0, '/home/yan/work/dinov3')
 from dinov3.models import vision_transformer
 
 
@@ -24,7 +22,7 @@ class DinoV3(nn.Module):
         super().__init__()
         self.use_attention_pooling = use_attention_pooling
         self.dino_v3_type = dino_v3_type
-        
+
         if dino_v3_type == DinoV3Type.SMALL:
             # ViT-S/14 configuration
             embed_dim = 384
@@ -40,9 +38,9 @@ class DinoV3(nn.Module):
             )
             # Build torchvision-based eval transform (no Hugging Face processor)
             self.__image_processor = self.__build_torchvision_processor(img_size)
-            
+
         elif dino_v3_type == DinoV3Type.BASE:
-            # ViT-B/14 configuration  
+            # ViT-B/14 configuration
             embed_dim = 768
             self.__model = vision_transformer.DinoVisionTransformer(
                 img_size=img_size,
@@ -55,7 +53,7 @@ class DinoV3(nn.Module):
                 ffn_layer="swiglu"
             )
             self.__image_processor = self.__build_torchvision_processor(img_size)
-            
+
         elif dino_v3_type == DinoV3Type.LARGE:
             embed_dim = 1024
             self.__model = vision_transformer.DinoVisionTransformer(
@@ -73,7 +71,7 @@ class DinoV3(nn.Module):
                 ffn_bias=True
             )
             self.__image_processor = self.__build_torchvision_processor(img_size)
-            
+
         elif dino_v3_type == DinoV3Type.GIANT:
             embed_dim = 4096
             self.__model = vision_transformer.DinoVisionTransformer(
@@ -95,13 +93,13 @@ class DinoV3(nn.Module):
             self.__image_processor = self.__build_torchvision_processor(img_size)
         else:
             raise ValueError(f"Unsupported Dino V3 type: {dino_v3_type}")
-        
+
         # torchvision processor already parameterized with target img_size
-        
+
         if dino_v3_checkpoint:
             print(f"Loading DINOv3 checkpoint from {dino_v3_checkpoint}")
             checkpoint = torch.load(dino_v3_checkpoint, map_location='cpu')
-            
+
             # Handle different checkpoint formats
             if "teacher" in checkpoint:
                 state_dict = checkpoint["teacher"]
@@ -111,7 +109,7 @@ class DinoV3(nn.Module):
                 state_dict = checkpoint["state_dict"]
             else:
                 state_dict = checkpoint
-            
+
             cleaned_state_dict = {}
             for key, value in state_dict.items():
                 # Remove common prefixes
@@ -122,18 +120,18 @@ class DinoV3(nn.Module):
                 if key.startswith("backbone."):
                     key = key[9:]
                 cleaned_state_dict[key] = value
-            
+
             missing, unexpected = self.__model.load_state_dict(cleaned_state_dict, strict=False)
             if missing:
                 print(f"Missing keys: {missing}")
             if unexpected:
                 print(f"Unexpected keys: {unexpected}")
-    
+
     def forward(self, x):
         features = self.__model.forward_features(x)
         # Always return CLS token by default
         return features["x_norm_clstoken"]
-    
+
     def get_features(self, x):
         # Return full feature dictionary for attention pooling
         return self.__model.forward_features(x)
@@ -180,6 +178,6 @@ class DinoV3(nn.Module):
                 return SimpleNamespace(pixel_values=pixel_values)
 
         return TorchVisionProcessor(transform)
-    
+
     def get_image_processor(self):
         return self.__image_processor
