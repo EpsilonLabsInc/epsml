@@ -54,9 +54,12 @@ class ConfigLoader:
 
         # Training section.
         config_dict["training"] = {}
+        config_dict["training"]["backbone_type"]                  = self.__convert_none(config["training"].get("backbone_type", None))
+        config_dict["training"]["backbone_output_dim"]            = self.__convert_none(config["training"].get("backbone_output_dim", None))
+        config_dict["training"]["backbone_img_size"]              = self.__convert_none(config["training"].get("backbone_img_size", None))
         config_dict["training"]["perform_intra_epoch_validation"] = config["training"].get("perform_intra_epoch_validation", False)
         config_dict["training"]["intra_epoch_validation_step"]    = config["training"].get("intra_epoch_validation_step", 5000)
-        config_dict["training"]["send_wandb_notification"]    = config["training"].get("send_wandb_notification", False)
+        config_dict["training"]["send_wandb_notification"]        = config["training"].get("send_wandb_notification", False)
         config_dict["training"]["device"]                         = config["training"].get("device", "")
         config_dict["training"]["device_ids"]                     = self.__convert_none(config["training"].get("device_ids", None))
         config_dict["training"]["num_training_workers_per_gpu"]   = config["training"].get("num_training_workers_per_gpu", 1)
