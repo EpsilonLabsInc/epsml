@@ -51,7 +51,7 @@ data:
 training:
   backbone_type: "large"  # Options: small, base, large, giant
   backbone_output_dim: 1024  # 384 for small, 768 for base, 1024 for large, 4096 for giant (7B)
-  backbone_img_size: 512
+  backbone_img_size: 768
   perform_intra_epoch_validation: False
   intra_epoch_validation_step: 3000
   send_wandb_notification: False
