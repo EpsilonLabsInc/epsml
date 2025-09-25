@@ -1,0 +1,68 @@
+general:
+  experiment_name: v1.3.0___chest___pulmonary_cavitary_lesion
+  run_name: ''
+  notes: ''
+  save_full_model: false
+paths:
+  backbone_checkpoint_dir: /mnt/all-data/files/output_vitl_xray_768_gram/eval/training_37359/teacher_checkpoint.pth
+  train_file: /mnt/training/splits/gradient_batches_1-6_segmed_batches_1-16_simonmed_batches_1-10/FILTERED_CONSOLIDATED_gradient_batches_1-6_segmed_batches_1-16_simonmed_batches_1-10_reports_with_labels_train.csv
+  validation_file: /mnt/training/splits/gradient_batches_1-6_segmed_batches_1-16_simonmed_batches_1-10/FILTERED_CONSOLIDATED_gradient_batches_1-6_segmed_batches_1-16_simonmed_batches_1-10_reports_with_labels_val.csv
+  test_file: /mnt/training/splits/gradient_batches_1-6_segmed_batches_1-16_simonmed_batches_1-10/FILTERED_CONSOLIDATED_gradient_batches_1-6_segmed_batches_1-16_simonmed_batches_1-10_reports_with_labels_test.csv
+  base_path_substitutions:
+    gradient_22JUL2024: /mnt/all-data/png/org-size/gradient/22JUL2024
+    gradient_20DEC2024: /mnt/all-data/png/org-size/gradient/20DEC2024
+    gradient_09JAN2025: /mnt/all-data/png/org-size/gradient/09JAN2025
+    gradient_16AUG2024: /mnt/all-data/png/org-size/gradient/16AUG2024
+    gradient_13JAN2025: /mnt/all-data/png/org-size/gradient/13JAN2025/deid
+    gradient_01JUL2025: /mnt/all-data/png/org-size/gradient-new/01JUL2025
+    segmed_batch_1: /mnt/all-data/png/org-size/segmed/batch1
+    segmed_batch_2: /mnt/all-data/png/org-size/segmed/batch2
+    segmed_batch_3: /mnt/all-data/png/org-size/segmed/batch3
+    segmed_batch_4: /mnt/all-data/png/org-size/segmed/batch4
+    segmed_batch_5: /mnt/all-data/png/org-size/segmed/batch5
+    segmed_batch_6: /mnt/all-data/png/org-size/segmed/batch6
+    segmed_batch_7: /mnt/all-data/png/org-size/segmed/batch7
+    segmed_batch_8: /mnt/all-data/png/org-size/segmed/batch8
+    segmed_batch_9: /mnt/all-data/png/org-size/segmed/batch9
+    segmed_batch_10: /mnt/all-data/png/org-size/segmed/batch10
+    segmed_batch_11: /mnt/all-data/png/org-size/segmed/batch11
+    segmed_batch_12: /mnt/all-data/png/org-size/segmed/batch12
+    segmed_batch_13: /mnt/all-data/png/org-size/segmed/batch13
+    segmed_batch_14: /mnt/all-data/png/org-size/segmed/batch14
+    segmed_batch_15: /mnt/all-data/png/org-size/segmed/batch15
+    segmed_batch_16: /mnt/all-data/png/org-size/segmed/batch16
+    simonmed: /mnt/all-data/png/org-size/simonmed
+  output_dir: /mnt/training/checkpoints/v1.3.0
+data:
+  body_part: Chest
+  custom_labels:
+  - Pulmonary cavitary lesion
+  treat_uncertain_as_positive: true
+  perform_label_balancing: true
+  max_positive_samples: None
+  negative_body_parts_ratio: 0.05
+  compute_num_data_augmentations: true
+  data_augmentation_target: 10000
+  data_augmentation_min: 1000
+  max_study_images: 8
+  replace_dicom_with_png: true
+training:
+  backbone_type: large
+  backbone_output_dim: 1024
+  backbone_img_size: 768
+  perform_intra_epoch_validation: false
+  intra_epoch_validation_step: 3000
+  send_wandb_notification: false
+  device: cuda
+  device_ids: None
+  num_training_workers_per_gpu: 32
+  num_validation_workers_per_gpu: 32
+  learning_rate: 4.0e-05
+  warmup_ratio: 0.1
+  num_epochs: 10
+  training_batch_size: 256
+  validation_batch_size: 256
+  min_allowed_batch_size: 2
+  multi_image_input: true
+  num_multi_images: None
+  use_attentional_pooling: true
