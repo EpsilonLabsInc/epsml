@@ -144,7 +144,7 @@ class GenericDatasetHelper(BaseDatasetHelper):
             print(f"There are {num_pos} ({pos_percent:.2f}%) positive and {num_neg} ({neg_percent:.2f}%) negative samples in the training dataset")
 
         if self.__uses_single_label and self.__compute_num_data_augmentations:
-            if self.__max_positive_samples < self.__data_augmentation_target:
+            if self.__max_positive_samples is not None and self.__max_positive_samples < self.__data_augmentation_target:
                 raise ValueError(f"Maximum number of positive samples (={self.__max_positive_samples}) must be greater than or equal to the data augmentation target (={self.__data_augmentation_target})")
 
             if num_pos < self.__data_augmentation_min:
