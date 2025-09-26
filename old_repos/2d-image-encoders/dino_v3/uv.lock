@@ -26,12 +26,12 @@ dependencies = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "dinov3", git = "ssh://git@github.com/EpsilonLabsInc/dinov3?rev=b6d70379c57819bfd13be90ecec5114cfb07cfcd" }]
+requires-dist = [{ name = "dinov3", git = "ssh://git@github.com/EpsilonLabsInc/dinov3?tag=v0.1.0" }]
 
 [[package]]
 name = "dinov3"
 version = "0.1.0"
-source = { git = "ssh://git@github.com/EpsilonLabsInc/dinov3?rev=b6d70379c57819bfd13be90ecec5114cfb07cfcd#b6d70379c57819bfd13be90ecec5114cfb07cfcd" }
+source = { git = "ssh://git@github.com/EpsilonLabsInc/dinov3?tag=v0.1.0#c4aa716b224f60cd72ac13721c360768cb338f6e" }
 dependencies = [
     { name = "ftfy" },
     { name = "omegaconf" },
