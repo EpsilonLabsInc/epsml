@@ -1,0 +1,11 @@
+[project]
+name = "dino-v3"
+version = "0.1.0"
+readme = "README.md"
+requires-python = ">=3.11.13,<3.12"
+dependencies = [
+    "dinov3",
+]
+
+[tool.uv.sources]
+dinov3 = { git = "ssh://git@github.com/EpsilonLabsInc/dinov3", rev = "b6d70379c57819bfd13be90ecec5114cfb07cfcd" }
