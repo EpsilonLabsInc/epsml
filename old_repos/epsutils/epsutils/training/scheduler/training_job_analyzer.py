@@ -5,7 +5,6 @@ from pathlib import Path
 
 import pandas as pd
 
-from epsdatasets.helpers.generic.generic_dataset_helper import GenericDatasetHelper
 from epsutils.training.config.config_loader import ConfigLoader
 
 
@@ -77,6 +76,7 @@ class TrainingJobAnalyzer:
 
             # Create dataset helper.
             try:
+                from epsdatasets.helpers.generic.generic_dataset_helper import GenericDatasetHelper
                 dataset_helper = GenericDatasetHelper(
                     train_file=config["paths"]["train_file"],
                     validation_file=config["paths"]["validation_file"],
