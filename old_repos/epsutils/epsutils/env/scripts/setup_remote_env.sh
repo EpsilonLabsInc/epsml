@@ -42,8 +42,10 @@ while IFS= read -r line || [[ -n "$line" ]]; do
   echo "$border"
   echo ""
 
+  # Copy files to remote machine.
   echo "Copying to $IP..."
   rsync -avz --delete . "$USERNAME@$IP:$REMOTE_TEMP_PATH"
+
   if [[ $? -ne 0 ]]; then
     echo "Copy failed"
     exit 1
