@@ -1,0 +1,6 @@
+git -C epsutils/ pull ; \
+git -C epsdatasets/ pull ; \
+git -C epsclassifiers/ pull ; \
+git -C 2d-image-encoders/ pull ; \
+git -C reports-pipeline/ pull ; \
+git -C dinov3/ pull
