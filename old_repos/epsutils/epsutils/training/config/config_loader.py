@@ -64,7 +64,7 @@ class ConfigLoader:
         config_dict["training"]["device_ids"]                     = self.__convert_none(config["training"].get("device_ids", None))
         config_dict["training"]["num_training_workers_per_gpu"]   = config["training"].get("num_training_workers_per_gpu", 1)
         config_dict["training"]["num_validation_workers_per_gpu"] = config["training"].get("num_validation_workers_per_gpu", 1)
-        config_dict["training"]["learning_rate"]                  = config["training"].get("learning_rate", 1e-6)
+        config_dict["training"]["learning_rate"]                  = float(config["training"].get("learning_rate", 1e-6))
         config_dict["training"]["warmup_ratio"]                   = config["training"].get("warmup_ratio", 0.1)
         config_dict["training"]["num_epochs"]                     = config["training"].get("num_epochs", 1)
         config_dict["training"]["training_batch_size"]            = config["training"].get("training_batch_size", 1)
