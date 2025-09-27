@@ -133,8 +133,8 @@ def main(args):
 
 if __name__ == "__main__":
     TRAINING_JOBS_FILE_OR_CONFIG_PATH = "./jobs/v2.0.0/training_jobs.json"
-    NUM_BUCKETS = 45
-    MIN_EPOCHS = 2
+    NUM_BUCKETS = 41
+    MIN_EPOCHS = 6
     MAX_EPOCHS = 10
     OUTPUT_DIR = "/mnt/training/v2.0.0/buckets"
 
