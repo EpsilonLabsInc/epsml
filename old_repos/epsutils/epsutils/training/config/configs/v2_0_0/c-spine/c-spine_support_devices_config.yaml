@@ -32,7 +32,7 @@ paths:
     segmed_batch_15: /mnt/all-data/png/org-size/segmed/batch15
     segmed_batch_16: /mnt/all-data/png/org-size/segmed/batch16
     simonmed: /mnt/all-data/png/org-size/simonmed
-  output_dir: /mnt/training/checkpoints/v1.3.0
+  output_dir: /mnt/training/v2.0.0/checkpoints
 data:
   body_part: C-spine
   custom_labels:
@@ -57,7 +57,7 @@ training:
   device_ids: None
   num_training_workers_per_gpu: 32
   num_validation_workers_per_gpu: 32
-  learning_rate: 4.0e-05
+  learning_rate: 1e-4
   warmup_ratio: 0.1
   num_epochs: 10
   training_batch_size: 256
