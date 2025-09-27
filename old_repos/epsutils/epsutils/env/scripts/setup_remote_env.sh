@@ -27,6 +27,9 @@ while IFS= read -r line || [[ -n "$line" ]]; do
   # Strip comments and whitespaces.
   IP=$(echo "$line" | sed 's/#.*//' | xargs)
 
+  # Skip empty lines.
+  [[ -z "$IP" ]] && continue
+
   # Print header.
   COUNT=$((COUNT + 1))
   header=">>> REMOTE ENV SETUP FOR $IP [$COUNT/$TOTAL_IPS] <<<"
@@ -39,24 +42,29 @@ while IFS= read -r line || [[ -n "$line" ]]; do
   echo "$border"
   echo ""
 
-  # Skip empty lines.
-  [[ -z "$IP" ]] && continue
-
   echo "Copying to $IP..."
   rsync -avz --delete . "$USERNAME@$IP:$REMOTE_TEMP_PATH"
-
-  if [[ $? -eq 0 ]]; then
-    echo "Copy successful"
-
-    # Set execute permissions for setup script.
-    echo "Setting executable permission for setup_env.sh..."
-    ssh "$USERNAME@$IP" "chmod +x '$REMOTE_TEMP_PATH/setup_env.sh'" < /dev/null
-
-    # Run setup script.
-    echo "Running setup_env.sh..."
-    ssh "$USERNAME@$IP" "'$REMOTE_TEMP_PATH/setup_env.sh'" < /dev/null
-  else
+  if [[ $? -ne 0 ]]; then
     echo "Copy failed"
+    exit 1
+  fi
+
+  # Set execute permission for the setup script.
+  echo "Setting executable permission for setup_env.sh..."
+  ssh "$USERNAME@$IP" "chmod +x '$REMOTE_TEMP_PATH/setup_env.sh'" < /dev/null
+
+  if [[ $? -ne 0 ]]; then
+    echo "Failed to set executable permission"
+    exit 1
+  fi
+
+  # Run setup script.
+  echo "Running setup_env.sh..."
+  ssh "$USERNAME@$IP" "'$REMOTE_TEMP_PATH/setup_env.sh'" < /dev/null
+
+  if [[ $? -ne 0 ]]; then
+    echo "Setup script execution failed"
+    exit 1
   fi
 
   # Add one empty line after each iteration.
