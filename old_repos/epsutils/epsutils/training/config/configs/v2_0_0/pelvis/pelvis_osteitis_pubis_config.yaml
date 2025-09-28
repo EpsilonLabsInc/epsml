@@ -1,5 +1,5 @@
 general:
-  experiment_name: v1.3.0___pelvis___osteitis_pubis
+  experiment_name: v2.0.0___pelvis___osteitis_pubis
   run_name: ''
   notes: ''
   save_full_model: false

@@ -1,5 +1,5 @@
 general:
-  experiment_name: v1.3.0___foot___syndesmotic_injury
+  experiment_name: v2.0.0___foot___syndesmotic_injury
   run_name: ''
   notes: ''
   save_full_model: false

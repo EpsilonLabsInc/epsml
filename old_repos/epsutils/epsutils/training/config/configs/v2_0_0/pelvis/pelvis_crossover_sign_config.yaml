@@ -1,5 +1,5 @@
 general:
-  experiment_name: v1.3.0___pelvis___crossover_sign
+  experiment_name: v2.0.0___pelvis___crossover_sign
   run_name: ''
   notes: ''
   save_full_model: false

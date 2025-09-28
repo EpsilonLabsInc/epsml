@@ -1,5 +1,5 @@
 general:
-  experiment_name: v1.3.0___arm___os_subcoronoideum
+  experiment_name: v2.0.0___arm___os_subcoronoideum
   run_name: ''
   notes: ''
   save_full_model: false

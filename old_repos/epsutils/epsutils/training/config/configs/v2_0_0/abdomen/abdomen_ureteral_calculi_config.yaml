@@ -1,5 +1,5 @@
 general:
-  experiment_name: v1.3.0___abdomen___ureteral_calculi
+  experiment_name: v2.0.0___abdomen___ureteral_calculi
   run_name: ''
   notes: ''
   save_full_model: false

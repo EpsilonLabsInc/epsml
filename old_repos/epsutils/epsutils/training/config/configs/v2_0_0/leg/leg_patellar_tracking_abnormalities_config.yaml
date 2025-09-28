@@ -1,5 +1,5 @@
 general:
-  experiment_name: v1.3.0___leg___patellar_tracking_abnormalities
+  experiment_name: v2.0.0___leg___patellar_tracking_abnormalities
   run_name: ''
   notes: ''
   save_full_model: false

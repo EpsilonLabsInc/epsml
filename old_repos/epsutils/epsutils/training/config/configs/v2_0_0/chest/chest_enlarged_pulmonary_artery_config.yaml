@@ -1,5 +1,5 @@
 general:
-  experiment_name: v1.3.0___chest___enlarged_pulmonary_artery
+  experiment_name: v2.0.0___chest___enlarged_pulmonary_artery
   run_name: ''
   notes: ''
   save_full_model: false

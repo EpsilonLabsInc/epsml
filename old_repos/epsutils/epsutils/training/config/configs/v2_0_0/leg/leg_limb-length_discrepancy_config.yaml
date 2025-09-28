@@ -1,5 +1,5 @@
 general:
-  experiment_name: v1.3.0___leg___limb-length_discrepancy
+  experiment_name: v2.0.0___leg___limb-length_discrepancy
   run_name: ''
   notes: ''
   save_full_model: false

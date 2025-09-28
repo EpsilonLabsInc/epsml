@@ -1,5 +1,5 @@
 general:
-  experiment_name: v1.3.0___l-spine___spondylolisthesis
+  experiment_name: v2.0.0___l-spine___spondylolisthesis
   run_name: ''
   notes: ''
   save_full_model: false

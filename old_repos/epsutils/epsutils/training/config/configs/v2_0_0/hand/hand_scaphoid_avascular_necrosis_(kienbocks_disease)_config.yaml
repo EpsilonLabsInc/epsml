@@ -1,5 +1,5 @@
 general:
-  experiment_name: v1.3.0___hand___scaphoid_avascular_necrosis_(kienbocks_disease)
+  experiment_name: v2.0.0___hand___scaphoid_avascular_necrosis_(kienbocks_disease)
   run_name: ''
   notes: ''
   save_full_model: false

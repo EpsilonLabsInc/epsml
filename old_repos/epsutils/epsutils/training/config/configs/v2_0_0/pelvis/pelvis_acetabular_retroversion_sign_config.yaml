@@ -1,5 +1,5 @@
 general:
-  experiment_name: v1.3.0___pelvis___acetabular_retroversion_sign
+  experiment_name: v2.0.0___pelvis___acetabular_retroversion_sign
   run_name: ''
   notes: ''
   save_full_model: false

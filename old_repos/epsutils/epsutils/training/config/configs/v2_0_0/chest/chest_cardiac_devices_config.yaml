@@ -1,5 +1,5 @@
 general:
-  experiment_name: v1.3.0___chest___cardiac_devices
+  experiment_name: v2.0.0___chest___cardiac_devices
   run_name: ''
   notes: ''
   save_full_model: false

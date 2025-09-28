@@ -1,5 +1,5 @@
 general:
-  experiment_name: v1.3.0___c-spine___scoliosis
+  experiment_name: v2.0.0___c-spine___scoliosis
   run_name: ''
   notes: ''
   save_full_model: false

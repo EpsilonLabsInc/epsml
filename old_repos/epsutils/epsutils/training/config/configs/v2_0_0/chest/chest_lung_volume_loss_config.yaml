@@ -1,5 +1,5 @@
 general:
-  experiment_name: v1.3.0___chest___lung_volume_loss
+  experiment_name: v2.0.0___chest___lung_volume_loss
   run_name: ''
   notes: ''
   save_full_model: false

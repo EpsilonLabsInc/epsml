@@ -1,5 +1,5 @@
 general:
-  experiment_name: v1.3.0___foot___kagers_fat_pad
+  experiment_name: v2.0.0___foot___kagers_fat_pad
   run_name: ''
   notes: ''
   save_full_model: false

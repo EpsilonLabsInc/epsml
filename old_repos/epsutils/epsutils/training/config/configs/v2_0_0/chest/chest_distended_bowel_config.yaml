@@ -1,5 +1,5 @@
 general:
-  experiment_name: v1.3.0___chest___distended_bowel
+  experiment_name: v2.0.0___chest___distended_bowel
   run_name: ''
   notes: ''
   save_full_model: false

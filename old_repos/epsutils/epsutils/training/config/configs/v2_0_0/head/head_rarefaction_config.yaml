@@ -1,5 +1,5 @@
 general:
-  experiment_name: v1.3.0___head___rarefaction
+  experiment_name: v2.0.0___head___rarefaction
   run_name: ''
   notes: ''
   save_full_model: false

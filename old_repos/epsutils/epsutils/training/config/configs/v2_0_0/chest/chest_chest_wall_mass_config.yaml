@@ -1,5 +1,5 @@
 general:
-  experiment_name: v1.3.0___chest___chest_wall_mass
+  experiment_name: v2.0.0___chest___chest_wall_mass
   run_name: ''
   notes: ''
   save_full_model: false
