@@ -38,13 +38,13 @@ for i in "${!config_files[@]}"; do
 
   log_file="${base_name}.log"
 
-  # Run the training and capture stderr.
-  error_output=$(python ./run_training_on_combined_dataset.py "$config_file" 2>&1)
+  # Run the training script.
+  python ./run_training_on_combined_dataset.py "$config_file"
   exit_code=$?
 
   if [ $exit_code -eq 0 ]; then
     echo "success" > "$log_file"
   else
-    echo "$error_output" > "$log_file"
+    echo "error" > "$log_file"
   fi
 done
