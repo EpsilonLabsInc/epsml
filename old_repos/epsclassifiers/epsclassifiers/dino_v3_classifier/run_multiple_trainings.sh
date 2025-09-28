@@ -28,7 +28,6 @@ total_files=${#config_files[@]}
 for i in "${!config_files[@]}"; do
   index=$((i + 1))
   config_file="${config_files[$i]}"
-  base_name=$(basename "$config_file" | cut -f 1 -d '.')
 
   echo ""
   echo "=============================================================================================================================="
@@ -36,7 +35,7 @@ for i in "${!config_files[@]}"; do
   echo "=============================================================================================================================="
   echo ""
 
-  log_file="${base_name}.log"
+  log_file="${config_file%.*}.log"
 
   # Run the training script.
   python ./run_training_on_combined_dataset.py "$config_file"
