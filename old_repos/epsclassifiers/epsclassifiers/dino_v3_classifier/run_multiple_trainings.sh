@@ -38,7 +38,7 @@ for i in "${!config_files[@]}"; do
 
   log_file="${base_name}.log"
 
-  # Run the training and capture stderr
+  # Run the training and capture stderr.
   error_output=$(python ./run_training_on_combined_dataset.py "$config_file" 2>&1)
   exit_code=$?
 

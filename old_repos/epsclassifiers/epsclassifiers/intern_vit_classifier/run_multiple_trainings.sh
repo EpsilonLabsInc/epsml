@@ -28,10 +28,23 @@ total_files=${#config_files[@]}
 for i in "${!config_files[@]}"; do
   index=$((i + 1))
   config_file="${config_files[$i]}"
+  base_name=$(basename "$config_file" | cut -f 1 -d '.')
+
   echo ""
   echo "=============================================================================================================================="
   echo "($index/$total_files) Running training using $config_file"
   echo "=============================================================================================================================="
   echo ""
-  python ./run_training_on_combined_dataset.py "$config_file"
+
+  log_file="${base_name}.log"
+
+  # Run the training and capture stderr.
+  error_output=$(python ./run_training_on_combined_dataset.py "$config_file" 2>&1)
+  exit_code=$?
+
+  if [ $exit_code -eq 0 ]; then
+    echo "success" > "$log_file"
+  else
+    echo "$error_output" > "$log_file"
+  fi
 done
