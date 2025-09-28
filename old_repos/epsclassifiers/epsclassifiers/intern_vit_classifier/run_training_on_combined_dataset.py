@@ -96,8 +96,8 @@ def main(config_path):
                                              intra_epoch_validation_step=config["training"]["intra_epoch_validation_step"],
                                              num_training_workers_per_gpu=config["training"]["num_training_workers_per_gpu"],
                                              num_validation_workers_per_gpu=config["training"]["num_validation_workers_per_gpu"],
-                                             save_visualizaton_data_during_training=True,
-                                             save_visualizaton_data_during_validation=True,
+                                             save_visualizaton_data_during_training=False,
+                                             save_visualizaton_data_during_validation=False,
                                              pause_on_validation_visualization=False)
 
     mlops_parameters = MlopsParameters(mlops_type=MlopsType.WANDB,
