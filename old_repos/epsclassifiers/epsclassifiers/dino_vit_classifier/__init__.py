@@ -1,1 +1,0 @@
-from .dino_vit_classifier import DinoVitClassifier

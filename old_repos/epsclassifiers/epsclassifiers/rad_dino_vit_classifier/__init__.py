@@ -1,1 +1,0 @@
-from .rad_dino_vit_classifier import RadDinoVitClassifier
