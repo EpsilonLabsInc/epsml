@@ -1,8 +1,0 @@
-# Python.
-*__pycache__
-
-# Wandb.
-wandb/
-
-# Output files.
-output/
