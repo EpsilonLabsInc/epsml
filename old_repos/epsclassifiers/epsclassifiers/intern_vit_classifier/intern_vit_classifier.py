@@ -13,7 +13,7 @@ class AttentionalPoolingWithClassifierHead(torch.nn.Module):
         super().__init__()
         self.__attentional_pooling = attentional_pooling
         self.__classifier = classifier
-    
+
     def forward(self, x: torch.Tensor):
         x, _ = self.__attentional_pooling(x)
         return self.__classifier(x)
@@ -41,7 +41,7 @@ class AttentionalPooling(nn.Module):
 
         # Apply multi-head attention and squeeze to get (batch_size, hidden_size).
         pooled_output, attention_weights = self.multihead_attention(
-            query=query, key=last_hidden_state, value=last_hidden_state, 
+            query=query, key=last_hidden_state, value=last_hidden_state,
             key_padding_mask=key_padding_mask
         )
         return pooled_output.squeeze(1), attention_weights
@@ -82,7 +82,7 @@ class InternVitClassifier(nn.Module):
             print(f"INFO: InternVitClassifier will NOT be using multi image input and will NOT be using tile splitting")
             self.__image_processor = self.intern_vit.get_image_processor()
             output_dim = intern_vit_output_dim
-        
+
         if use_attentional_pooling:
             print(f"INFO: InternVitClassifier will be using attentive pooling")
             self.attentional_pooling = AttentionalPooling(
@@ -133,11 +133,11 @@ class InternVitClassifier(nn.Module):
                 # last_hidden_state shape: (batch*group, seq_len, hidden_dim)
                 seq_len = output.last_hidden_state.shape[1]
                 hidden_dim = output.last_hidden_state.shape[2]
-                
+
                 # Strip CLS tokens (first token of each image) and reshape.
                 patch_tokens = output.last_hidden_state[:, 1:, :]
                 patch_seq_len = patch_tokens.shape[1]
-                
+
                 # Reshape to (batch, group*(seq_len-1), hidden_dim) to pool over all patch tokens
                 last_hidden_state = patch_tokens.reshape(batch, group * patch_seq_len, hidden_dim)
             else:
@@ -159,11 +159,11 @@ class InternVitClassifier(nn.Module):
                 seq_len = output.last_hidden_state.shape[1]
                 hidden_dim = output.last_hidden_state.shape[2]
                 max_images = max(group_sizes)
-                
+
                 # Strip CLS tokens from all images first.
                 patch_tokens = output.last_hidden_state[:, 1:, :]
                 patch_seq_len = patch_tokens.shape[1]
-                
+
                 # Create padded tensor and corresponding mask for patch tokens.
                 padded_last_hidden_state = torch.zeros(
                     len(group_sizes), max_images * patch_seq_len, hidden_dim,
@@ -173,7 +173,7 @@ class InternVitClassifier(nn.Module):
                 if image_masks is not None:
                     # Use provided masks to create patch-level padding mask.
                     padding_mask = torch.ones(len(group_sizes), max_images * patch_seq_len, dtype=torch.bool)
-                    
+
                     for i, mask_list in enumerate(image_masks):
                         # For each image in the group, if mask=1 (valid), mark all its patches as valid
                         for j, mask_val in enumerate(mask_list):
@@ -185,17 +185,17 @@ class InternVitClassifier(nn.Module):
                 else:
                     # Fallback: create padding mask based on actual data
                     padding_mask = torch.ones(len(group_sizes), max_images * patch_seq_len, dtype=torch.bool)
-                
+
                 # Fill in actual data.
                 for i, (s, e, size) in enumerate(zip(starts, ends, group_sizes)):
                     actual_patch_tokens = size * patch_seq_len
                     padded_last_hidden_state[i, :actual_patch_tokens] = patch_tokens[s:e].reshape(-1, hidden_dim)
                     if image_masks is None:
                         padding_mask[i, :actual_patch_tokens] = False
-                
+
                 last_hidden_state = padded_last_hidden_state
                 self._current_padding_mask = padding_mask.to(patch_tokens.device)
-                
+
                 embeddings = torch.stack([output.pooler_output[s:e].max(dim=0).values for s, e in zip(starts, ends)])
             else:
                 embeddings = torch.stack([output.pooler_output[s:e].max(dim=0).values for s, e in zip(starts, ends)])
@@ -214,14 +214,14 @@ class InternVitClassifier(nn.Module):
             output = self.intern_vit(images)
             embeddings = output.pooler_output
             last_hidden_state = output.last_hidden_state
-        
+
         if self.__use_attentional_pooling:
             # Apply attentional pooling.
             if self.__multi_image_input:
                 # For multi-image, CLS tokens have already been stripped, use padding mask if available.
                 padding_mask = getattr(self, '_current_padding_mask', None)
                 embeddings, attention_weights = self.attentional_pooling(last_hidden_state, key_padding_mask=padding_mask)
-                
+
                 # Clear padding mask
                 if hasattr(self, '_current_padding_mask'):
                     delattr(self, '_current_padding_mask')
