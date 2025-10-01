@@ -1,2 +1,0 @@
-from .intern_vit_classifier import InternVitClassifier
-from .multi_image_intern_vit_classifier import MultiImageInternVitClassifier

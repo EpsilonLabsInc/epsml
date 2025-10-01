@@ -1,1 +1,0 @@
-from .med_image_parse_segmentor import MedImageParseSegmentor
