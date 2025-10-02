@@ -5,6 +5,7 @@ import pathlib
 from concurrent.futures import ProcessPoolExecutor
 from datetime import datetime
 from functools import partial
+from PIL import Image
 
 import pydicom
 from tqdm import tqdm
@@ -14,7 +15,7 @@ from epsutils.image import image_utils
 from epsutils.logging import logging_utils
 
 
-def save_image(dicom_file, target_image_size, target_extension, allowed_dicom_tag_values, source_dir, output_dir):
+def save_image(dicom_file, target_image_size, padding, target_extension, allowed_dicom_tag_values, source_dir, output_dir):
     try:
         dataset = pydicom.dcmread(dicom_file, force=True)
         dataset = dicom_compression_utils.handle_dicom_compression(dataset)
@@ -31,7 +32,18 @@ def save_image(dicom_file, target_image_size, target_extension, allowed_dicom_ta
         image = image_utils.numpy_array_to_pil_image(image, convert_to_uint8=True, convert_to_rgb=True)
 
         if target_image_size is not None:
-            image = image.resize(target_image_size)
+            if padding:
+                original_size = image.size
+                ratio = min(target_image_size[0] / original_size[0], target_image_size[1] / original_size[1])
+                new_size = (int(original_size[0] * ratio), int(original_size[1] * ratio))
+                image = image.resize(new_size)
+
+                padded_image = Image.new("RGB", target_image_size, (0, 0, 0))  # Black padding.
+                upper_left = ((target_image_size[0] - new_size[0]) // 2, (target_image_size[1] - new_size[1]) // 2)
+                padded_image.paste(image, upper_left)
+                image = padded_image
+            else:
+                image = image.resize(target_image_size)
 
         image_path = os.path.join(output_dir, os.path.relpath(dicom_file, source_dir))
         image_path = image_path.replace("dcm", target_extension)
@@ -56,6 +68,7 @@ def main(args):
 
     custom_save_image = partial(save_image,
                                 target_image_size=args.target_image_size,
+                                padding=args.padding,
                                 target_extension=args.target_extension,
                                 allowed_dicom_tag_values=args.allowed_dicom_tag_values,
                                 source_dir=args.dicom_dir,
@@ -69,6 +82,7 @@ if __name__ == "__main__":
     DICOM_DIR = "/mnt/sfs-simonmed"
     OUTPUT_DIR = "/mnt/png/512x512/simonmed"
     TARGET_IMAGE_SIZE = (512, 512)
+    PADDING = False
     TARGET_EXTENSION = "png"
     ALLOWED_DICOM_TAG_VALUES = {
         "modalities": [
@@ -85,6 +99,7 @@ if __name__ == "__main__":
     args = argparse.Namespace(dicom_dir=DICOM_DIR,
                               output_dir=OUTPUT_DIR,
                               target_image_size=TARGET_IMAGE_SIZE,
+                              padding=PADDING,
                               target_extension=TARGET_EXTENSION,
                               allowed_dicom_tag_values=ALLOWED_DICOM_TAG_VALUES)
 
