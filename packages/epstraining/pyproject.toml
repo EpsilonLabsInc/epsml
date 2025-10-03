@@ -1,0 +1,33 @@
+[project]
+name = "epstraining"
+version = "0.1.0"
+description = "Training utilities and helpers for ML models"
+requires-python = "==3.10.12"
+dependencies = [
+    "epscloudapi",
+    "epsdatasets",
+    "epslabels",
+    "matplotlib>=3.10.1",
+    "mlflow>=2.21.0",
+    "numpy>=1.26.4",
+    "pandas>=2.2.3",
+    "pillow>=11.1.0",
+    "pynvml>=12.0.0",
+    "PyYAML>=6.0.2",
+    "scikit-learn>=1.6.1",
+    "torch==2.5.1",
+    "tqdm>=4.67.1",
+    "wandb>=0.19.8",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/epstraining"]
+
+[tool.uv.sources]
+epscloudapi = { workspace = true }
+epsdatasets = { workspace = true }
+epslabels = { workspace = true }
