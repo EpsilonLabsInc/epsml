@@ -2,17 +2,17 @@
 name = "epsimaging"
 version = "0.1.0"
 description = "Medical imaging utilities for DICOM, NIFTI, and image processing"
-requires-python = "==3.10.12"
+requires-python = "==3.11.13"
 dependencies = [
-    "dicom2nifti>=2.5.1",
-    "google-cloud-storage>=3.1.0",
-    "numpy>=1.26.4",
-    "pillow>=11.1.0",
-    "pydicom>=3.0.1",
-    "python-dateutil>=2.9.0.post0",
-    "scipy>=1.15.2",
-    "SimpleITK>=2.4.1",
-    "tqdm>=4.67.1",
+    "dicom2nifti==2.6.2",
+    "google-cloud-storage==3.4.0",
+    "numpy==2.3.3",
+    "pillow==11.3.0",
+    "pydicom==3.0.1",
+    "python-dateutil==2.9.0.post0",
+    "scipy==1.16.2",
+    "SimpleITK==2.5.2",
+    "tqdm==4.67.1",
 ]
 
 [build-system]

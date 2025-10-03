@@ -2,10 +2,10 @@
 name = "epscloudapi"
 version = "0.1.0"
 description = "Cloud storage utilities for AWS S3 and GCS"
-requires-python = "==3.10.12"
+requires-python = "==3.11.13"
 dependencies = [
-    "boto3>=1.38.36",
-    "google-cloud-storage>=3.1.0",
+    "boto3==1.40.38",
+    "google-cloud-storage==3.4.0",
 ]
 
 [build-system]

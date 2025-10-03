@@ -2,19 +2,19 @@
 name = "3d_image_encoders"
 version = "0.1.0"
 description = "3D image encoder models (Swin3D, MViT, I3D, X3D)"
-requires-python = "==3.10.12"
+requires-python = "==3.11.13"
 dependencies = [
     "epsdatasets",
     "epstraining",
-    "matplotlib>=3.10.1",
-    "numpy>=1.26.4",
-    "pandas>=2.2.3",
-    "scikit-learn>=1.6.1",
-    "SimpleITK>=2.4.1",
+    "matplotlib==3.10.6",
+    "numpy==2.3.3",
+    "pandas==2.3.2",
+    "scikit-learn==1.7.2",
+    "SimpleITK==2.5.2",
     "torch==2.5.1",
     "torchvision==0.20.1",
-    "tqdm>=4.67.1",
-    "wandb>=0.19.8",
+    "tqdm==4.67.1",
+    "wandb==0.22.0",
 ]
 
 [build-system]
@@ -25,5 +25,7 @@ build-backend = "hatchling.build"
 packages = ["src/3d_image_encoders"]
 
 [tool.uv.sources]
+torch = { index = "pytorch-cu121" }
+torchvision = { index = "pytorch-cu121" }
 epsdatasets = { workspace = true }
 epstraining = { workspace = true }

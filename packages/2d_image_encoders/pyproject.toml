@@ -2,16 +2,16 @@
 name = "2d_image_encoders"
 version = "0.1.0"
 description = "2D image encoder models (InternVIT, DINOv3)"
-requires-python = "==3.10.12"
+requires-python = "==3.11.13"
 dependencies = [
     "epsimaging",
-    "einops>=0.8.1",
-    "peft>=0.14.0",
-    "pillow>=11.1.0",
-    "timm>=1.0.15",
+    "einops==0.8.1",
+    "peft==0.17.1",
+    "pillow==11.3.0",
+    "timm==1.0.20",
     "torch==2.5.1",
-    "transformers>=4.49.0",
-    "xformers>=0.0.29.post1",
+    "transformers==4.49.0",
+    "xformers==0.0.29.post1",
 ]
 
 [build-system]
@@ -22,4 +22,5 @@ build-backend = "hatchling.build"
 packages = ["src/2d_image_encoders"]
 
 [tool.uv.sources]
+torch = { index = "pytorch-cu121" }
 epsimaging = { workspace = true }

@@ -2,13 +2,13 @@
 name = "epscore"
 version = "0.1.0"
 description = "Core utility functions for Epsilon ML"
-requires-python = "==3.10.12"
+requires-python = "==3.11.13"
 dependencies = [
-    "matplotlib>=3.10.1",
-    "numpy>=1.26.4",
-    "pandas>=2.2.3",
-    "scipy>=1.15.2",
-    "tqdm>=4.67.1",
+    "matplotlib==3.10.6",
+    "numpy==2.3.3",
+    "pandas==2.3.2",
+    "scipy==1.16.2",
+    "tqdm==4.67.1",
 ]
 
 [build-system]
