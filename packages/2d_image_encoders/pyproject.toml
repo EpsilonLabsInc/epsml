@@ -27,4 +27,4 @@ packages = ["src/2d_image_encoders"]
 torch = { index = "pytorch-cu121" }
 epsimaging = { workspace = true }
 dinov3 = { git = "ssh://git@github.com/EpsilonLabsInc/dinov3", branch = "xray-data" }
-internvl-chat = { git = "ssh://git@github.com/EpsilonLabsInc/InternVL-3x", subdirectory = "internvl_chat", tag = "v2.0.0-classifier.1" }
+internvl-chat = { git = "ssh://git@github.com/EpsilonLabsInc/InternVL-3x", subdirectory = "internvl_chat", tag = "v2.0.0-classifier.2" }
