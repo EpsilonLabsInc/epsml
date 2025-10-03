@@ -268,6 +268,9 @@ class TorchTrainingHelper:
             num_workers=self.__training_parameters.num_training_workers_per_gpu * len(self.__device_ids)
                 if self.__device_ids is not None else self.__training_parameters.num_training_workers_per_gpu)
 
+        if len(self.__train_data_loader) == 0:
+            raise ValueError("The training data loader is empty")
+
         # Create validation data loader.
         try:
             self.__validation_data_loader = self.__dataset_helper.get_torch_validation_data_loader(
@@ -277,6 +280,9 @@ class TorchTrainingHelper:
                     if self.__device_ids is not None else self.__training_parameters.num_validation_workers_per_gpu)
         except:
             self.__validation_data_loader = None
+
+        if self.__validation_data_loader is not None and len(self.__validation_data_loader) == 0:
+            raise ValueError("The validation data loader is empty")
 
         # Create parallel model.
         if self.__multi_gpu_padding:
@@ -359,6 +365,9 @@ class TorchTrainingHelper:
             batch_size=self.__training_parameters.validation_batch_size,
             num_workers=self.__training_parameters.num_validation_workers_per_gpu * len(self.__device_ids)
                 if self.__device_ids is not None else self.__training_parameters.num_validation_workers_per_gpu)
+
+        if len(self.__validation_data_loader) == 0:
+            raise ValueError("The validation data loader is empty")
 
         # Create parallel model.
         if self.__multi_gpu_padding:
