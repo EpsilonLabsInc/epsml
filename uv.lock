@@ -6,6 +6,7 @@ requires-python = "==3.10.12"
 members = [
     "epscloudapi",
     "epscore",
+    "epsimaging",
     "epslabels",
 ]
 
@@ -118,6 +119,22 @@ wheels = [
 ]
 
 [[package]]
+name = "dicom2nifti"
+version = "2.6.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "nibabel" },
+    { name = "numpy" },
+    { name = "pydicom" },
+    { name = "python-gdcm" },
+    { name = "scipy" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/26/3a/88d1339ccdf51d2547d4b4b9f511d8a80be989961878b3773fd2a4396c88/dicom2nifti-2.6.2.tar.gz", hash = "sha256:2a421efeacf1616a932f41047e588477b5de72fd2d90aa15b49dcc8f1e4ea544", size = 43193, upload-time = "2025-06-23T06:39:50.267Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ab/59/598237cb4a5b1fae3515ad8b402ae815a5551e236e530ba11b7a17b2c036/dicom2nifti-2.6.2-py3-none-any.whl", hash = "sha256:d2a328ac534cd424236660d3df1ad01c6fbd71587c620e93041d9ff07dceef4b", size = 43717, upload-time = "2025-06-23T06:39:48.871Z" },
+]
+
+[[package]]
 name = "epscloudapi"
 version = "0.1.0"
 source = { editable = "packages/epscloudapi" }
@@ -150,6 +167,35 @@ requires-dist = [
     { name = "numpy", specifier = ">=1.26.4" },
     { name = "pandas", specifier = ">=2.2.3" },
     { name = "scipy", specifier = ">=1.15.2" },
+    { name = "tqdm", specifier = ">=4.67.1" },
+]
+
+[[package]]
+name = "epsimaging"
+version = "0.1.0"
+source = { editable = "packages/epsimaging" }
+dependencies = [
+    { name = "dicom2nifti" },
+    { name = "google-cloud-storage" },
+    { name = "numpy" },
+    { name = "pillow" },
+    { name = "pydicom" },
+    { name = "python-dateutil" },
+    { name = "scipy" },
+    { name = "simpleitk" },
+    { name = "tqdm" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "dicom2nifti", specifier = ">=2.5.1" },
+    { name = "google-cloud-storage", specifier = ">=3.1.0" },
+    { name = "numpy", specifier = ">=1.26.4" },
+    { name = "pillow", specifier = ">=11.1.0" },
+    { name = "pydicom", specifier = ">=3.0.1" },
+    { name = "python-dateutil", specifier = ">=2.9.0.post0" },
+    { name = "scipy", specifier = ">=1.15.2" },
+    { name = "simpleitk", specifier = ">=2.4.1" },
     { name = "tqdm", specifier = ">=4.67.1" },
 ]
 
@@ -295,6 +341,15 @@ wheels = [
 ]
 
 [[package]]
+name = "importlib-resources"
+version = "6.5.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/cf/8c/f834fbf984f691b4f7ff60f50b514cc3de5cc08abfc3295564dd89c5e2e7/importlib_resources-6.5.2.tar.gz", hash = "sha256:185f87adef5bcc288449d98fb4fba07cea78bc036455dd44c5fc4a2fe78fed2c", size = 44693, upload-time = "2025-01-03T18:51:56.698Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a4/ed/1f1afb2e9e7f38a545d628f864d562a5ae64fe6f7a10e28ffb9b185b4e89/importlib_resources-6.5.2-py3-none-any.whl", hash = "sha256:789cfdc3ed28c78b67a06acb8126751ced69a3d5f79c095a98298cd8a760ccec", size = 37461, upload-time = "2025-01-03T18:51:54.306Z" },
+]
+
+[[package]]
 name = "jmespath"
 version = "1.0.1"
 source = { registry = "https://pypi.org/simple" }
@@ -355,6 +410,21 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/17/6f/2551e45bea2938e0363ccdd54fa08dae7605ce782d4332497d31a7b97672/matplotlib-3.10.6-pp310-pypy310_pp73-macosx_10_15_x86_64.whl", hash = "sha256:13fcd07ccf17e354398358e0307a1f53f5325dca22982556ddb9c52837b5af41", size = 8241220, upload-time = "2025-08-30T00:14:12.888Z" },
     { url = "https://files.pythonhosted.org/packages/54/7e/0f4c6e8b98105fdb162a4efde011af204ca47d7c05d735aff480ebfead1b/matplotlib-3.10.6-pp310-pypy310_pp73-macosx_11_0_arm64.whl", hash = "sha256:470fc846d59d1406e34fa4c32ba371039cd12c2fe86801159a965956f2575bd1", size = 8104624, upload-time = "2025-08-30T00:14:14.511Z" },
     { url = "https://files.pythonhosted.org/packages/27/27/c29696702b9317a6ade1ba6f8861e02d7423f18501729203d7a80b686f23/matplotlib-3.10.6-pp310-pypy310_pp73-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:f7173f8551b88f4ef810a94adae3128c2530e0d07529f7141be7f8d8c365f051", size = 8682271, upload-time = "2025-08-30T00:14:17.273Z" },
+]
+
+[[package]]
+name = "nibabel"
+version = "5.3.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "importlib-resources" },
+    { name = "numpy" },
+    { name = "packaging" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/d9/61/33036cb89f1ec1fedbc4039602345d830b27cbd8a5c7bf28c2e5b5de3ea2/nibabel-5.3.2.tar.gz", hash = "sha256:0bdca6503b1c784b446c745a4542367de7756cfba0d72143b91f9ffb78be569b", size = 4504842, upload-time = "2024-10-23T14:19:55.866Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/43/b2/dc384197be44e2a640bb43311850e23c2c30f3b82ce7c8cdabbf0e53045e/nibabel-5.3.2-py3-none-any.whl", hash = "sha256:52970a5a8a53b1b55249cba4d9bcfaa8cc57e3e5af35a29d7352237e8680a6f8", size = 3293839, upload-time = "2024-10-23T14:19:52.65Z" },
 ]
 
 [[package]]
@@ -483,6 +553,15 @@ wheels = [
 ]
 
 [[package]]
+name = "pydicom"
+version = "3.0.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/d7/6f/55ea163b344c91df2e03c007bebf94781f0817656e2c037d7c5bf86c3bfc/pydicom-3.0.1.tar.gz", hash = "sha256:7b8be344b5b62493c9452ba6f5a299f78f8a6ab79786c729b0613698209603ec", size = 2884731, upload-time = "2024-09-22T02:02:43.202Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/27/a6/98651e752a49f341aa99aa3f6c8ba361728dfc064242884355419df63669/pydicom-3.0.1-py3-none-any.whl", hash = "sha256:db32f78b2641bd7972096b8289111ddab01fb221610de8d7afa835eb938adb41", size = 2376126, upload-time = "2024-09-22T02:02:41.616Z" },
+]
+
+[[package]]
 name = "pyparsing"
 version = "3.2.5"
 source = { registry = "https://pypi.org/simple" }
@@ -501,6 +580,19 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/66/c0/0c8b6ad9f17a802ee498c46e004a0eb49bc148f2fd230864601a86dcf6db/python-dateutil-2.9.0.post0.tar.gz", hash = "sha256:37dd54208da7e1cd875388217d5e00ebd4179249f90fb72437e91a35459a0ad3", size = 342432, upload-time = "2024-03-01T18:36:20.211Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/ec/57/56b9bcc3c9c6a792fcbaf139543cee77261f3651ca9da0c93f5c1221264b/python_dateutil-2.9.0.post0-py2.py3-none-any.whl", hash = "sha256:a8b2bc7bffae282281c8140a97d3aa9c14da0b136dfe83f850eea9a5f7470427", size = 229892, upload-time = "2024-03-01T18:36:18.57Z" },
+]
+
+[[package]]
+name = "python-gdcm"
+version = "3.2.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/e1/1a/93343430f0a9f15e081722d7bc0c800a0895353da801bd6ad0bfb17b186d/python_gdcm-3.2.1.tar.gz", hash = "sha256:2b75eafa4d82c10d7f5ad523fd5e8b75f3c280a38eb3ae0876f8e6ce6f874db4", size = 3379026, upload-time = "2025-09-11T16:29:04.012Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e5/ba/3d1f16b85873e170cb3341d3bfef667bffb714538ce6cd3f4efd01703ee2/python_gdcm-3.2.1-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:578fc94fe99822e26c2ec50cc408f967734108f793458ad4a121e59c6c4486c4", size = 11375420, upload-time = "2025-09-11T16:28:14.752Z" },
+    { url = "https://files.pythonhosted.org/packages/f3/97/3296f041791c078d851a1cf23aef50e9cd377be9029867c93169c5bccde6/python_gdcm-3.2.1-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:1c6643cca85a03e1e5f12e6f03a904f4b93cf31001f726e233e57592bde7e62e", size = 10638598, upload-time = "2025-09-11T16:28:17.381Z" },
+    { url = "https://files.pythonhosted.org/packages/b3/a0/b5c0b4650f92aa4be7815adac55c84ebf7d29c9c4072042c9ae2342942aa/python_gdcm-3.2.1-cp310-cp310-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:7792fff5f7f289071265c82ded1b2e0688061ec9111645fc8e5e51e5e80dc6a5", size = 12245268, upload-time = "2025-09-11T16:28:20.643Z" },
+    { url = "https://files.pythonhosted.org/packages/48/6b/6b6b00602553ff216a8c1dd0b3681923ccdb9989e9eaf90de5d9a82bd078/python_gdcm-3.2.1-cp310-cp310-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:b5e3e43abb3cdb84619ac27021b844147441bf332b87a04a85e9b28a31fafbbb", size = 13239917, upload-time = "2025-09-11T16:28:24.161Z" },
+    { url = "https://files.pythonhosted.org/packages/31/3f/c31dcb0b5e5377a4374d9a2a7c17a6d1f89f147e52c880c760f676c26ce9/python_gdcm-3.2.1-cp310-cp310-win_amd64.whl", hash = "sha256:b1e990361644fc0a7aeb9250e4dd47664fe679449dc98c47625039ccc59d52ac", size = 34156079, upload-time = "2025-09-11T16:28:28.832Z" },
 ]
 
 [[package]]
@@ -572,6 +664,23 @@ wheels = [
 ]
 
 [[package]]
+name = "simpleitk"
+version = "2.5.2"
+source = { registry = "https://pypi.org/simple" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/68/6a/01963ce76a33aa9ac04dd5143b08f9ecfd5381ef3de8ea6ab64daddf736e/simpleitk-2.5.2-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:ddfae02f6fc67829fcf13cffb22e8ff9d5cc79d6453d546c9937c1abafa7d257", size = 44590363, upload-time = "2025-06-16T14:12:18.067Z" },
+    { url = "https://files.pythonhosted.org/packages/3a/0a/6079ccbe2f218c06338bb17e83edcefc29d1661b04d956f06b1361369fa5/simpleitk-2.5.2-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:76ec652d30762adfedb167fc8fe3918099f0b87397c7656a0bab1ba21cb2dfcd", size = 38488274, upload-time = "2025-06-16T14:12:23.237Z" },
+    { url = "https://files.pythonhosted.org/packages/72/cf/6a983d25614848045e14f008ce4508bb8bf4aa495b6643754760b794daa2/simpleitk-2.5.2-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:99739c3238539ff5f342f5a5eec2960c778c122e56f893c3dbf889cacc500bd7", size = 47967432, upload-time = "2025-06-16T14:12:27.741Z" },
+    { url = "https://files.pythonhosted.org/packages/76/c7/8c6875dd5b35233425741e834b5d20028e90c646044d94195033fd0fc87e/simpleitk-2.5.2-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:9e15f7daff43ff85268f4ef48e97dcb1fb4285608811cad36cec739407581104", size = 52622134, upload-time = "2025-06-16T14:12:33.089Z" },
+    { url = "https://files.pythonhosted.org/packages/60/08/878cfee4fe6bfe6264c3b8eaf92f3c882ebbfa1b6cdf69251a8de2bb553e/simpleitk-2.5.2-cp310-cp310-win_amd64.whl", hash = "sha256:637d92aecc5e2de6b424ed8866ef0415dd71b6256cd12618be68f1b510c0a256", size = 18768448, upload-time = "2025-06-16T14:12:36.779Z" },
+    { url = "https://files.pythonhosted.org/packages/72/e1/030aa7ae07f23e21b43ae798a11e59685973aaec0123bd2804edbdc610c4/simpleitk-2.5.2-cp311-abi3-macosx_10_9_x86_64.whl", hash = "sha256:c0227e1365472dd2bd60ea265d016bb82c5b245ad6ab3fcf56ab9be052e3fd22", size = 44620145, upload-time = "2025-06-16T14:12:41.645Z" },
+    { url = "https://files.pythonhosted.org/packages/97/4e/b5d5dc2e3607123a6537346f8065a03e6bbeae4c32e11fa4d400a2b3a41e/simpleitk-2.5.2-cp311-abi3-macosx_11_0_arm64.whl", hash = "sha256:d91b602a13554ae0a1961076166bd0243c7a0ccbd9c1589ba5afbe8554409371", size = 38511265, upload-time = "2025-06-16T14:12:45.795Z" },
+    { url = "https://files.pythonhosted.org/packages/73/31/80a5caed7f4ac58ab917129ac9ae45913152a2ff06bb69233bf6e10be0a8/simpleitk-2.5.2-cp311-abi3-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:ce7ef67d22f15632c7f2bbec9d5b40fb18889289df4d04337e2b4021e7e5b444", size = 47933673, upload-time = "2025-06-16T14:12:50.406Z" },
+    { url = "https://files.pythonhosted.org/packages/26/06/e6b576d2cfeacada2ad10badefbfb998b35155db64ca593ca5a0307ad18e/simpleitk-2.5.2-cp311-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:4a673bdb4ccb7609905f4700fd242591c2273b2ba1604490d79d530661210942", size = 52619923, upload-time = "2025-06-16T14:12:55.227Z" },
+    { url = "https://files.pythonhosted.org/packages/9f/1c/337238577bea9eeffcc56a4fd3f65425ca719b486697cb827ce71d7685ab/simpleitk-2.5.2-cp311-abi3-win_amd64.whl", hash = "sha256:c3884c377c2c5053e15460c6f724a8efe71f4c4ff780418030711b1234114036", size = 18817528, upload-time = "2025-06-16T14:12:59.382Z" },
+]
+
+[[package]]
 name = "six"
 version = "1.17.0"
 source = { registry = "https://pypi.org/simple" }
@@ -590,6 +699,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/a8/4b/29b4ef32e036bb34e4ab51796dd745cdba7ed47ad142a9f4a1eb8e0c744d/tqdm-4.67.1.tar.gz", hash = "sha256:f8aef9c52c08c13a65f30ea34f4e5aac3fd1a34959879d7e59e63027286627f2", size = 169737, upload-time = "2024-11-24T20:12:22.481Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/d0/30/dc54f88dd4a2b5dc8a0279bdd7270e735851848b762aeb1c1184ed1f6b14/tqdm-4.67.1-py3-none-any.whl", hash = "sha256:26445eca388f82e72884e0d580d5464cd801a3ea01e63e5601bdff9ba6a48de2", size = 78540, upload-time = "2024-11-24T20:12:19.698Z" },
+]
+
+[[package]]
+name = "typing-extensions"
+version = "4.15.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/72/94/1a15dd82efb362ac84269196e94cf00f187f7ed21c242792a923cdb1c61f/typing_extensions-4.15.0.tar.gz", hash = "sha256:0cea48d173cc12fa28ecabc3b837ea3cf6f38c6d1136f85cbaaf598984861466", size = 109391, upload-time = "2025-08-25T13:49:26.313Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/18/67/36e9267722cc04a6b9f15c7f3441c2363321a3ea07da7ae0c0707beb2a9c/typing_extensions-4.15.0-py3-none-any.whl", hash = "sha256:f0fa19c6845758ab08074a0cfa8b7aecb71c999ca73d62883bc25cc018c4e548", size = 44614, upload-time = "2025-08-25T13:49:24.86Z" },
 ]
 
 [[package]]
