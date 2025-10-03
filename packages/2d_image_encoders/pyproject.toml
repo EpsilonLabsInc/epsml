@@ -5,6 +5,8 @@ description = "2D image encoder models (InternVIT, DINOv3)"
 requires-python = "==3.11.13"
 dependencies = [
     "epsimaging",
+    "dinov3",
+    "internvl-chat",
     "einops==0.8.1",
     "peft==0.17.1",
     "pillow==11.3.0",
@@ -24,3 +26,5 @@ packages = ["src/2d_image_encoders"]
 [tool.uv.sources]
 torch = { index = "pytorch-cu121" }
 epsimaging = { workspace = true }
+dinov3 = { git = "ssh://git@github.com/EpsilonLabsInc/dinov3", branch = "xray-data" }
+internvl-chat = { git = "ssh://git@github.com/EpsilonLabsInc/InternVL-3x", subdirectory = "internvl_chat", tag = "v2.0.0-classifier.1" }
