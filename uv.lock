@@ -6,6 +6,7 @@ requires-python = "==3.10.12"
 members = [
     "epscloudapi",
     "epscore",
+    "epslabels",
 ]
 
 [[package]]
@@ -149,6 +150,21 @@ requires-dist = [
     { name = "numpy", specifier = ">=1.26.4" },
     { name = "pandas", specifier = ">=2.2.3" },
     { name = "scipy", specifier = ">=1.15.2" },
+    { name = "tqdm", specifier = ">=4.67.1" },
+]
+
+[[package]]
+name = "epslabels"
+version = "0.1.0"
+source = { editable = "packages/epslabels" }
+dependencies = [
+    { name = "pandas" },
+    { name = "tqdm" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "pandas", specifier = ">=2.2.3" },
     { name = "tqdm", specifier = ">=4.67.1" },
 ]
 
