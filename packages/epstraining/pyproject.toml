@@ -28,7 +28,10 @@ build-backend = "hatchling.build"
 packages = ["src/epstraining"]
 
 [tool.uv.sources]
-torch = { index = "pytorch-cu121" }
+torch = [
+    { index = "pytorch-cpu", marker = "sys_platform != 'linux'" },
+    { index = "pytorch-cu121", marker = "sys_platform == 'linux'" },
+]
 epscloudapi = { workspace = true }
 epsdatasets = { workspace = true }
 epslabels = { workspace = true }
