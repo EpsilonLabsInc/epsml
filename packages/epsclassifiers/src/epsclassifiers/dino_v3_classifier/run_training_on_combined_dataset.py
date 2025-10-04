@@ -113,27 +113,30 @@ def main(config_path):
             return len(self.df)
 
         def __getitem__(self, idx):
-            item = self.df.iloc[idx]
-            images = self.helper.get_pil_image(item)
-            if not self.multi_image_input:
-                pixel_values = self.processor(images=[images[0]], return_tensors="pt").pixel_values[0].to(torch.float16)
-            else:
-                if self.num_multi_images is not None:
-                    assert len(images) == self.num_multi_images, f"Expected {self.num_multi_images} images, got {len(images)}"
-                    pixel_values = self.processor(images=images, return_tensors="pt").pixel_values.to(torch.float16)
+            try:
+                item = self.df.iloc[idx]
+                images = self.helper.get_pil_image(item)
+                if not self.multi_image_input:
+                    pixel_values = self.processor(images=[images[0]], return_tensors="pt").pixel_values[0].to(torch.float16)
                 else:
-                    pixel_values = [
-                        self.processor(images=[img], return_tensors="pt").pixel_values[0].to(torch.float16) for img in images
-                    ]
+                    if self.num_multi_images is not None:
+                        assert len(images) == self.num_multi_images, f"Expected {self.num_multi_images} images, got {len(images)}"
+                        pixel_values = self.processor(images=images, return_tensors="pt").pixel_values.to(torch.float16)
+                    else:
+                        pixel_values = [
+                            self.processor(images=[img], return_tensors="pt").pixel_values[0].to(torch.float16) for img in images
+                        ]
 
-            label = self.helper.get_torch_label(item).to(torch.float32)
-            data = {
-                "images": pixel_values,
-                "report_texts": None,
-                "text_encodings": None,
-                "file_names": item["relative_image_paths"],
-            }
-            return data, label
+                label = self.helper.get_torch_label(item).to(torch.float32)
+                data = {
+                    "images": pixel_values,
+                    "report_texts": None,
+                    "text_encodings": None,
+                    "file_names": item["relative_image_paths"],
+                }
+                return data, label
+            except:
+                return None
 
     # Try replacing train/val datasets with preprocessed versions
     try:
