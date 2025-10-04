@@ -1,0 +1,35 @@
+[project]
+name = "epssegmentors"
+version = "0.1.0"
+description = "Segmentation models for medical imaging"
+requires-python = "==3.11.13"
+dependencies = [
+    "epsimaging",
+    "monai==1.5.1",
+    "numpy==2.3.3",
+    "opencv-python==4.11.0.86",
+    "pillow==11.3.0",
+    "pydicom==3.0.1",
+    "requests==2.32.5",
+    "torch==2.5.1",
+    "torchvision==0.20.1",
+    "torchxrayvision==1.4.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/epssegmentors"]
+
+[tool.uv.sources]
+torch = [
+    { index = "pytorch-cpu", marker = "sys_platform != 'linux'" },
+    { index = "pytorch-cu121", marker = "sys_platform == 'linux'" },
+]
+torchvision = [
+    { index = "pytorch-cpu", marker = "sys_platform != 'linux'" },
+    { index = "pytorch-cu121", marker = "sys_platform == 'linux'" },
+]
+epsimaging = { workspace = true }

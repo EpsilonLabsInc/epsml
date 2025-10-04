@@ -1,0 +1,16 @@
+[project]
+name = "epscloudapi"
+version = "0.1.0"
+description = "Cloud storage utilities for AWS S3 and GCS"
+requires-python = "==3.11.13"
+dependencies = [
+    "boto3==1.40.38",
+    "google-cloud-storage==3.4.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/epscloudapi"]
